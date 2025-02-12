@@ -1,11 +1,37 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useState } from "react";
+import { View, StyleSheet, StatusBar } from "react-native";
+
+import AuthScreen from "./src/screens/auth/AuthScreen";
+import KakaoLogin from "./src/components/auth/KakaoLogin";
+import CodeDisplayScreen from "./src/screens/CodeDisplayScreen";
 
 export default function App() {
+
+  const [authCode, setAuthCode] = useState(null);
+  const [showKakaoLogin, setShowKakaoLogin] = useState(false);
+
+  const handleCodeReceived = (code) => {
+    setAuthCode(code);
+    setShowKakaoLogin(false);
+  };
+
+  const handleKakaoLoginPress = () => {
+    setShowKakaoLogin(true);
+  };
+
+  const handleLogout = () => {
+    setAuthCode(null);
+  };
+
   return (
     <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
+      {authCode ? (
+        <CodeDisplayScreen code={authCode} onLogout={handleLogout} />
+      ) : showKakaoLogin ? (
+        <KakaoLogin onCodeReceived={handleCodeReceived} />
+      ) : (
+        <AuthScreen onKakaoLoginPress={handleKakaoLoginPress} />
+      )}
     </View>
   );
 }
@@ -13,8 +39,6 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "white",
   },
 });

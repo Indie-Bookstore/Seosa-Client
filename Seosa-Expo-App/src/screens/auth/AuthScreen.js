@@ -17,7 +17,7 @@ const AuthScreen = ({ onKakaoLoginPress, onLocalLoginPress }) => {
       <AuthHeader title="로그인/회원가입"/>
       <AuthComponent onKakaoLoginPress={onKakaoLoginPress} onLocalLoginPress={onLocalLoginPress}/>
       <View style={styles.channel}>
-        <Text style={{color:"#666666", fontSize:Dimensions.get('window').height*0.0125}}>책방지기분들은 카카오톡채널로 연락주세요!</Text>
+        <Text style={{color:"#666666", fontSize:Dimensions.get('window').height*0.0125, fontFamily:"NotoSans-Regular", fontWeight:"500"}}>책방지기분들은 카카오톡채널로 연락주세요!</Text>
       </View>
     </View>
   );

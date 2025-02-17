@@ -9,6 +9,8 @@ const AuthAlertComponent = ({ description }) => {
           color: "#F04438",
           fontSize: Dimensions.get("window").height * 0.0125,
           textAlign: "center",
+          fontFamily:"NotoSans-Regular",
+          fontWeight:"400"
         }}
       >
         {description}

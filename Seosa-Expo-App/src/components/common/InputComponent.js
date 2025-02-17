@@ -16,6 +16,8 @@ const InputComponent = ({
           marginLeft: Dimensions.get("window").width * 0.0027,
           marginBottom: Dimensions.get("window").height * 0.005,
           color: "#666666",
+          fontFamily: "NotoSans-Regular",
+          fontWeight: "500",
         }}
       >
         {title}
@@ -40,6 +42,8 @@ const InputComponent = ({
             aspectRatio: 20 / 1,
             color: color,
             fontSize: 16,
+            fontFamily: "NotoSans-Regular",
+            fontWeight: "400",
           }}
           placeholder={placeholder}
           placeholderTextColor={color}

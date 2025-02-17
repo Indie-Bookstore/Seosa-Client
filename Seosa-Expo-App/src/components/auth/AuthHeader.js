@@ -28,7 +28,8 @@ const AuthHeader = ({ title }) => {
             marginBottom: Dimensions.get("window").height * 0.03125,
             height: Dimensions.get("window").height * 0.035,
             fontSize : Dimensions.get("window").height * 0.03,
-            textAlign:"center"
+            textAlign:"center", 
+            fontFamily:"UnBatangBold"
           }}
         >
           {title}

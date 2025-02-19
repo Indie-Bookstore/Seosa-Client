@@ -1,7 +1,7 @@
 import { Dimensions, StyleSheet, View, Text } from "react-native";
 import BackButtonComponent from "../common/BackButtonComponent";
 
-const AuthHeader = ({ title }) => {
+const AuthHeader = ({ title, backOnPress }) => {
   const size = Dimensions.get("window").width * 0.067;
 
   return (
@@ -17,7 +17,7 @@ const AuthHeader = ({ title }) => {
             marginTop: Dimensions.get("window").width * 0.05,
           }}
         >
-          <BackButtonComponent width={size} height={size} />
+          <BackButtonComponent width={size} height={size} onPress={backOnPress} />
         </View>
       </View>
 

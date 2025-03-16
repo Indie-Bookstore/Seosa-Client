@@ -5,7 +5,6 @@ import {
   Dimensions,
   TouchableOpacity,
   Text,
-  Alert,
 } from "react-native";
 import { useDispatch } from 'react-redux';
 import ButtonComponent from "../common/button/ButtonComponent.js";
@@ -77,7 +76,9 @@ const AuthComponent = ({ onKakaoLoginPress, onLocalRegisterPress, navigation }) 
     }
   };
   
-  
+  const handlePasswordNav = () => {
+    navigation.navigate('PasswordReset');
+  }
   
   return (
     <View style={styles.container}>
@@ -133,7 +134,7 @@ const AuthComponent = ({ onKakaoLoginPress, onLocalRegisterPress, navigation }) 
         />
       </View>
       <View>
-        <TouchableOpacity style={styles.forgotPasswordContainer}>
+        <TouchableOpacity style={styles.forgotPasswordContainer} onPress={handlePasswordNav}>
           <Text style={styles.forgotPasswordText}>
             계정 찾기/비밀번호 재설정
           </Text>

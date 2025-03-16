@@ -1,44 +1,46 @@
-import React, { useState } from "react";
-import { View, StyleSheet, StatusBar } from "react-native";
+import React, { useState, useEffect } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import * as Font from 'expo-font';
+import { Provider } from 'react-redux';
+import { store } from './src/store/store';
 
-import AuthScreen from "./src/screens/auth/AuthScreen";
-import KakaoLogin from "./src/components/auth/KakaoLogin";
-import CodeDisplayScreen from "./src/screens/CodeDisplayScreen";
+import AuthScreen from './src/screens/auth/AuthScreen';
+import KakaoLogin from './src/components/auth/KakaoLogin';
+import SignupScreen from './src/screens/auth/SignupScreen'; // 기존 파일 사용
+import MainScreen from './src/screens/temp/MainScreen';
+import RegisterScreen from './src/screens/register/RegisterScreen';
+
+const Stack = createNativeStackNavigator();
 
 export default function App() {
+  const [fontsLoaded, setFontsLoaded] = useState(false);
 
-  const [authCode, setAuthCode] = useState(null);
-  const [showKakaoLogin, setShowKakaoLogin] = useState(false);
+  useEffect(() => {
+    async function loadFonts() {
+      await Font.loadAsync({
+        'NotoSans-Regular': require('./assets/fonts/NotoSans-Regular.ttf'),
+        'NotoSans-Bold': require('./assets/fonts/NotoSans-Bold.ttf'),
+        'NotoSans-Medium': require('./assets/fonts/NotoSans-Medium.ttf'),
+      });
+      setFontsLoaded(true);
+    }
+    loadFonts();
+  }, []);
 
-  const handleCodeReceived = (code) => {
-    setAuthCode(code);
-    setShowKakaoLogin(false);
-  };
-
-  const handleKakaoLoginPress = () => {
-    setShowKakaoLogin(true);
-  };
-
-  const handleLogout = () => {
-    setAuthCode(null);
-  };
+  if (!fontsLoaded) return null; // 폰트 로딩 완료 전에는 아무것도 렌더링하지 않음
 
   return (
-    <View style={styles.container}>
-      {authCode ? (
-        <CodeDisplayScreen code={authCode} onLogout={handleLogout} />
-      ) : showKakaoLogin ? (
-        <KakaoLogin onCodeReceived={handleCodeReceived} />
-      ) : (
-        <AuthScreen onKakaoLoginPress={handleKakaoLoginPress} />
-      )}
-    </View>
+    <Provider store={store}>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Auth" screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Auth" component={AuthScreen} />
+          <Stack.Screen name="Register" component={RegisterScreen} />
+          <Stack.Screen name="KakaoLogin" component={KakaoLogin} />
+          <Stack.Screen name="SignupScreen" component={SignupScreen} />
+          <Stack.Screen name="MainScreen" component={MainScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </Provider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "white",
-  },
-});

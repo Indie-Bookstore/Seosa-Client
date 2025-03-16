@@ -1,6 +1,6 @@
 import React from 'react';
 import { Dimensions, TouchableOpacity } from 'react-native';
-import BackArrow from '../../icons/back-arrow.svg';
+import BackArrow from '../../../icons/back-arrow.svg';
 
 const BackButtonComponent = ({ onPress }) => {
   const size = Dimensions.get('window').width * 0.067;

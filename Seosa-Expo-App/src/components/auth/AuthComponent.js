@@ -8,17 +8,17 @@ import {
   Alert,
 } from "react-native";
 import { useDispatch } from 'react-redux';
-import ButtonComponent from "../common/ButtonComponent";
-import InputComponent from "../common/InputComponent";
+import ButtonComponent from "../common/button/ButtonComponent.js";
+import InputComponent from "../common/input/InputComponent.js";
 import AuthAlertComponent from "./AuthAlertComponent";
-import PasswordInputComponent from "../common/PasswordInputComponent";
+import PasswordInputComponent from "../common/input/PasswordInputComponent.js";
 import api from "../../api/axios.js";
 import { setAccessToken, setUser } from '../../store/authSlice';
 import { setRefreshToken } from '../../utils/tokenStorage';
 
 const AuthComponent = ({ onKakaoLoginPress, onLocalRegisterPress, navigation }) => {
   
-  /* 이메일, 비밀번호, 로그인 대기(필요하지 않을 시 제거), 로그인 에러, 비밀번호 에러러 state 관리 */
+  /* 이메일, 비밀번호, 로그인 대기(필요하지 않을 시 제거), 로그인 에러, 비밀번호 에러 state 관리 */
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);

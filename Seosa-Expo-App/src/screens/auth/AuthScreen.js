@@ -30,6 +30,7 @@ const AuthScreen = ({ navigation }) => {
       <AuthComponent 
         onKakaoLoginPress={handleKakaoLoginPress} 
         onLocalRegisterPress={handleLocalRegisterPress}
+        navigation={navigation}
       />
       <View style={styles.channel}>
         <Text style={{

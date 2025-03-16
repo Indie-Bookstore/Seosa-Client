@@ -136,6 +136,7 @@ const RegisterComponent = ({ onLocalLoginPress }) => {
           value={nickname}
           required={true}
           onDuplicateCheck={handleNicknameCheck}
+          description="중복확인"
           duplicateBtnType={nickname ? "btn-green" : "btn-gray"}
         />
         <AuthAlertComponent description={nicknameError} />
@@ -147,6 +148,7 @@ const RegisterComponent = ({ onLocalLoginPress }) => {
           onChangeText={setEmail}
           value={email}
           required={true}
+          description="중복확인"
           onDuplicateCheck={handleEmailCheck}
           duplicateBtnType={email ? "btn-green" : "btn-gray"}
         />

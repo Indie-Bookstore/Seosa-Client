@@ -1,6 +1,6 @@
 import React from "react";
-import { TextInput, Text, View, Dimensions } from "react-native";
-import ShortButtonComponent from "./ShortButtonComponent";
+import { TextInput, Text, View, Dimensions, TouchableOpacity } from "react-native";
+import ShortButtonComponent from "../button/ShortButtonComponent";
 
 const ShortInputComponent = ({
   backgroundColor,
@@ -9,6 +9,9 @@ const ShortInputComponent = ({
   value,
   onChangeText,
   title,
+  onDuplicateCheck,
+  duplicateBtnType = "btn-gray",
+  required = false // 새로 추가된 필수 표시 prop
 }) => {
   return (
     <View>
@@ -22,8 +25,15 @@ const ShortInputComponent = ({
         }}
       >
         {title}
+        {required && <Text style={{color:"red"}}>*</Text>} {/* 필수 표시 조건부 렌더링 */}
       </Text>
-      <View style = {{flexDirection:"row", width:Dimensions.get('window').width * 0.9, justifyContent:"space-between"}}>
+      <View
+        style={{
+          flexDirection: "row",
+          width: Dimensions.get("window").width * 0.9,
+          justifyContent: "space-between",
+        }}
+      >
         <View
           style={{
             width: Dimensions.get("window").width * 0.638,
@@ -53,7 +63,9 @@ const ShortInputComponent = ({
             onChangeText={onChangeText}
           />
         </View>
-        <ShortButtonComponent description="중복확인" btnType="btn-gray"/>
+        <TouchableOpacity onPress={onDuplicateCheck}>
+          <ShortButtonComponent description="중복확인" btnType={duplicateBtnType} />
+        </TouchableOpacity>
       </View>
     </View>
   );

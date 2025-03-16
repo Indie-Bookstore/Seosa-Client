@@ -1,5 +1,5 @@
 import { Dimensions, StyleSheet, View, Text } from "react-native";
-import BackButtonComponent from "../common/BackButtonComponent";
+import BackButtonComponent from "../common/button/BackButtonComponent";
 
 const AuthHeader = ({ title, backOnPress }) => {
   const size = Dimensions.get("window").width * 0.067;

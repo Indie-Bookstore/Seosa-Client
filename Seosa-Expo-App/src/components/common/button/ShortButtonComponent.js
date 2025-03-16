@@ -1,8 +1,8 @@
 import React from "react";
 import { Text, TouchableOpacity, Dimensions, View } from "react-native";
-import KakaoLogo from "../../icons/kakao-logo.svg";
+import KakaoLogo from "../../../icons/kakao-logo.svg";
 
-const ButtonComponent = ({ btnType, description, onPress }) => {
+const ShortButtonComponent = ({ btnType, description, onPress }) => {
   const getButtonStyle = (type) => {
     switch (type) {
       case "btn-gray":
@@ -27,12 +27,12 @@ const ButtonComponent = ({ btnType, description, onPress }) => {
   return (
     <TouchableOpacity
       style={{
-        width: Dimensions.get("window").width * 0.9,
-        aspectRatio: 7.36 / 1,
+        width: Dimensions.get("window").width * 0.238,
+        height: Dimensions.get("window").width * 0.1167,
         backgroundColor: backgroundColor,
         justifyContent: "center",
         alignItems: "center",
-        borderRadius: 22,
+        borderRadius: 12,
         ...(border && {
           borderStyle: "solid",
           borderColor: border.color,
@@ -47,7 +47,7 @@ const ButtonComponent = ({ btnType, description, onPress }) => {
           style={{
             color: color,
             fontSize: Dimensions.get("window").height * 0.0175,
-            width: Dimensions.get("window").width * 0.72,
+            width: Dimensions.get("window").width * 0.15,
             textAlign:'center',
             fontFamily:"NotoSans-Medium",
             fontWeight:"600"
@@ -60,4 +60,4 @@ const ButtonComponent = ({ btnType, description, onPress }) => {
   );
 };
 
-export default ButtonComponent;
+export default ShortButtonComponent;

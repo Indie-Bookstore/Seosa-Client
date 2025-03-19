@@ -1,3 +1,5 @@
+// 비밀번호 input component
+
 import React, { useState } from "react";
 import { TextInput, Text, View, Dimensions, TouchableOpacity } from "react-native";
 import OpenEyeIcon from "../../../icons/open-eye.svg";
@@ -10,12 +12,14 @@ const PasswordInputComponent = ({
   value,
   onChangeText,
   title,
-  required = false // 새로 추가된 필수 표시 prop
+  required = false,
+  onFocus, // focus event 전달
+  ...props
 }) => {
   const [showPassword, setShowPassword] = useState(false);
 
   const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
+    setShowPassword(prev => !prev);
   };
 
   return (
@@ -31,7 +35,7 @@ const PasswordInputComponent = ({
           }}
         >
           {title}
-          {required && <Text style={{color:"red"}}>*</Text>} {/* 필수 표시 조건부 렌더링 */}
+          {required && <Text style={{color:"red"}}>*</Text>}
         </Text>
       )}
       <View
@@ -62,8 +66,14 @@ const PasswordInputComponent = ({
           value={value}
           onChangeText={onChangeText}
           secureTextEntry={!showPassword}
+          onFocus={onFocus}
+          {...props}
         />
-        <TouchableOpacity onPress={togglePasswordVisibility}>
+        <TouchableOpacity 
+          onPress={togglePasswordVisibility}
+          accessibilityLabel={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
+          accessibilityHint="비밀번호 가시성 전환"
+        >
           {showPassword ? (
             <OpenEyeIcon width={24} height={24} />
           ) : (

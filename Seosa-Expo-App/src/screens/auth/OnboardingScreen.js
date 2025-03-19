@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import api from '../../api/axios';
 import { setUser, setIsTemporary } from '../../store/authSlice';
 
-const SignupScreen = ({ navigation }) => {
+const OnboardingScreen = ({ navigation }) => {
   const [nickname, setNickname] = useState('');
   const [userRoleCode, setUserRoleCode] = useState('');
   const dispatch = useDispatch();
@@ -19,7 +19,7 @@ const SignupScreen = ({ navigation }) => {
       dispatch(setUser(response.data.user));
       // 추가 회원가입 완료 후 임시회원 플래그 해제
       dispatch(setIsTemporary(false));
-      navigation.navigate('MainScreen');
+      navigation.navigate('Main');
     } catch (error) {
       console.error('Signup error:', error);
       // 에러 처리 (예: 사용자에게 에러 메시지 노출)
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent:'center',
     alignItems:'center',
-    backgroundColor:'white'
+    backgroundColor:'#FFFEFB'
   },
   header: {
     fontSize: Dimensions.get('window').height * 0.03,
@@ -67,4 +67,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default SignupScreen;
+export default OnboardingScreen;

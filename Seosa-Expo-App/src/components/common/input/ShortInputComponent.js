@@ -1,11 +1,7 @@
+// 짧은 인풋 컴포넌트
+// right content를 넣어서 인증코드 유효시간 타이머 부분 추가
 import React from "react";
-import {
-  TextInput,
-  Text,
-  View,
-  Dimensions,
-  TouchableOpacity,
-} from "react-native";
+import { TextInput, Text, View, Dimensions } from "react-native";
 import ShortButtonComponent from "../button/ShortButtonComponent";
 
 const ShortInputComponent = ({
@@ -18,11 +14,12 @@ const ShortInputComponent = ({
   onDuplicateCheck,
   description,
   duplicateBtnType = "btn-gray",
-  required = false, // 새로 추가된 필수 표시 prop
+  required = false,
+  disabled = false,
+  rightContent = null
 }) => {
   return (
     <View>
-      {/* title이 있을 때만 렌더링 */}
       {title && (
         <Text
           style={{
@@ -56,6 +53,7 @@ const ShortInputComponent = ({
             borderWidth: 1,
             borderStyle: "solid",
             borderColor: "#CCCCCC",
+            position: "relative", // 추가된 스타일
           }}
         >
           <TextInput
@@ -66,19 +64,33 @@ const ShortInputComponent = ({
               fontSize: 16,
               fontFamily: "NotoSans-Regular",
               fontWeight: "400",
+              paddingRight: 60,
             }}
             placeholder={placeholder}
             placeholderTextColor={color}
             value={value}
             onChangeText={onChangeText}
           />
+          {/* 조건부 렌더링 */}
+          {rightContent && (
+            <View
+              style={{
+                position: "absolute",
+                right: 15,
+                top: "50%",
+                transform: [{ translateY: -10 }],
+              }}
+            >
+              {rightContent}
+            </View>
+          )}
         </View>
-        <TouchableOpacity onPress={onDuplicateCheck}>
-          <ShortButtonComponent
-            description={description}
-            btnType={duplicateBtnType}
-          />
-        </TouchableOpacity>
+        <ShortButtonComponent
+          description={description}
+          btnType={duplicateBtnType}
+          onPress={onDuplicateCheck}
+          disabled={disabled}
+        />
       </View>
     </View>
   );

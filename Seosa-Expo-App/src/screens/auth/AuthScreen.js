@@ -32,16 +32,6 @@ const AuthScreen = ({ navigation }) => {
         onLocalRegisterPress={handleLocalRegisterPress}
         navigation={navigation}
       />
-      <View style={styles.channel}>
-        <Text style={{
-          color: "#666666",
-          fontSize: Dimensions.get('window').height * 0.0125,
-          fontFamily: "NotoSans-Regular",
-          fontWeight: "500"
-        }}>
-          책방지기분들은 카카오톡채널로 연락주세요!
-        </Text>
-      </View>
     </View>
   );
 };
@@ -51,7 +41,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "white"
+    backgroundColor: "#FFFEFB"
   },
   channel: {
     marginBottom: Dimensions.get('window').height * 0.0925,

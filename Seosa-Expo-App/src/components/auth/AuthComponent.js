@@ -59,7 +59,7 @@ const AuthComponent = ({
       dispatch(setAccessToken(accessToken));
 
       // 로그인 성공 후 Home 화면으로 이동 (필요에 따라 수정)
-      navigation.navigate("MainScreen");
+      navigation.navigate("Main");
     } catch (error) {
       console.error("🚨 Login error:", error);
       if (error.response) {
@@ -91,7 +91,7 @@ const AuthComponent = ({
   };
 
   const handlePasswordNav = () => {
-    navigation.navigate("PasswordReset");
+    navigation.navigate("AuthCode");
   };
 
   return (

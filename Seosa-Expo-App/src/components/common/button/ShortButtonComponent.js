@@ -51,7 +51,7 @@ const ShortButtonComponent = ({
           style={{
             color: text,
             fontSize: Dimensions.get("window").height * 0.0175,
-            width: Dimensions.get("window").width * 0.15,
+            width: Dimensions.get("window").width * 0.175,
             textAlign: 'center',
             fontFamily: "NotoSans-Medium",
             fontWeight: "600",

@@ -5,7 +5,7 @@ import { View, Text, Dimensions } from "react-native";
 const AuthAlertComponent = ({ description }) => {
 
   return (
-    <View style={{ marginTop: Dimensions.get("window").height * 0.005, flexDirection:"row", justifyContent:"flex-start", width: Dimensions.get('window').width*0.9, height:Dimensions.get('window').height*0.01375}}>
+    <View style={{ marginTop: Dimensions.get("window").height * 0.005, flexDirection:"row", justifyContent:"flex-start", width: Dimensions.get('window').width*0.9, height:Dimensions.get('window').height*0.01375, marginBottom:Dimensions.get('window').height*0.01}}>
       <Text
         style={{
           color: "#F04438",

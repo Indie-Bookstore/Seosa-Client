@@ -1,3 +1,5 @@
+// 인증코드 입력 컴포넌트트
+
 import React, { useState } from "react";
 import { View, Dimensions, TouchableOpacity, StyleSheet, TextInput, Text } from "react-native";
 import InfoIcon from "./../../../icons/info.svg";

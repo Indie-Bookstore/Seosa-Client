@@ -1,3 +1,5 @@
+// error alert message 적혀 있는 빨간 글씨 component
+
 import { View, Text, Dimensions } from "react-native";
 
 const AuthAlertComponent = ({ description }) => {

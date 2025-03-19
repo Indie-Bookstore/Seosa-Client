@@ -1,3 +1,5 @@
+// 일반 input 컴포넌트트
+
 import React from "react";
 import { TextInput, Text, View, Dimensions } from "react-native";
 

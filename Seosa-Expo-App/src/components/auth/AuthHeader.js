@@ -1,3 +1,5 @@
+// 로그인/회원가입 헤더
+
 import { Dimensions, StyleSheet, View, Text } from "react-native";
 import BackButtonComponent from "../common/button/BackButtonComponent";
 

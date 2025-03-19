@@ -1,4 +1,5 @@
-// src/components/auth/KakaoLogin.js
+// src/components/auth/KakaoLogin.js 카카오로그인 웹뷰
+
 import React from 'react';
 import { View } from 'react-native';
 import { WebView } from 'react-native-webview';
@@ -32,9 +33,9 @@ const KakaoLogin = () => {
       setRefreshToken(refreshToken);
 
       if (isTemporary) {
-        navigation.navigate('SignupScreen'); // 기존의 SignupScreen으로 이동
+        navigation.navigate('Onboarding'); // 기존의 SignupScreen으로 이동
       } else {
-        navigation.navigate('MainScreen'); // 메인 화면 이동
+        navigation.navigate('Main'); // 메인 화면 이동
       }
     }
   };

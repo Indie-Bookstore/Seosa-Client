@@ -1,6 +1,7 @@
+// src/components/auth/RegisterComponent.js
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
-import axios from "axios";
+import api from "../../api/axios.js";
 import ButtonComponent from "../common/button/ButtonComponent";
 import AuthAlertComponent from "../auth/AuthAlertComponent";
 import PasswordInputComponent from "../common/input/PasswordInputComponent";
@@ -8,94 +9,156 @@ import ShortInputComponent from "../common/input/ShortInputComponent";
 import InfoInputComponent from "../common/input/InfoInputComponent";
 import PasswordInfoComponent from "../common/info/passwordInfoComponent";
 
-const BASE_URL =
-  process.env.EXPO_PUBLIC_API_BASE_URL || "http://your-backend-url.com";
-
 const RegisterComponent = ({ onLocalLoginPress }) => {
+
+  // 사용자 input 상태
   const [email, setEmail] = useState("");
   const [nickname, setNickname] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [authCode, setAuthCode] = useState("");
 
-  // 에러 상태
-  const [nicknameError, setNicknameError] = useState("");
-  const [emailError, setEmailError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-  const [codeError, setCodeError] = useState("");
-  const [generalError, setGeneralError] = useState("");
+  // 버튼 텍스트 상태
+  const [nicknameButtonText, setNicknameButtonText] = useState("중복확인");
+  const [emailButtonText, setEmailButtonText] = useState("중복확인");
+
+  // 로딩 상태
+  const [isCheckingNickname, setIsCheckingNickname] = useState(false);
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+
+  // 에러 메시지 상태
+  const [errors, setErrors] = useState({
+    nickname: "",
+    email: "",
+    password: "",
+    code: "",
+    general: "",
+  });
 
   // 검증 상태
   const [isNicknameVerified, setIsNicknameVerified] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [isPasswordVerified, setIsPasswordVerified] = useState(false);
 
-  // 비밀번호 추가 검증 상태
+  // 입력 가능 상태
+  const [canCheckNickname, setCanCheckNickname] = useState(false);
+  const [canCheckEmail, setCanCheckEmail] = useState(false);
+
+  // 비밀번호 검증 상태
   const [isLengthValid, setIsLengthValid] = useState(false);
   const [hasLetter, setHasLetter] = useState(false);
   const [hasNumber, setHasNumber] = useState(false);
   const [showPasswordInfo, setShowPasswordInfo] = useState(false);
 
-  // 닉네임 검증
-  const handleNicknameCheck = async () => {
-    if (!nickname.trim()) return;
-    try {
-      await axios.post(`${BASE_URL}/signinCheck/nicknameCheck`, { nickname });
-      setNicknameError("");
-      setIsNicknameVerified(true);
-    } catch (error) {
-      handleApiError(error, setNicknameError);
+  // 닉네임 변경 핸들러
+  const handleNicknameChange = (text) => {
+    setNickname(text);
+    if (isNicknameVerified) {
       setIsNicknameVerified(false);
+      setNicknameButtonText("중복확인");
+    }
+    setCanCheckNickname(text.trim().length >= 2);
+    // 닉네임 오류 초기화
+    setErrors((prev) => ({ ...prev, nickname: "" }));
+  };
+
+  // 이메일 변경 핸들러
+  const handleEmailChange = (text) => {
+    setEmail(text);
+    if (isEmailVerified) {
+      setIsEmailVerified(false);
+      setEmailButtonText("중복확인");
+    }
+    setCanCheckEmail(text.trim().includes("@"));
+    // 이메일 오류 초기화
+    setErrors((prev) => ({ ...prev, email: "" }));
+  };
+
+  // 닉네임 중복 확인
+  const handleNicknameCheck = async () => {
+    try {
+      setIsCheckingNickname(true);
+      await api.get(`/signinCheck/nicknameCheck`, {
+        params: { nickname },
+        skipAuth: true,
+      });
+      setErrors((prev) => ({ ...prev, nickname: "" }));
+      setIsNicknameVerified(true);
+      setNicknameButtonText("확인 완료");
+    } catch (error) {
+      handleApiError(error, "nickname");
+      setIsNicknameVerified(false);
+    } finally {
+      setIsCheckingNickname(false);
     }
   };
 
-  // 이메일 검증
+  // 이메일 중복 확인
   const handleEmailCheck = async () => {
-    if (!email.trim()) return;
     try {
-      await axios.post(`${BASE_URL}/signinCheck/emailCheck`, { email });
-      setEmailError("");
+      setIsCheckingEmail(true);
+      await api.get(`/signinCheck/emailCheck`, {
+        params: { email },
+        skipAuth: true,
+      });
+      setErrors((prev) => ({ ...prev, email: "" }));
       setIsEmailVerified(true);
+      setEmailButtonText("확인 완료");
     } catch (error) {
-      handleApiError(error, setEmailError);
+      handleApiError(error, "email");
       setIsEmailVerified(false);
+    } finally {
+      setIsCheckingEmail(false);
     }
   };
 
   // 비밀번호 검증
   useEffect(() => {
-    const validatePassword = () => {
-      // 기본 유효성 검사
-      const basicValidation =
-        password === confirmPassword && password.length >= 8;
+    const lengthValid = password.length >= 8;
+    const letterValid = /[a-zA-Z]/.test(password);
+    const numberValid = /[0-9]/.test(password);
 
-      // 추가 유효성 검사
-      const lengthValid = password.length >= 8;
-      const letterValid = /[a-zA-Z]/.test(password);
-      const numberValid = /\d/.test(password);
+    // 비밀번호, 비밀번호 확인 일치 검증증
+    const passwordsMatch = password === confirmPassword;
 
-      setIsLengthValid(lengthValid);
-      setHasLetter(letterValid);
-      setHasNumber(numberValid);
+    setIsLengthValid(lengthValid);
+    setHasLetter(letterValid);
+    setHasNumber(numberValid);
 
-      // 최종 비밀번호 검증 상태
-      setIsPasswordVerified(
-        basicValidation && lengthValid && letterValid && numberValid
-      );
-    };
+    // 비밀번호 불일치 오류 메시지 설정
+    setErrors((prev) => ({
+      ...prev,
+      password:
+        !passwordsMatch && confirmPassword.length > 0
+          ? "비밀번호가 일치하지 않습니다."
+          : "",
+    }));
 
-    if (password || confirmPassword) {
-      setShowPasswordInfo(true);
-      validatePassword();
-    } else {
-      setShowPasswordInfo(false);
-    }
+    setIsPasswordVerified(
+      lengthValid && letterValid && numberValid && passwordsMatch // 수정: 변수명 변경
+    );
   }, [password, confirmPassword]);
 
-  // 공통 에러 처리
-  const handleApiError = (error, setter) => {
-    const response = error.response?.data;
-    setter(response?.message || "서버 연결에 실패했습니다.");
+  // 전체체 API 오류 처리
+  const handleApiError = (error, field) => {
+    let errorMessage = "알 수 없는 오류가 발생했습니다.";
+
+    if (error.response?.data) {
+      const { code, message } = error.response.data;
+      errorMessage = message;
+
+      switch (code) {
+        case "DUPLICATE_NICKNAME":
+        case "DUPLICATE_EMAIL":
+          errorMessage = message;
+          break;
+        case "VALIDATION_FAILED":
+          errorMessage = message.replace(/.*\{.*?=(.*?)\}.*/, "$1");
+          break;
+      }
+    }
+
+    setErrors((prev) => ({ ...prev, [field]: errorMessage }));
   };
 
   // 회원가입 처리
@@ -103,56 +166,73 @@ const RegisterComponent = ({ onLocalLoginPress }) => {
     if (!isAllValid) return;
 
     try {
-      await axios.post(`${BASE_URL}/register`, {
-        email,
-        nickname,
-        password,
-        authCode,
-      });
+      await api.post(
+        "/register",
+        {
+          email,
+          nickname,
+          password,
+          userRoleCode: authCode || "",
+        },
+        { skipAuth: true }
+      );
+
       onLocalLoginPress();
     } catch (error) {
-      const response = error.response?.data;
-      setGeneralError(response?.message || "회원가입에 실패했습니다.");
+      handleApiError(error, "general");
     }
   };
 
-  // 최종 검증 상태
+  // 최종 검증 상태 관리
   const isAllValid =
-    isNicknameVerified &&
-    isEmailVerified &&
-    isPasswordVerified &&
-    isLengthValid &&
-    hasLetter &&
-    hasNumber;
+    isNicknameVerified && isEmailVerified && isPasswordVerified;
 
   return (
     <View style={styles.container}>
       <View style={styles.formContainer}>
-        {/* 닉네임 입력 필드 */}
+        {/* 닉네임 입력 섹션 */}
         <ShortInputComponent
           title="닉네임"
           placeholder="닉네임을 입력하세요."
-          onChangeText={setNickname}
+          onChangeText={handleNicknameChange}
           value={nickname}
-          required={true}
+          required
+          backgroundColor="white"
           onDuplicateCheck={handleNicknameCheck}
-          description="중복확인"
-          duplicateBtnType={nickname ? "btn-green" : "btn-gray"}
+          description={nicknameButtonText}
+          duplicateBtnType={
+            isNicknameVerified
+              ? "btn-gray"
+              : canCheckNickname
+              ? "btn-green"
+              : "btn-gray"
+          }
+          disabled={
+            isCheckingNickname || !canCheckNickname || isNicknameVerified
+          }
         />
-        <AuthAlertComponent description={nicknameError} />
+        <AuthAlertComponent description={errors.nickname} />
 
-        {/* 이메일 입력 필드 */}
+        {/* 이메일 입력 섹션 */}
         <ShortInputComponent
           title="이메일(아이디)"
           placeholder="abc@email.com"
-          onChangeText={setEmail}
+          onChangeText={handleEmailChange}
           value={email}
-          required={true}
-          description="중복확인"
+          required
+          description={emailButtonText}
           onDuplicateCheck={handleEmailCheck}
-          duplicateBtnType={email ? "btn-green" : "btn-gray"}
+          backgroundColor="white"
+          duplicateBtnType={
+            isEmailVerified
+              ? "btn-gray"
+              : canCheckEmail
+              ? "btn-green"
+              : "btn-gray"
+          }
+          disabled={isCheckingEmail || !canCheckEmail || isEmailVerified}
         />
-        <AuthAlertComponent description={emailError} />
+        <AuthAlertComponent description={errors.email} />
 
         {/* 비밀번호 입력 섹션 */}
         <View style={styles.passwordSection}>
@@ -162,11 +242,10 @@ const RegisterComponent = ({ onLocalLoginPress }) => {
             required={true}
             onChangeText={setPassword}
             value={password}
+            backgroundColor="white"
             onFocus={() => setShowPasswordInfo(true)}
           />
-
           <View style={styles.spacer} />
-
           {showPasswordInfo && (
             <PasswordInfoComponent
               isLengthValid={isLengthValid}
@@ -174,24 +253,24 @@ const RegisterComponent = ({ onLocalLoginPress }) => {
               hasNumber={hasNumber}
             />
           )}
-
           <PasswordInputComponent
             placeholder="비밀번호 확인"
+            backgroundColor="white"
             onChangeText={setConfirmPassword}
             value={confirmPassword}
           />
         </View>
-        <AuthAlertComponent description={passwordError} />
+        <AuthAlertComponent description={errors.password} />
 
-        {/* 인증번호 입력 필드 */}
+        {/* 인증번호 입력 */}
         <InfoInputComponent
           title="인증번호(선택)"
           placeholder="인증번호 입력"
           value={authCode}
           onChangeText={setAuthCode}
         />
-        <AuthAlertComponent description={codeError} />
-        <AuthAlertComponent description={generalError} />
+        <AuthAlertComponent description={errors.code} />
+        <AuthAlertComponent description={errors.general} />
       </View>
 
       {/* 회원가입 버튼 */}

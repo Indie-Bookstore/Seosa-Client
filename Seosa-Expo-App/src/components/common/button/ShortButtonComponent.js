@@ -4,55 +4,58 @@ import React from "react";
 import { Text, TouchableOpacity, Dimensions, View } from "react-native";
 import KakaoLogo from "../../../icons/kakao-logo.svg";
 
-const ShortButtonComponent = ({ btnType, description, onPress }) => {
+const ShortButtonComponent = ({ 
+  btnType, 
+  description, 
+  onPress, 
+  disabled = false 
+}) => {
   const getButtonStyle = (type) => {
+    if (disabled) return { bg: "#E1E1E1", text: "#888888" };
+    
     switch (type) {
-      case "btn-gray":
-        return { backgroundColor: "#E1E1E1", color: "#888888", border: null };
-      case "btn-kakao":
-        return { backgroundColor: "#FEE500", color: "#000000", border: null };
-      case "btn-green":
-        return { backgroundColor: "#487153", color: "#FFFFFF", border: null };
-      case "btn-greenbd":
-        return {
-          backgroundColor: "#FFFFFF",
-          color: "#487153",
-          border: { color: "#487153", width: 1 },
-        };
-      default:
-        return { backgroundColor: "#E1E1E1", color: "#888888", border: null };
+      case "btn-gray": return { bg: "#E1E1E1", text: "#888888" };
+      case "btn-kakao": return { bg: "#FEE500", text: "#000000" };
+      case "btn-green": return { bg: "#487153", text: "#FFFFFF" };
+      case "btn-greenbd": return { bg: "#FFFFFF", text: "#487153" };
+      default: return { bg: "#E1E1E1", text: "#888888" };
     }
   };
 
-  const { backgroundColor, color, border } = getButtonStyle(btnType);
+  const { bg, text } = getButtonStyle(btnType);
 
   return (
     <TouchableOpacity
+      onPress={onPress}
+      disabled={disabled}
+      activeOpacity={disabled ? 1 : 0.7}
       style={{
         width: Dimensions.get("window").width * 0.238,
         height: Dimensions.get("window").width * 0.1167,
-        backgroundColor: backgroundColor,
+        backgroundColor: bg,
         justifyContent: "center",
         alignItems: "center",
         borderRadius: 12,
-        ...(border && {
-          borderStyle: "solid",
-          borderColor: border.color,
-          borderWidth: border.width,
-        }),
+        opacity: disabled ? 0.6 : 1, 
+        ...(btnType === "btn-greenbd" && {
+          borderWidth: 1,
+          borderColor: "#487153"
+        })
       }}
-      onPress={onPress}
+      accessibilityRole="button"
+      pointerEvents={disabled ? "none" : "auto"}
     >
       <View style={{ flexDirection: "row", alignItems: "center" }}>
         {btnType === "btn-kakao" && <KakaoLogo />}
         <Text
           style={{
-            color: color,
+            color: text,
             fontSize: Dimensions.get("window").height * 0.0175,
             width: Dimensions.get("window").width * 0.15,
-            textAlign:'center',
-            fontFamily:"NotoSans-Medium",
-            fontWeight:"600"
+            textAlign: 'center',
+            fontFamily: "NotoSans-Medium",
+            fontWeight: "600",
+            opacity: disabled ? 0.6 : 1
           }}
         >
           {description}

@@ -6,68 +6,82 @@ import {
   TouchableOpacity,
   Text,
 } from "react-native";
-import { useDispatch } from 'react-redux';
-import ButtonComponent from "../common/button/ButtonComponent.js";
-import InputComponent from "../common/input/InputComponent.js";
+import { useDispatch } from "react-redux";
+import ButtonComponent from "../common/button/ButtonComponent";
+import InputComponent from "../common/input/InputComponent";
 import AuthAlertComponent from "./AuthAlertComponent";
-import PasswordInputComponent from "../common/input/PasswordInputComponent.js";
-import api from "../../api/axios.js";
-import { setAccessToken, setUser } from '../../store/authSlice';
-import { setRefreshToken } from '../../utils/tokenStorage';
+import PasswordInputComponent from "../common/input/PasswordInputComponent";
+import api from "../../api/axios";
+import { setAccessToken } from "../../store/authSlice";
+// expo-secure-store util 함수 (refresh token 저장)
+import { setRefreshToken as saveRefreshToken } from "../../utils/tokenStorage";
 
-const AuthComponent = ({ onKakaoLoginPress, onLocalRegisterPress, navigation }) => {
-  
-  /* 이메일, 비밀번호, 로그인 대기(필요하지 않을 시 제거), 로그인 에러, 비밀번호 에러 state 관리 */
+const AuthComponent = ({
+  onKakaoLoginPress,
+  onLocalRegisterPress,
+  navigation,
+}) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [passwordError, setPasswordError] = useState("");
 
-  // redux action dispatch
   const dispatch = useDispatch();
 
-  // email 값이 존재하고 password 길이가 8 이상일 경우만 
+  // 이메일이 비어있지 않고, 비밀번호가 8자 이상일 때 로그인 활성화
   const isLoginEnabled = email.trim() !== "" && password.length >= 8;
-  
-  // 로그인 함수
-  const onLocalLoginPress = async () => {
+
+  // 로컬 로그인 처리 함수
+  const onLocalLoginPressHandler = async () => {
     if (!isLoginEnabled || isLoading) return;
-  
+
     setIsLoading(true);
     setLoginError("");
-  
+    setPasswordError("");
+
     const request = {
-      user_email: email,
-      password: password,
+      email,
+      password,
     };
-  
-    console.log("🔹 Login Request:", request); // 요청 데이터 확인
-  
+
+    console.log("🔹 Login Request:", request);
+
     try {
-      const response = await api.post('/login', request);
-  
-      const { accessToken, refreshToken, user } = response.data;
-  
-      await setRefreshToken(refreshToken);
+      // 로그인 엔드포인트를 /local/login 으로 호출
+      const response = await api.post("/local/login", request);
+
+      const { accessToken, refreshToken } = response.data;
+
+      // Expo SecureStore에 refresh token 저장
+      await saveRefreshToken(refreshToken);
+      // Redux 스토어에 access token 저장
       dispatch(setAccessToken(accessToken));
-      dispatch(setUser(user));
-      
-      /******************** Home 화면이 현재는 없기 때문에 추후 수정 필수 ********************/
 
-      navigation.navigate('Home');
-      
+      // 로그인 성공 후 Home 화면으로 이동 (필요에 따라 수정)
+      navigation.navigate("Main");
     } catch (error) {
-
-      console.error('🚨 Login error:', error);
-      
-      /* 에러가 서버 에러인지, 아이디 에러인지, 비밀번호 에러인지 
-      error type 뭐뭐 있는지에 따라 구분 및 에러메세지 설정 필수 */
-
+      console.error("🚨 Login error:", error);
       if (error.response) {
-        setLoginError(error.response.data.message || "잘못된 요청입니다.");
+        const { code, message } = error.response.data;
+        // 백엔드에서 전달하는 에러 코드에 따라 메시지 분기 처리
+        switch (code) {
+          case "USER_NOT_FOUND":
+            setLoginError(message);
+            break;
+          case "INVALID_PASSWORD":
+            setPasswordError(message);
+            break;
+          case "VALIDATION_FAILED":
+          case "INVALID_REQUEST":
+          default:
+            setLoginError(message || "잘못된 요청입니다.");
+            break;
+        }
       } else if (error.request) {
-        setLoginError("서버에 연결할 수 없습니다. 네트워크 설정을 확인하거나 잠시 후 다시 시도해주세요.");
+        setLoginError(
+          "서버에 연결할 수 없습니다. 네트워크 설정을 확인하거나 잠시 후 다시 시도해주세요."
+        );
       } else {
         setLoginError("예상치 못한 오류가 발생했습니다.");
       }
@@ -75,11 +89,11 @@ const AuthComponent = ({ onKakaoLoginPress, onLocalRegisterPress, navigation }) 
       setIsLoading(false);
     }
   };
-  
+
   const handlePasswordNav = () => {
-    navigation.navigate('PasswordReset');
-  }
-  
+    navigation.navigate("AuthCode");
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.topContainer}>
@@ -93,34 +107,29 @@ const AuthComponent = ({ onKakaoLoginPress, onLocalRegisterPress, navigation }) 
         <View>
           <InputComponent
             title="아이디(이메일)"
-            backgroundColor="transparent"
             placeholder="abc@email.com"
+            backgroundColor="white"
             onChangeText={setEmail}
             value={email}
           />
         </View>
-        {loginError && (
-          <AuthAlertComponent description={loginError} />
-        )}
+        {loginError ? <AuthAlertComponent description={loginError} /> : null}
         <View style={styles.passwordInputContainer}>
           <PasswordInputComponent
             title="비밀번호"
-            backgroundColor="transparent"
+            backgroundColor="white"
             placeholder="8자 이상의 비밀번호"
             onChangeText={setPassword}
             value={password}
-            type={password}
             secureTextEntry
           />
         </View>
-        {passwordError && (
-          <AuthAlertComponent description={passwordError} />
-        )}
+        {passwordError ? <AuthAlertComponent description={passwordError} /> : null}
       </View>
 
       <View style={styles.loginButtonContainer}>
         <ButtonComponent
-          onPress={onLocalLoginPress}
+          onPress={onLocalLoginPressHandler}
           description={isLoading ? "로그인 중..." : "로그인"}
           btnType={isLoginEnabled && !isLoading ? "btn-green" : "btn-gray"}
           disabled={!isLoginEnabled || isLoading}
@@ -134,7 +143,10 @@ const AuthComponent = ({ onKakaoLoginPress, onLocalRegisterPress, navigation }) 
         />
       </View>
       <View>
-        <TouchableOpacity style={styles.forgotPasswordContainer} onPress={handlePasswordNav}>
+        <TouchableOpacity
+          style={styles.forgotPasswordContainer}
+          onPress={handlePasswordNav}
+        >
           <Text style={styles.forgotPasswordText}>
             계정 찾기/비밀번호 재설정
           </Text>
@@ -171,7 +183,7 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     color: "#666666",
-    fontSize: Dimensions.get("window").height * 0.0125,
+    fontSize: Dimensions.get("window").height * 0.015,
     fontFamily: "NotoSans-Regular",
     fontWeight: "400",
   },

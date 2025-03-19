@@ -11,6 +11,8 @@ import MainScreen from './src/screens/temp/MainScreen';
 import RegisterScreen from './src/screens/register/RegisterScreen';
 import AuthCodeScreen from './src/screens/auth/AuthCodeScreen';
 import OnboardingScreen from './src/screens/auth/OnboardingScreen';
+import PasswordResetScreen from './src/screens/auth/PasswordResetScreen';
+import ResetDoneScreen from './src/screens/auth/ResetDoneScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -37,6 +39,8 @@ export default function App() {
         <Stack.Navigator initialRouteName="Auth" screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Auth" component={AuthScreen} />
           <Stack.Screen name="AuthCode" component={AuthCodeScreen} />
+          <Stack.Screen name="PasswordReset" component={PasswordResetScreen} />
+          <Stack.Screen name="ResetDone" component={ResetDoneScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
           <Stack.Screen name="KakaoLogin" component={KakaoLogin} />
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />

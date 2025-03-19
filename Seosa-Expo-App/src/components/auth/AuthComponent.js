@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     color: "#666666",
-    fontSize: Dimensions.get("window").height * 0.0125,
+    fontSize: Dimensions.get("window").height * 0.015,
     fontFamily: "NotoSans-Regular",
     fontWeight: "400",
   },

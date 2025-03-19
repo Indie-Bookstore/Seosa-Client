@@ -48,7 +48,7 @@ const ButtonComponent = ({ btnType, description, onPress }) => {
         <Text
           style={{
             color: color,
-            fontSize: Dimensions.get("window").height * 0.0175,
+            fontSize: Dimensions.get("window").height * 0.018,
             width: Dimensions.get("window").width * 0.72,
             textAlign:'center',
             fontFamily:"NotoSans-Medium",

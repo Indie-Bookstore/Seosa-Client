@@ -11,8 +11,7 @@ import api from "../../api/axios";
 const STATUSBAR_HEIGHT =
   Platform.OS === "ios" ? Constants.statusBarHeight : StatusBar.currentHeight;
 
-const AuthCodeScreen = () => {
-  const accessToken = useSelector((state) => state.auth.accessToken);
+const AuthCodeScreen = ({navigation}) => {
   
   // 타이머 상태
   const [timer, setTimer] = useState(0);
@@ -65,9 +64,7 @@ const AuthCodeScreen = () => {
     }
 
     try {
-      const response = await api.get(`/user/sendVerificationCode?email=${email}`, {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      });
+      const response = await api.get(`/user/sendVerificationCode?email=${email}`);
       setSendCodeMessage(response.data.message);
       setIsCodeSent(true);
       setTimer(300); // 타이머 시작
@@ -83,6 +80,7 @@ const AuthCodeScreen = () => {
     }
   };
 
+  /* 
   const handleCheckVerificationCode = async () => {
     setCheckCodeMessage("");
     setCheckCodeError("");
@@ -94,8 +92,7 @@ const AuthCodeScreen = () => {
 
     try {
       const response = await api.get(
-        `/user/checkVerificationCode?verificationCode=${verificationCode}`,
-        { headers: { Authorization: `Bearer ${accessToken}` } }
+        `/user/checkVerificationCode?verificationCode=${verificationCode}`}
       );
       setCheckCodeMessage(response.data.message);
     } catch (error) {
@@ -107,6 +104,11 @@ const AuthCodeScreen = () => {
       }
     }
   };
+  */
+
+  const handleCheckVerificationCode = () => {
+    navigation.navigate('PasswordReset');
+  }
 
   // 시간 포맷팅 함수
   const formatTime = (seconds) => {

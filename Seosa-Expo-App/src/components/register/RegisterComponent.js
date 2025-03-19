@@ -118,7 +118,7 @@ const RegisterComponent = ({ onLocalLoginPress }) => {
     const letterValid = /[a-zA-Z]/.test(password);
     const numberValid = /[0-9]/.test(password);
 
-    // 비밀번호, 비밀번호 확인 일치 검증증
+    // 비밀번호, 비밀번호 확인 일치 검증
     const passwordsMatch = password === confirmPassword;
 
     setIsLengthValid(lengthValid);

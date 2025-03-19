@@ -1,13 +1,6 @@
 // 짧은 인풋 컴포넌트
-
 import React from "react";
-import {
-  TextInput,
-  Text,
-  View,
-  Dimensions,
-  TouchableOpacity,
-} from "react-native";
+import { TextInput, Text, View, Dimensions } from "react-native";
 import ShortButtonComponent from "../button/ShortButtonComponent";
 
 const ShortInputComponent = ({
@@ -20,11 +13,11 @@ const ShortInputComponent = ({
   onDuplicateCheck,
   description,
   duplicateBtnType = "btn-gray",
-  required = false, // 새로 추가된 필수 표시 prop
+  required = false,
+  disabled = false
 }) => {
   return (
     <View>
-      {/* title이 있을 때만 렌더링 */}
       {title && (
         <Text
           style={{
@@ -75,12 +68,12 @@ const ShortInputComponent = ({
             onChangeText={onChangeText}
           />
         </View>
-        <TouchableOpacity onPress={onDuplicateCheck}>
-          <ShortButtonComponent
-            description={description}
-            btnType={duplicateBtnType}
-          />
-        </TouchableOpacity>
+        <ShortButtonComponent
+          description={description}
+          btnType={duplicateBtnType}
+          onPress={onDuplicateCheck}
+          disabled={disabled}
+        />
       </View>
     </View>
   );

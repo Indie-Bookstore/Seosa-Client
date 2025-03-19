@@ -19,7 +19,7 @@ const OnboardingScreen = ({ navigation }) => {
       dispatch(setUser(response.data.user));
       // 추가 회원가입 완료 후 임시회원 플래그 해제
       dispatch(setIsTemporary(false));
-      navigation.navigate('MainScreen');
+      navigation.navigate('Main');
     } catch (error) {
       console.error('Signup error:', error);
       // 에러 처리 (예: 사용자에게 에러 메시지 노출)

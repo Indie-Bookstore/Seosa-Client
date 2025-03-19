@@ -33,9 +33,9 @@ const KakaoLogin = () => {
       setRefreshToken(refreshToken);
 
       if (isTemporary) {
-        navigation.navigate('SignupScreen'); // 기존의 SignupScreen으로 이동
+        navigation.navigate('Onboarding'); // 기존의 SignupScreen으로 이동
       } else {
-        navigation.navigate('MainScreen'); // 메인 화면 이동
+        navigation.navigate('Main'); // 메인 화면 이동
       }
     }
   };

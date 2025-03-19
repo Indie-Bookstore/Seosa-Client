@@ -1,3 +1,5 @@
+// password 규칙 노란박스 컴포넌트
+
 import { StyleSheet, Dimensions, View, Text } from "react-native";
 const { width, height } = Dimensions.get('window');
 import CorrectIcon from "../../../icons/correct.svg";

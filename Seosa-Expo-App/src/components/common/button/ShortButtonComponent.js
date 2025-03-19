@@ -1,3 +1,5 @@
+// 짧은 버튼 색상별
+
 import React from "react";
 import { Text, TouchableOpacity, Dimensions, View } from "react-native";
 import KakaoLogo from "../../../icons/kakao-logo.svg";

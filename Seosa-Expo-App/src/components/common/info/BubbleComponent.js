@@ -1,3 +1,4 @@
+// 말풍선
 import React from 'react';
 import { View, Dimensions, Text, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';

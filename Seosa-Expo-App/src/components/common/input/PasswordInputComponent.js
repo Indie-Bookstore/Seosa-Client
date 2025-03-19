@@ -1,3 +1,5 @@
+// 비밀번호 input component
+
 import React, { useState } from "react";
 import { TextInput, Text, View, Dimensions, TouchableOpacity } from "react-native";
 import OpenEyeIcon from "../../../icons/open-eye.svg";

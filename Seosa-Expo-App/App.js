@@ -7,10 +7,12 @@ import { store } from './src/store/store';
 
 import AuthScreen from './src/screens/auth/AuthScreen';
 import KakaoLogin from './src/components/auth/KakaoLogin';
-import SignupScreen from './src/screens/auth/SignupScreen'; // 기존 파일 사용
 import MainScreen from './src/screens/temp/MainScreen';
 import RegisterScreen from './src/screens/register/RegisterScreen';
+import AuthCodeScreen from './src/screens/auth/AuthCodeScreen';
+import OnboardingScreen from './src/screens/auth/OnboardingScreen';
 import PasswordResetScreen from './src/screens/auth/PasswordResetScreen';
+import ResetDoneScreen from './src/screens/auth/ResetDoneScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -36,11 +38,13 @@ export default function App() {
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Auth" screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Auth" component={AuthScreen} />
+          <Stack.Screen name="AuthCode" component={AuthCodeScreen} />
           <Stack.Screen name="PasswordReset" component={PasswordResetScreen} />
+          <Stack.Screen name="ResetDone" component={ResetDoneScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
           <Stack.Screen name="KakaoLogin" component={KakaoLogin} />
-          <Stack.Screen name="SignupScreen" component={SignupScreen} />
-          <Stack.Screen name="MainScreen" component={MainScreen} />
+          <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+          <Stack.Screen name="Main" component={MainScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

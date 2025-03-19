@@ -1,3 +1,5 @@
+// Auth header 뒤로가기 화살표 버튼
+
 import React from 'react';
 import { Dimensions, TouchableOpacity } from 'react-native';
 import BackArrow from '../../../icons/back-arrow.svg';

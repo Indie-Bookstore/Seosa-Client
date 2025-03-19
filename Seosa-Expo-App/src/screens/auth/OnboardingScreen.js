@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import api from '../../api/axios';
 import { setUser, setIsTemporary } from '../../store/authSlice';
 
-const SignupScreen = ({ navigation }) => {
+const OnboardingScreen = ({ navigation }) => {
   const [nickname, setNickname] = useState('');
   const [userRoleCode, setUserRoleCode] = useState('');
   const dispatch = useDispatch();
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent:'center',
     alignItems:'center',
-    backgroundColor:'white'
+    backgroundColor:'#FFFEFB'
   },
   header: {
     fontSize: Dimensions.get('window').height * 0.03,
@@ -67,4 +67,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default SignupScreen;
+export default OnboardingScreen;

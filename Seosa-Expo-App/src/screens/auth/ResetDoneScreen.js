@@ -3,6 +3,7 @@ import AuthHeader from "../../components/auth/AuthHeader";
 import { StatusBar } from "expo-status-bar";
 import Constants from "expo-constants";
 import ButtonComponent from "../../components/common/button/ButtonComponent";
+import { CommonActions } from '@react-navigation/native';
 
 
 const STATUSBAR_HEIGHT =
@@ -11,7 +12,12 @@ const STATUSBAR_HEIGHT =
 const ResetDoneScreen = ({ navigation }) => {
 
    const handleLogin = () => {
-      navigation.navigate("Auth");
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: 'Auth' }],
+      })
+    );
    }
 
    const getCurrentDate = () => {

@@ -15,6 +15,7 @@ import PasswordInfoComponent from "../../components/common/info/passwordInfoComp
 import ButtonComponent from "../../components/common/button/ButtonComponent";
 import AuthAlertComponent from "../../components/auth/AuthAlertComponent";
 import api from "../../api/axios";
+import codegenNativeCommands from "react-native/Libraries/Utilities/codegenNativeCommands";
 
 const STATUSBAR_HEIGHT =
   Platform.OS === "ios" ? Constants.statusBarHeight : StatusBar.currentHeight;
@@ -36,6 +37,7 @@ const PasswordResetScreen = ({ navigation }) => {
 
   // 비밀번호 유효성 검사
   useEffect(() => {
+    
     const lengthValid = password.length >= 8;
     const letterValid = /[a-zA-Z]/.test(password);
     const numberValid = /[0-9]/.test(password);
@@ -82,9 +84,14 @@ const PasswordResetScreen = ({ navigation }) => {
     }
   };
   */
+
   const handlePasswordReset = () => {
     navigation.navigate('ResetDone');
   };
+
+  const handleBack = () => {
+    navigation.goBack();
+  }
 
   // API 오류 처리
   const handleApiError = (error) => {
@@ -108,10 +115,11 @@ const PasswordResetScreen = ({ navigation }) => {
     setErrors((prev) => ({ ...prev, general: errorMessage }));
   };
 
+
   return (
     <View style={styles.screen}>
       <View style={{ height: STATUSBAR_HEIGHT }} />
-      <AuthHeader title="비밀번호 재설정" />
+      <AuthHeader title="비밀번호 재설정" backOnPress={handleBack}/>
 
       <View style={styles.pwcontainer}>
         <PasswordInputComponent

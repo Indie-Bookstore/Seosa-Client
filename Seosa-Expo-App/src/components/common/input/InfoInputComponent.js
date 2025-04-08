@@ -1,4 +1,4 @@
-// 인증코드 입력 컴포넌트트
+// 인증코드 입력 컴포넌트
 
 import React, { useState } from "react";
 import { View, Dimensions, TouchableOpacity, StyleSheet, TextInput, Text } from "react-native";

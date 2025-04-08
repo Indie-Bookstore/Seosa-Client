@@ -13,6 +13,10 @@ import AuthCodeScreen from './src/screens/auth/AuthCodeScreen';
 import OnboardingScreen from './src/screens/auth/OnboardingScreen';
 import PasswordResetScreen from './src/screens/auth/PasswordResetScreen';
 import ResetDoneScreen from './src/screens/auth/ResetDoneScreen';
+import MySpaceScreen from './src/screens/myspace/MySpaceScreen';
+import FaqScreen from './src/screens/faq/FaqScreen';
+import AdminMySpaceScreen from './src/screens/admin/AdminMySpaceScreen';
+import EditProfileScreen from './src/screens/myspace/EditProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -45,6 +49,10 @@ export default function App() {
           <Stack.Screen name="KakaoLogin" component={KakaoLogin} />
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />
           <Stack.Screen name="Main" component={MainScreen} />
+          <Stack.Screen name="MySpace" component={MySpaceScreen} />
+          <Stack.Screen name="FAQ" component={FaqScreen} />
+          <Stack.Screen name="AdminSpace" component={AdminMySpaceScreen} />
+          <Stack.Screen name="EditProfile" component={EditProfileScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

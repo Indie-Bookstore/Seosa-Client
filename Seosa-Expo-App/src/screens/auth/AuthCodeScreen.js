@@ -110,6 +110,10 @@ const AuthCodeScreen = ({navigation}) => {
     navigation.navigate('PasswordReset');
   }
 
+  const handleBack = () => {
+    navigation.goBack();
+  }
+
   // 시간 포맷팅 함수
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -120,7 +124,7 @@ const AuthCodeScreen = ({navigation}) => {
   return (
     <View style={styles.screen}>
       <View style={{ height: STATUSBAR_HEIGHT }} />
-      <AuthHeader title="비밀번호 재설정" />
+      <AuthHeader title="비밀번호 재설정" backOnPress={handleBack}/>
       <View style={styles.pwcontainer}>
         {/* 이메일 입력 부분 */}
         <ShortInputComponent

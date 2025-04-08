@@ -139,7 +139,7 @@ const RegisterComponent = ({ onLocalLoginPress }) => {
     );
   }, [password, confirmPassword]);
 
-  // 전체체 API 오류 처리
+  // 전체 API 오류 처리
   const handleApiError = (error, field) => {
     let errorMessage = "알 수 없는 오류가 발생했습니다.";
 

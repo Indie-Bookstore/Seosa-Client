@@ -26,6 +26,8 @@
     },
     "plugins": [
       "expo-secure-store"
-    ]
+    ],
+    "scheme": "newvalance",
+    "platforms": ["ios", "android", "web"]
   }
 }

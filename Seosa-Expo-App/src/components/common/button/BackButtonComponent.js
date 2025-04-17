@@ -1,15 +1,17 @@
-// Auth header 뒤로가기 화살표 버튼
-
 import React from 'react';
 import { Dimensions, TouchableOpacity } from 'react-native';
 import BackArrow from '../../../icons/back-arrow.svg';
+import BackArrowWhite from '../../../icons/back-arrow-white.svg';
 
-const BackButtonComponent = ({ onPress }) => {
+const BackButtonComponent = ({ onPress, theme = 'white' }) => {
   const size = Dimensions.get('window').width * 0.067;
+  const isGreen = theme === 'green';
+
+  const IconComponent = isGreen ? BackArrowWhite : BackArrow;
 
   return (
     <TouchableOpacity onPress={onPress} style={{ width: size, height: size }}>
-      <BackArrow width={size} height={size} />
+      <IconComponent width={size} height={size} />
     </TouchableOpacity>
   );
 };

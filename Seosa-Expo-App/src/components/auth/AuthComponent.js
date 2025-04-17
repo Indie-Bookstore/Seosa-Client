@@ -24,79 +24,74 @@ const AuthComponent = ({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [loginError, setLoginError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-  const [showPasswordInfo, setShowPasswordInfo] = useState(false);
+  const [loginError, setLoginError] = useState(""); // 로그인 관련 알림 (에러/성공)
+  const [passwordError, setPasswordError] = useState(""); // 비밀번호 관련 에러
 
   const dispatch = useDispatch();
 
   // 이메일이 비어있지 않고, 비밀번호가 8자 이상일 때 로그인 활성화
   const isLoginEnabled = email.trim() !== "" && password.length >= 8;
 
-  // 로컬 로그인 처리 함수
-  // const onLocalLoginPressHandler = async () => {
-  //   if (!isLoginEnabled || isLoading) return;
+  const onLocalLoginPressHandler = async () => {
+    if (!isLoginEnabled || isLoading) return;
 
-  //   setIsLoading(true);
-  //   setLoginError("");
-  //   setPasswordError("");
+    setIsLoading(true);
+    setLoginError("");
+    setPasswordError("");
 
-  //   const request = {
-  //     email,
-  //     password,
-  //   };
+    const request = {
+      email,
+      password,
+    };
 
-  //   console.log("🔹 Login Request:", request);
+    console.log("🔹 Login Request:", request);
 
-  //   try {
-  //     // 로그인 엔드포인트를 /local/login 으로 호출
-  //     const response = await api.post("/local/login", request);
+    try {
+      // 로그인 엔드포인트 호출
+      const response = await api.post("/local/login", request);
 
-  //     const { accessToken, refreshToken } = response.data;
+      const { accessToken, refreshToken } = response.data;
 
-  //     // Expo SecureStore에 refresh token 저장
-  //     await saveRefreshToken(refreshToken);
-  //     // Redux 스토어에 access token 저장
-  //     dispatch(setAccessToken(accessToken));
+      // Expo SecureStore에 refresh token 저장
+      await saveRefreshToken(refreshToken);
+      // Redux 스토어에 access token 저장
+      dispatch(setAccessToken(accessToken));
 
-  //     // 로그인 성공 후 Home 화면으로 이동 (필요에 따라 수정)
-  //     navigation.navigate("Main");
-  //   } catch (error) {
-  //     console.error("🚨 Login error:", error);
-  //     if (error.response) {
-  //       const { code, message } = error.response.data;
-  //       // 백엔드에서 전달하는 에러 코드에 따라 메시지 분기 처리
-  //       switch (code) {
-  //         case "USER_NOT_FOUND":
-  //           setLoginError(message);
-  //           break;
-  //         case "INVALID_PASSWORD":
-  //           setPasswordError(message);
-  //           break;
-  //         case "VALIDATION_FAILED":
-  //         case "INVALID_REQUEST":
-  //         default:
-  //           setLoginError(message || "잘못된 요청입니다.");
-  //           break;
-  //       }
-  //     } else if (error.request) {
-  //       setLoginError(
-  //         "서버에 연결할 수 없습니다. 네트워크 설정을 확인하거나 잠시 후 다시 시도해주세요."
-  //       );
-  //     } else {
-  //       setLoginError("예상치 못한 오류가 발생했습니다.");
-  //     }
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
+      // 로그인 성공 메시지 설정 (녹색)
+      setLoginError("로그인에 성공했습니다!");
 
-  const onLocalLoginPressHandler = () => {
-    navigation.navigate("Main");
-  }
-
-  const handlePasswordNav = () => {
-    navigation.navigate("AuthCode");
+      // 로그인 성공 후 스택 초기화 및 Main 화면으로 이동
+    navigation.reset({
+      index: 0, // 활성화할 경로의 인덱스
+      routes: [{ name: "Main" }], // 이동할 경로 설정
+    });
+    } catch (error) {
+      console.error("🚨 Login error:", error);
+      if (error.response) {
+        const { code, message } = error.response.data;
+        switch (code) {
+          case "USER_NOT_FOUND":
+            setLoginError("존재하지 않는 이메일입니다.");
+            break;
+          case "INVALID_PASSWORD":
+            setPasswordError("잘못된 비밀번호입니다.");
+            break;
+          case "VALIDATION_FAILED":
+          case "INVALID_REQUEST":
+          default:
+            setLoginError(message || "잘못된 요청입니다.");
+            break;
+        }
+      } else if (error.request) {
+        setLoginError(
+          "서버에 연결할 수 없습니다. 네트워크 설정을 확인하거나 잠시 후 다시 시도해주세요."
+        );
+      } else {
+        setLoginError("예상치 못한 오류가 발생했습니다.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -118,7 +113,14 @@ const AuthComponent = ({
             value={email}
           />
         </View>
-        {loginError ? <AuthAlertComponent description={loginError} /> : null}
+        {/* 이메일 관련 알림 */}
+        {loginError ? (
+          <AuthAlertComponent
+            description={loginError}
+            isError={!loginError.includes("성공")}
+          />
+        ) : null}
+
         <View style={styles.passwordInputContainer}>
           <PasswordInputComponent
             title="비밀번호"
@@ -126,10 +128,12 @@ const AuthComponent = ({
             placeholder="8자 이상의 비밀번호"
             onChangeText={setPassword}
             value={password}
-            onFocus={() => setShowPasswordInfo(true)}
           />
         </View>
-        {passwordError ? <AuthAlertComponent description={passwordError} /> : null}
+        {/* 비밀번호 관련 알림 */}
+        {passwordError ? (
+          <AuthAlertComponent description={passwordError} isError={true} />
+        ) : null}
       </View>
 
       <View style={styles.loginButtonContainer}>
@@ -147,19 +151,10 @@ const AuthComponent = ({
           description="이메일로 회원가입하기"
         />
       </View>
-      <View>
-        <TouchableOpacity
-          style={styles.forgotPasswordContainer}
-          onPress={handlePasswordNav}
-        >
-          <Text style={styles.forgotPasswordText}>
-            계정 찾기/비밀번호 재설정
-          </Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {

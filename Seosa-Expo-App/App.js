@@ -17,6 +17,7 @@ import MySpaceScreen from './src/screens/myspace/MySpaceScreen';
 import FaqScreen from './src/screens/faq/FaqScreen';
 import AdminMySpaceScreen from './src/screens/admin/AdminMySpaceScreen';
 import EditProfileScreen from './src/screens/myspace/EditProfileScreen';
+import PostScreen from './src/screens/post/PostScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -53,6 +54,7 @@ export default function App() {
           <Stack.Screen name="FAQ" component={FaqScreen} />
           <Stack.Screen name="AdminSpace" component={AdminMySpaceScreen} />
           <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+          <Stack.Screen name="Post" component={PostScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

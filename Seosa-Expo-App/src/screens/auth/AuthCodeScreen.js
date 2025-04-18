@@ -4,7 +4,7 @@ import AuthHeader from "../../components/auth/AuthHeader";
 import { StatusBar } from "expo-status-bar";
 import Constants from "expo-constants";
 import ShortInputComponent from "../../components/common/input/ShortInputComponent";
-import AuthAlertComponent from "../../components/auth/AuthAlertComponent";
+import AlertComponent from "../../components/auth/AlertComponent";
 import { useSelector } from "react-redux";
 import api from "../../api/axios";
 
@@ -138,9 +138,9 @@ const AuthCodeScreen = ({navigation}) => {
         />
 
         {sendCodeError ? (
-          <AuthAlertComponent description={sendCodeError} />
+          <AlertComponent description={sendCodeError} />
         ) : sendCodeMessage ? (
-          <AuthAlertComponent description={sendCodeMessage} />
+          <AlertComponent description={sendCodeMessage} />
         ) : <View style={styles.space}/>}
 
         {/* 인증번호 입력 부분 (변경 부분) */}
@@ -165,9 +165,9 @@ const AuthCodeScreen = ({navigation}) => {
         />
 
         {checkCodeError ? (
-          <AuthAlertComponent description={checkCodeError} />
+          <AlertComponent description={checkCodeError} />
         ) : checkCodeMessage ? (
-          <AuthAlertComponent description={checkCodeMessage} />
+          <AlertComponent description={checkCodeMessage} />
         ) : null}
       </View>
     </View>

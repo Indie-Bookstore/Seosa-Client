@@ -1,6 +1,8 @@
+// input 컴포넌트 하단 alert 컴포넌트
+
 import { View, Text, Dimensions } from "react-native";
 
-const AuthAlertComponent = ({ description, isError }) => {
+const AlertComponent = ({ description, isError }) => {
   return (
     <View
       style={{
@@ -27,4 +29,4 @@ const AuthAlertComponent = ({ description, isError }) => {
   );
 };
 
-export default AuthAlertComponent;
+export default AlertComponent;

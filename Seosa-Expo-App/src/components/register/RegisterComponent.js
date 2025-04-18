@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
 import api from "../../api/axios.js";
 import ButtonComponent from "../common/button/ButtonComponent";
-import AuthAlertComponent from "../auth/AuthAlertComponent";
+import AlertComponent from "../auth/AlertComponent";
 import PasswordInputComponent from "../common/input/PasswordInputComponent";
 import ShortInputComponent from "../common/input/ShortInputComponent";
 import InfoInputComponent from "../common/input/InfoInputComponent";
@@ -215,7 +215,7 @@ const RegisterComponent = ({ onLocalLoginPress }) => {
             isCheckingNickname || !canCheckNickname || isNicknameVerified
           }
         />
-        <AuthAlertComponent
+        <AlertComponent
           description={errors.nickname}
           isError={!isNicknameVerified || errors.nickname.includes("중복")}
         />
@@ -239,7 +239,7 @@ const RegisterComponent = ({ onLocalLoginPress }) => {
           }
           disabled={isCheckingEmail || !canCheckEmail || isEmailVerified}
         />
-        <AuthAlertComponent
+        <AlertComponent
           description={errors.email}
           isError={!isEmailVerified || errors.email.includes("중복")}
         />
@@ -270,7 +270,7 @@ const RegisterComponent = ({ onLocalLoginPress }) => {
             value={confirmPassword}
           />
         </View>
-        <AuthAlertComponent description={errors.password} />
+        <AlertComponent description={errors.password} />
 
         {/* 인증번호 입력 */}
         <InfoInputComponent
@@ -279,8 +279,8 @@ const RegisterComponent = ({ onLocalLoginPress }) => {
           value={authCode}
           onChangeText={setAuthCode}
         />
-        <AuthAlertComponent description={errors.code} />
-        <AuthAlertComponent description={errors.general} />
+        <AlertComponent description={errors.code} />
+        <AlertComponent description={errors.general} />
       </View>
 
       {/* 회원가입 버튼 */}

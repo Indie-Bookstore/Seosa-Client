@@ -9,7 +9,7 @@ import {
 import { useDispatch } from "react-redux";
 import ButtonComponent from "../common/button/ButtonComponent";
 import InputComponent from "../common/input/InputComponent";
-import AuthAlertComponent from "./AuthAlertComponent";
+import AlertComponent from "./AlertComponent";
 import PasswordInputComponent from "../common/input/PasswordInputComponent";
 import api from "../../api/axios";
 import { setAccessToken } from "../../store/authSlice";
@@ -115,7 +115,7 @@ const AuthComponent = ({
         </View>
         {/* 이메일 관련 알림 */}
         {loginError ? (
-          <AuthAlertComponent
+          <AlertComponent
             description={loginError}
             isError={!loginError.includes("성공")}
           />
@@ -132,7 +132,7 @@ const AuthComponent = ({
         </View>
         {/* 비밀번호 관련 알림 */}
         {passwordError ? (
-          <AuthAlertComponent description={passwordError} isError={true} />
+          <AlertComponent description={passwordError} isError={true} />
         ) : null}
       </View>
 

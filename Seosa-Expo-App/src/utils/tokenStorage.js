@@ -1,4 +1,4 @@
-// Expo SecureStore로 refresh token 저장, 조회, 삭제하는 util 함수수
+// Expo SecureStore로 refresh token 저장, 조회, 삭제하는 util 함수
 
 import * as SecureStore from 'expo-secure-store';
 

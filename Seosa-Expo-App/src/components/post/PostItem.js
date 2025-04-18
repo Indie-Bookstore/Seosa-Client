@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
   StyleSheet,
   Dimensions,
-  TouchableOpacity,
+  
 } from "react-native";
 import ExamplePhoto from "../../icons/examplephoto.svg";
 

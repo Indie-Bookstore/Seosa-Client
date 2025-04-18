@@ -4,7 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import Radio from "../../icons/radio.svg";
 import RadioSelected from "../../icons/radio-selected.svg";
 
-// 💡 3개씩 그룹화하는 함수 + 빈 자리 채우기
+// 3개씩 그룹화하는 함수 + 빈 자리 채우기
 const chunkArrayWithPlaceholder = (arr, size) => {
   if (!arr || arr.length === 0) return [];
 
@@ -23,7 +23,7 @@ const chunkArrayWithPlaceholder = (arr, size) => {
 };
 
 const PostList = ({ posts, isEditing, selectedPosts, setSelectedPosts }) => {
-  // 🔹 최신 posts를 정렬한 후 3개씩 그룹화 (빈 아이템 포함)
+  // 최신 posts를 정렬한 후 3개씩 그룹화 (빈 아이템 포함)
   const chunkedPosts = useMemo(() => {
     if (!posts) return [];
     const sortedPosts = [...posts].sort((a, b) => a.id - b.id);

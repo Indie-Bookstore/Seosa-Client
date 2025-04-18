@@ -5,8 +5,7 @@ import { View, Text, StyleSheet, Dimensions } from "react-native";
 const { width, height } = Dimensions.get("window");
 
 const PostTitle = ({ title, date }) => {
-  const iconSize = width * 0.067;
-
+  
   return (
     <View style={styles.titlecontainer}>
       <Text style={styles.title}>{title}</Text>

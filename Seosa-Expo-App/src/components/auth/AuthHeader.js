@@ -7,7 +7,7 @@ const AuthHeader = ({ title, backOnPress, theme = "white" }) => {
   const isGreen = theme === "green";
   const backgroundColor = isGreen ? "#487153" : "#FFFFFF";
   const textColor = isGreen ? "#FFFFFF" : "#000000";
-  const backIcon = isGreen ? "back-arrow-white" : "back-arrow";
+
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
@@ -26,7 +26,7 @@ const AuthHeader = ({ title, backOnPress, theme = "white" }) => {
             width={size}
             height={size}
             onPress={backOnPress}
-            theme={theme} // <-- 아이콘 명 변경
+            theme={theme}
           />
         </View>
       </View>
@@ -40,7 +40,7 @@ const AuthHeader = ({ title, backOnPress, theme = "white" }) => {
             fontSize: Dimensions.get("window").height * 0.03,
             textAlign: "center",
             fontFamily: "UnBatangBold",
-            color: textColor, // <-- 글씨 색
+            color: textColor,
           }}
         >
           {title}

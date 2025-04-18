@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
+import React from "react";
+import { View, Text, StyleSheet, Dimensions } from "react-native";
 import ProfileIcon from "../../icons/profile.svg";
 
 const { width, height } = Dimensions.get("window");

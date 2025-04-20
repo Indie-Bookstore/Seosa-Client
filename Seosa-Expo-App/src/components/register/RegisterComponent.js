@@ -3,14 +3,13 @@ import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
 import api from "../../api/axios.js";
 import ButtonComponent from "../common/button/ButtonComponent";
-import AuthAlertComponent from "../auth/AuthAlertComponent";
+import AlertComponent from "../auth/AlertComponent";
 import PasswordInputComponent from "../common/input/PasswordInputComponent";
 import ShortInputComponent from "../common/input/ShortInputComponent";
 import InfoInputComponent from "../common/input/InfoInputComponent";
 import PasswordInfoComponent from "../common/info/passwordInfoComponent";
 
 const RegisterComponent = ({ onLocalLoginPress }) => {
-
   // 사용자 input 상태
   const [email, setEmail] = useState("");
   const [nickname, setNickname] = useState("");
@@ -78,13 +77,14 @@ const RegisterComponent = ({ onLocalLoginPress }) => {
   const handleNicknameCheck = async () => {
     try {
       setIsCheckingNickname(true);
-      await api.get(`/signinCheck/nicknameCheck`, {
+      await api.get(`/user/checkNickname`, {
         params: { nickname },
         skipAuth: true,
       });
-      setErrors((prev) => ({ ...prev, nickname: "" }));
+      setErrors((prev) => ({ ...prev, nickname: "사용 가능한 닉네임입니다." })); // 성공 메시지 설정
       setIsNicknameVerified(true);
       setNicknameButtonText("확인 완료");
+      alert("사용 가능한 닉네임입니다."); // alert 표시
     } catch (error) {
       handleApiError(error, "nickname");
       setIsNicknameVerified(false);
@@ -97,13 +97,14 @@ const RegisterComponent = ({ onLocalLoginPress }) => {
   const handleEmailCheck = async () => {
     try {
       setIsCheckingEmail(true);
-      await api.get(`/signinCheck/emailCheck`, {
+      await api.get(`/user/checkEmail`, {
         params: { email },
         skipAuth: true,
       });
-      setErrors((prev) => ({ ...prev, email: "" }));
+      setErrors((prev) => ({ ...prev, email: "사용 가능한 이메일입니다." })); // 성공 메시지 설정
       setIsEmailVerified(true);
       setEmailButtonText("확인 완료");
+      alert("사용 가능한 이메일입니다."); // alert 표시
     } catch (error) {
       handleApiError(error, "email");
       setIsEmailVerified(false);
@@ -161,27 +162,30 @@ const RegisterComponent = ({ onLocalLoginPress }) => {
     setErrors((prev) => ({ ...prev, [field]: errorMessage }));
   };
 
-  // 회원가입 처리
   const handleRegister = async () => {
     if (!isAllValid) return;
-
+  
     try {
-      await api.post(
-        "/register",
+      const response = await api.post(
+        "/local/signup",
         {
           email,
           nickname,
           password,
           userRoleCode: authCode || "",
+          profileImg: "",
         },
         { skipAuth: true }
       );
-
-      onLocalLoginPress();
+  
+      // 성공 메시지 표시
+      alert(response.data.message || "회원가입이 완료되었습니다.");
+      onLocalLoginPress(); // 로그인 화면으로 이동 또는 로그인 처리
     } catch (error) {
       handleApiError(error, "general");
     }
   };
+  
 
   // 최종 검증 상태 관리
   const isAllValid =
@@ -211,7 +215,10 @@ const RegisterComponent = ({ onLocalLoginPress }) => {
             isCheckingNickname || !canCheckNickname || isNicknameVerified
           }
         />
-        <AuthAlertComponent description={errors.nickname} />
+        <AlertComponent
+          description={errors.nickname}
+          isError={!isNicknameVerified || errors.nickname.includes("중복")}
+        />
 
         {/* 이메일 입력 섹션 */}
         <ShortInputComponent
@@ -232,7 +239,10 @@ const RegisterComponent = ({ onLocalLoginPress }) => {
           }
           disabled={isCheckingEmail || !canCheckEmail || isEmailVerified}
         />
-        <AuthAlertComponent description={errors.email} />
+        <AlertComponent
+          description={errors.email}
+          isError={!isEmailVerified || errors.email.includes("중복")}
+        />
 
         {/* 비밀번호 입력 섹션 */}
         <View style={styles.passwordSection}>
@@ -260,7 +270,7 @@ const RegisterComponent = ({ onLocalLoginPress }) => {
             value={confirmPassword}
           />
         </View>
-        <AuthAlertComponent description={errors.password} />
+        <AlertComponent description={errors.password} />
 
         {/* 인증번호 입력 */}
         <InfoInputComponent
@@ -269,8 +279,8 @@ const RegisterComponent = ({ onLocalLoginPress }) => {
           value={authCode}
           onChangeText={setAuthCode}
         />
-        <AuthAlertComponent description={errors.code} />
-        <AuthAlertComponent description={errors.general} />
+        <AlertComponent description={errors.code} />
+        <AlertComponent description={errors.general} />
       </View>
 
       {/* 회원가입 버튼 */}

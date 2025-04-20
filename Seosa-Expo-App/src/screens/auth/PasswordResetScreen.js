@@ -4,8 +4,7 @@ import {
   Platform,
   StyleSheet,
   Dimensions,
-  Text,
-  Alert,
+
 } from "react-native";
 import AuthHeader from "../../components/auth/AuthHeader";
 import { StatusBar } from "expo-status-bar";
@@ -13,7 +12,7 @@ import Constants from "expo-constants";
 import PasswordInputComponent from "../../components/common/input/PasswordInputComponent";
 import PasswordInfoComponent from "../../components/common/info/passwordInfoComponent";
 import ButtonComponent from "../../components/common/button/ButtonComponent";
-import AuthAlertComponent from "../../components/auth/AuthAlertComponent";
+import AlertComponent from "../../components/auth/AlertComponent";
 import api from "../../api/axios";
 import codegenNativeCommands from "react-native/Libraries/Utilities/codegenNativeCommands";
 
@@ -148,9 +147,9 @@ const PasswordResetScreen = ({ navigation }) => {
         />
 
         {errors.password && (
-          <AuthAlertComponent description={errors.password} />
+          <AlertComponent description={errors.password} />
         )}
-        {errors.general && <AuthAlertComponent description={errors.general} />}
+        {errors.general && <AlertComponent description={errors.general} />}
       </View>
       <View style={styles.buttonContainer}>
         <ButtonComponent

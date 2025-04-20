@@ -16,11 +16,15 @@ const RegisterScreen = ({navigation}) => {
     navigation.goBack();
   }
 
+  const onLocalLoginPress = () => {
+    navigation.navigate('Auth');
+  }
+
   return (
     <View style={styles.container}>
       <View style={{height :STATUSBAR_HEIGHT }}/>
       <AuthHeader title="이메일로 회원가입하기" backOnPress={handleBack}/>
-      <RegisterComponent />
+      <RegisterComponent onLocalLoginPress={onLocalLoginPress} />
     </View>
   );
 };

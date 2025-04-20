@@ -6,7 +6,7 @@ import Constants from "expo-constants";
 import AuthHeader from "../../components/auth/AuthHeader";
 import EditBtn from "../../icons/edit-yellow.svg";
 import ShortInputComponent from "../../components/common/input/ShortInputComponent";
-import AuthAlertComponent from "../../components/auth/AuthAlertComponent";
+import AlertComponent from "../../components/auth/AlertComponent";
 import ButtonComponent from "../../components/common/button/ButtonComponent";
 import AlbumIcon from "../../icons/album.svg";
 import CameraIcon from "../../icons/camera.svg";
@@ -68,7 +68,7 @@ const EditProfileScreen = ({ navigation }) => {
       {/* 입력 필드 & 경고 메시지 */}
       <View style={styles.formContainer}>
         <ShortInputComponent title="닉네임" placeholder="닉네임을 입력하세요." description="중복확인" onChangeText="확인완료"/>
-        <AuthAlertComponent description="에러메세지 예시" />
+        <AlertComponent description="에러메세지 예시" />
       </View>
 
       {/* 하단 버튼 */}

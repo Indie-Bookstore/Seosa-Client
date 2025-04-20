@@ -11,10 +11,14 @@ const Footer = ({ navigation }) => {
       navigation.navigate('MySpace');
    } 
 
+   const handlePostList = () => {
+      navigation.navigate('Post');
+   }
+
    return (
       <View style={styles.container}>
          <View style={styles.navcon}>
-            <TouchableOpacity style={styles.btnc}>
+            <TouchableOpacity style={styles.btnc} onPress={handlePostList}>
                <BookNav width={size} height={size}/>
                <Text style={styles.des}>글모음</Text>
             </TouchableOpacity>

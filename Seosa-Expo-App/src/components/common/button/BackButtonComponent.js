@@ -1,3 +1,5 @@
+// 뒤로가기 버튼 컴포넌트
+
 import React from 'react';
 import { Dimensions, TouchableOpacity } from 'react-native';
 import BackArrow from '../../../icons/back-arrow.svg';

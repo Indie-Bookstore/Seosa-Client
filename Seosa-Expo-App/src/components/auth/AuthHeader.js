@@ -1,3 +1,5 @@
+// 헤더 컴포넌트 (AuthHeader지만 다른 화면에서 사용되기도 함 나중에 통합 리팩토링 예정)
+
 import { Dimensions, StyleSheet, View, Text } from "react-native";
 import BackButtonComponent from "../common/button/BackButtonComponent";
 

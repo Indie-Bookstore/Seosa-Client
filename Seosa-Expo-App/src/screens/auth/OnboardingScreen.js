@@ -1,4 +1,6 @@
 // src/screens/auth/SignupScreen.js
+// (삭제될 화면)
+
 import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, Text, Dimensions } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';

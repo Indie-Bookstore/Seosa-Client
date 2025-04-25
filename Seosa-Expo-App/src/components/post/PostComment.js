@@ -1,3 +1,5 @@
+// 방문후기 댓글 목록
+
 import React, { useState } from "react";
 import { View, Text, StyleSheet, Dimensions, TouchableOpacity, TextInput } from "react-native";
 import BookmarkIcon from "../../icons/bookmark_green.svg";

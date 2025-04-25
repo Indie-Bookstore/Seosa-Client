@@ -1,10 +1,10 @@
+// Auth Screen 메인 컴포넌트
+
 import React, { useState } from "react";
 import {
   View,
   StyleSheet,
   Dimensions,
-  TouchableOpacity,
-  Text,
 } from "react-native";
 import { useDispatch } from "react-redux";
 import ButtonComponent from "../common/button/ButtonComponent";

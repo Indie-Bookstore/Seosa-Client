@@ -1,3 +1,5 @@
+// 글 헤더 
+
 import React, { useState } from "react";
 import { View, Text, StyleSheet, Dimensions, TouchableOpacity, Alert } from "react-native";
 import BackButtonComponent from "../common/button/BackButtonComponent";

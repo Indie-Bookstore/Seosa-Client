@@ -1,4 +1,6 @@
 // src/api/api.js
+// api 요청 통합 파일
+
 import axios from 'axios';
 import { getRefreshToken, setRefreshToken, removeRefreshToken } from '../utils/tokenStorage';
 import { store } from '../store/store';

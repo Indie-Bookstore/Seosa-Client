@@ -1,3 +1,5 @@
+// 관리자 나의공간 페이지
+
 import React, { useState } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import { StatusBar } from "expo-status-bar";

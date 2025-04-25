@@ -1,4 +1,4 @@
-// src/components/auth/KakaoLogin.js 카카오로그인 웹뷰
+// src/components/auth/KakaoLogin.js 카카오로그인 웹뷰 (삭제예정)
 
 import React from 'react';
 import { View } from 'react-native';

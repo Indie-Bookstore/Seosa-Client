@@ -1,3 +1,5 @@
+// 나의 공간 관리자용 헤더
+
 import React, { useState } from "react";
 import {
   View,

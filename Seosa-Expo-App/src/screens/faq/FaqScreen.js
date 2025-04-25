@@ -1,3 +1,5 @@
+// FAQ 화면
+
 import React from 'react';
 import { View, StyleSheet, Platform, Text, Dimensions } from 'react-native';
 import AuthHeader from '../../components/auth/AuthHeader';

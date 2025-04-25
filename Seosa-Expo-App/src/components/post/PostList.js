@@ -1,3 +1,5 @@
+// 글목록 컴포넌트
+
 import React, { useMemo } from "react";
 import { Image, Text, StyleSheet, Dimensions, View, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";

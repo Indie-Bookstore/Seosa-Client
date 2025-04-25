@@ -1,3 +1,5 @@
+// 글 상세 화면
+
 import React, { useEffect, useState } from "react";
 import { View, ScrollView, Platform, StyleSheet } from "react-native";
 import { StatusBar } from "expo-status-bar";
@@ -9,7 +11,7 @@ import PostInfo from "../../components/post/PostInfo";
 import PostEditor from "../../components/post/PostEditor";
 import PostItem from "../../components/post/PostItem";
 import PostComment from "../../components/post/PostComment";
-// import api from "../../api/axios.js"; // 🔸 주석 처리
+// import api from "../../api/axios.js";
 
 const dummyPost = {
   postId: 2,

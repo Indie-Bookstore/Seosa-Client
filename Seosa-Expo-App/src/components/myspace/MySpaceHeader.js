@@ -1,3 +1,5 @@
+// 나의 공간 일반 사용자 헤더
+
 import React, { useState } from "react";
 import {
   View,

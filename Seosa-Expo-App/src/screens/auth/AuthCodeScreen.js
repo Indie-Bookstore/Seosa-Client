@@ -1,3 +1,5 @@
+// 비밀번호 변경 시 인증코드발급 화면
+
 import React, { useState, useEffect } from "react";
 import { View, Platform, StyleSheet, Dimensions, Text } from "react-native"; // Text 추가
 import AuthHeader from "../../components/auth/AuthHeader";

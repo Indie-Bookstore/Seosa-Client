@@ -1,3 +1,5 @@
+// 나의공간 화면
+
 import React, { useState } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import { StatusBar } from "expo-status-bar";
@@ -18,7 +20,6 @@ const MySpaceScreen = ({ navigation }) => {
       {/* 상태바 높이 적용 */}
       <View style={{ height: STATUSBAR_HEIGHT }} />
       
-      {/* 헤더 (탭 상태 변경을 위한 setSelectedTab 전달) */}
       <MySpaceHeader selectedTab={selectedTab} setSelectedTab={setSelectedTab} navigation={navigation} />
 
       {/* 선택된 탭에 따라 렌더링할 콘텐츠 변경 */}
@@ -40,7 +41,7 @@ const styles = StyleSheet.create({
     backgroundColor : "#FFFEFB"
   },
   content: {
-    flex: 1, // 푸터를 바닥에 붙이기 위해 중간 콘텐츠 공간 확보
+    flex: 1,
     width: '100%', 
   },
   footer: {

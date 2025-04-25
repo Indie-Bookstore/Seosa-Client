@@ -1,3 +1,5 @@
+// 푸터
+
 import { View, Dimensions, TouchableOpacity, StyleSheet, TextInput, Text } from "react-native";
 import HomaNav from "../../../icons/home.svg";
 import BookNav from "../../../icons/book.svg";

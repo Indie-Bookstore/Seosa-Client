@@ -1,3 +1,5 @@
+// 나의 공간 관리자용 글목록
+
 import React, { useState } from "react";
 import { View, StyleSheet, Dimensions, Text, Alert } from "react-native";
 import SmallButtonComponent from "../common/button/SmallButtonComponent";

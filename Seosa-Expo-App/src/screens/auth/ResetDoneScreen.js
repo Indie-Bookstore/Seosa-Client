@@ -1,3 +1,5 @@
+// 비밀번호 리셋 완료 화면
+
 import { View, Platform, StyleSheet, Dimensions, Text } from "react-native";
 import AuthHeader from "../../components/auth/AuthHeader";
 import { StatusBar } from "expo-status-bar";

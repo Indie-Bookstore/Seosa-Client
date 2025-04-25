@@ -1,3 +1,5 @@
+// 프로필 변경 화면
+
 import React, { useState } from "react";
 import { View, StyleSheet, Platform, Dimensions, TouchableOpacity, Image } from "react-native";
 import { StatusBar } from "expo-status-bar";

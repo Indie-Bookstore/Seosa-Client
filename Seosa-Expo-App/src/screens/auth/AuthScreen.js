@@ -1,4 +1,6 @@
 // src/screens/auth/AuthScreen.js
+// 통합 로그인 화면
+
 import React from 'react';
 import { View, StyleSheet, Platform, Text, Dimensions } from 'react-native';
 import AuthComponent from '../../components/auth/AuthComponent';

@@ -1,3 +1,5 @@
+// 비밀번호 리셋 화면
+
 import React, { useState, useEffect } from "react";
 import {
   View,

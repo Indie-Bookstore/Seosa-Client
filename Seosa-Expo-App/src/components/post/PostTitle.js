@@ -1,3 +1,5 @@
+// 글 타이틀 컴포넌트
+
 import React from "react";
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 

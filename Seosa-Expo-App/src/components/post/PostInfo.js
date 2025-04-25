@@ -1,3 +1,5 @@
+// 서점 정보 컴포넌트
+
 import React from "react";
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import LocationIcon from "../../icons/location.svg";

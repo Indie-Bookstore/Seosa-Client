@@ -1,3 +1,5 @@
+// 작성자
+
 import React from "react";
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import ProfileIcon from "../../icons/profile.svg";

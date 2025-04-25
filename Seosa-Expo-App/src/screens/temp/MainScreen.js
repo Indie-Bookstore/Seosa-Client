@@ -1,4 +1,6 @@
 // src/screens/MainScreen.js
+// 메인화면
+
 import React from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { StatusBar } from "expo-status-bar";

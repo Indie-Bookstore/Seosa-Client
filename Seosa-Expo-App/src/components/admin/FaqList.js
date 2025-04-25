@@ -1,3 +1,5 @@
+// FAQ List 컴포넌트
+
 import React, { useState } from "react";
 import { View, StyleSheet, Dimensions, Text, TouchableOpacity } from "react-native";
 import ToggleUp from "../../icons/toggle-up.svg";

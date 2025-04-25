@@ -1,4 +1,6 @@
 // src/components/auth/RegisterComponent.js
+// 회원가입 컴포넌트
+
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
 import api from "../../api/axios.js";

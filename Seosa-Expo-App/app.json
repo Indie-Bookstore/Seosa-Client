@@ -7,27 +7,54 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#FFFBEA",
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#1A1A1A"
+          }
+        }
+      ],
+      "expo-secure-store"
+    ],
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#FFFBEA"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yourcompany.seosa",
+      "buildNumber": "1.0.0"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      }
+        "backgroundColor": "#FFFBEA"
+      },
+      "package": "com.yourcompany.seosa",
+      "versionCode": 1,
+      "permissions": []
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "build": {
+        "babel": {
+          "include": ["react-native-vector-icons"]
+        }
+      }
     },
-    "plugins": [
-      "expo-secure-store"
-    ],
     "scheme": "newvalance",
-    "platforms": ["ios", "android", "web"]
+    "platforms": ["ios", "android", "web"],
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id-here"
+      }
+    }
   }
 }

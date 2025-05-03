@@ -1,47 +1,91 @@
-import React, { useState, useEffect } from 'react';
+import { enableScreens } from 'react-native-screens';
+enableScreens();
+
+import React, { useState, useEffect, useRef } from 'react';
+import { Animated, StyleSheet } from 'react-native';
+import * as Font from 'expo-font';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import * as Font from 'expo-font';
 import { Provider } from 'react-redux';
 import { store } from './src/store/store';
 
+import SplashScreen from './src/screens/home/SplashScreen';
+import HomeScreen from './src/screens/home/HomeScreen';
 import AuthScreen from './src/screens/auth/AuthScreen';
-import KakaoLogin from './src/components/auth/KakaoLogin';
-import MainScreen from './src/screens/temp/MainScreen';
-import RegisterScreen from './src/screens/register/RegisterScreen';
 import AuthCodeScreen from './src/screens/auth/AuthCodeScreen';
-import OnboardingScreen from './src/screens/auth/OnboardingScreen';
 import PasswordResetScreen from './src/screens/auth/PasswordResetScreen';
 import ResetDoneScreen from './src/screens/auth/ResetDoneScreen';
+import RegisterScreen from './src/screens/register/RegisterScreen';
+import KakaoLogin from './src/components/auth/KakaoLogin';
+import OnboardingScreen from './src/screens/auth/OnboardingScreen';
+import MainScreen from './src/screens/temp/MainScreen';
 import MySpaceScreen from './src/screens/myspace/MySpaceScreen';
 import FaqScreen from './src/screens/faq/FaqScreen';
 import AdminMySpaceScreen from './src/screens/admin/AdminMySpaceScreen';
 import EditProfileScreen from './src/screens/myspace/EditProfileScreen';
 import PostScreen from './src/screens/post/PostScreen';
+import PrivacyPolicyScreen from './src/screens/home/PrivacyPolicyScreen';
+import TermsofUseScreen from './src/screens/home/TermsofUseScreen';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [timerElapsed, setTimerElapsed] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
+  // 폰트 로딩 & 2초 타이머
   useEffect(() => {
-    async function loadFonts() {
-      await Font.loadAsync({
-        'NotoSans-Regular': require('./assets/fonts/NotoSans-Regular.ttf'),
-        'NotoSans-Bold': require('./assets/fonts/NotoSans-Bold.ttf'),
-        'NotoSans-Medium': require('./assets/fonts/NotoSans-Medium.ttf'),
-      });
-      setFontsLoaded(true);
-    }
+    let isMounted = true;
+    const timer = setTimeout(() => {
+      if (isMounted) setTimerElapsed(true);
+    }, 2000);
+
+    const loadFonts = async () => {
+      try {
+        await Font.loadAsync({
+          'NotoSans-Regular': require('./assets/fonts/NotoSans-Regular.ttf'),
+          'NotoSans-Bold': require('./assets/fonts/NotoSans-Bold.ttf'),
+          'NotoSans-Medium': require('./assets/fonts/NotoSans-Medium.ttf'),
+        });
+        if (isMounted) setFontsLoaded(true);
+      } catch (error) {
+        console.error('폰트 로딩 오류:', error);
+      }
+    };
+
     loadFonts();
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
   }, []);
 
-  if (!fontsLoaded) return null; // 폰트 로딩 완료 전에는 아무것도 렌더링하지 않음
+  // 페이드 아웃 처리
+  useEffect(() => {
+    if (fontsLoaded && timerElapsed) {
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 500, // 0.5초 동안 페이드 아웃
+        useNativeDriver: true,
+      }).start(() => setShowSplash(false));
+    }
+  }, [fontsLoaded, timerElapsed]);
 
   return (
     <Provider store={store}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Auth" screenOptions={{ headerShown: false }}>
+        <Stack.Navigator
+          initialRouteName="Home"
+          screenOptions={{
+            headerShown: false,
+            animation: 'fade',
+            gestureEnabled: true
+          }}
+        >
+          <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Auth" component={AuthScreen} />
           <Stack.Screen name="AuthCode" component={AuthCodeScreen} />
           <Stack.Screen name="PasswordReset" component={PasswordResetScreen} />
@@ -55,7 +99,20 @@ export default function App() {
           <Stack.Screen name="AdminSpace" component={AdminMySpaceScreen} />
           <Stack.Screen name="EditProfile" component={EditProfileScreen} />
           <Stack.Screen name="Post" component={PostScreen} />
+          <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+          <Stack.Screen name="TermsofUse" component={TermsofUseScreen} />
         </Stack.Navigator>
+        {showSplash && (
+          <Animated.View
+            pointerEvents="box-none"
+            style={[
+              StyleSheet.absoluteFill,
+              { zIndex: 100, opacity: fadeAnim }
+            ]}
+          >
+            <SplashScreen />
+          </Animated.View>
+        )}
       </NavigationContainer>
     </Provider>
   );

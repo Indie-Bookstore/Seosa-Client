@@ -1,14 +1,12 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Dimensions, Text, Alert } from "react-native";
+import { View, StyleSheet, Dimensions, Text, Alert, ScrollView } from "react-native";
 import SmallButtonComponent from "../common/button/SmallButtonComponent";
 import PostList from "../post/PostList";
 
 const MyCommentList = () => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [selectedPosts, setSelectedPosts] = useState([]);
 
-  const [isEditing, setIsEditing] = useState(false); // 편집 모드 여부
-  const [selectedPosts, setSelectedPosts] = useState([]); // 선택된 post ID 배열
-
-  // 북마크 리스트 (더미 데이터)
   const [bookmarks, setBookmarks] = useState([
     { id: 1, title: "가나다라마바사아자차카파타하", image: require("../../icons/thumbnail.jpg") },
     { id: 2, title: "ABCDEFG", image: require("../../icons/thumbnail.jpg") },
@@ -26,13 +24,11 @@ const MyCommentList = () => {
     { id: 14, title: "New Data", image: require("../../icons/thumbnail.jpg") },
   ]);
 
-  // 편집 버튼 클릭 시 토글
   const toggleEditMode = () => {
     setIsEditing(!isEditing);
-    setSelectedPosts([]); // 편집 모드 종료 시 선택 목록 초기화
+    setSelectedPosts([]);
   };
 
-  // 선택된 post 삭제 (Alert 추가)
   const deleteSelectedPosts = () => {
     if (selectedPosts.length === 0) {
       Alert.alert("알림", "삭제할 항목을 선택하세요.");
@@ -52,9 +48,7 @@ const MyCommentList = () => {
           style: "destructive",
           onPress: () => {
             const updatedBookmarks = bookmarks.filter((post) => !selectedPosts.includes(post.id));
-            console.log("삭제 후 업데이트될 bookmarks:", updatedBookmarks);
-
-            setBookmarks([...updatedBookmarks]); // 변경 감지 강제
+            setBookmarks([...updatedBookmarks]);
             setSelectedPosts([]);
             setIsEditing(false);
           },
@@ -63,9 +57,12 @@ const MyCommentList = () => {
     );
   };
 
+  const width = Dimensions.get("window").width;
+  const height = Dimensions.get("window").height;
+  const FOOTER_HEIGHT = height * 0.07; // 푸터 높이 (기존 Footer 높이와 동일하게 조정)
+
   return (
     <View style={styles.container}>
-      {/* 헤더 */}
       <View style={styles.bookmarkHeader}>
         <Text style={styles.headertitle}>방문 후기</Text>
         <SmallButtonComponent
@@ -75,13 +72,19 @@ const MyCommentList = () => {
         />
       </View>
 
-      {/* PostList 컴포넌트 사용 (편집 모드 및 선택 기능 추가) */}
-      <PostList
-        posts={bookmarks}
-        isEditing={isEditing}
-        selectedPosts={selectedPosts}
-        setSelectedPosts={setSelectedPosts}
-      />
+      {/* 리스트에만 스크롤 적용, paddingBottom 추가, 스크롤바 숨김 */}
+      <ScrollView
+        style={styles.scrollContainer}
+        contentContainerStyle={{ paddingBottom: FOOTER_HEIGHT }}
+        showsVerticalScrollIndicator={false}
+      >
+        <PostList
+          posts={bookmarks}
+          isEditing={isEditing}
+          selectedPosts={selectedPosts}
+          setSelectedPosts={setSelectedPosts}
+        />
+      </ScrollView>
     </View>
   );
 };
@@ -105,6 +108,10 @@ const styles = StyleSheet.create({
     fontSize: height * 0.02625,
     color: "#888888",
     fontWeight: "500",
+  },
+  scrollContainer: {
+    width: width * 0.9,
+    flex: 1,
   },
 });
 

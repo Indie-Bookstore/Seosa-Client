@@ -26,6 +26,7 @@ import EditProfileScreen from './src/screens/myspace/EditProfileScreen';
 import PostScreen from './src/screens/post/PostScreen';
 import PrivacyPolicyScreen from './src/screens/home/PrivacyPolicyScreen';
 import TermsofUseScreen from './src/screens/home/TermsofUseScreen';
+import PostGalleryScreen from './src/screens/post/PostGalleryScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -101,6 +102,7 @@ export default function App() {
           <Stack.Screen name="Post" component={PostScreen} />
           <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
           <Stack.Screen name="TermsofUse" component={TermsofUseScreen} />
+          <Stack.Screen name="gallery" component={PostGalleryScreen} />
         </Stack.Navigator>
         {showSplash && (
           <Animated.View

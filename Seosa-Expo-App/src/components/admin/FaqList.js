@@ -5,6 +5,7 @@ import { View, StyleSheet, Dimensions, Text, TouchableOpacity } from "react-nati
 import ToggleUp from "../../icons/toggle-up.svg";
 import ToggleDown from "../../icons/toggle-down.svg";
 
+// faq 임시 더미데이터
 const faqData = [
   { id: 1, question: "책방지기인데, 어떻게 인증번호를 받나요?", answer: "카카오톡 채널로 연락주시면 인증번호를 보내드립니다!" },
   { id: 2, question: "책방지기인데, 어떻게 인증번호를 받나요?", answer: "카카오톡 채널로 연락주시면 인증번호를 보내드립니다!" },

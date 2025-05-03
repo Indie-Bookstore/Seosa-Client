@@ -10,20 +10,10 @@ const AuthHeader = ({ title, backOnPress, theme = "white" }) => {
   const backgroundColor = isGreen ? "#487153" : "#FFFFFF";
   const textColor = isGreen ? "#FFFFFF" : "#000000";
 
-
   return (
     <View style={[styles.container, { backgroundColor }]}>
-      <View
-        style={{
-          width: Dimensions.get("window").width * 0.9,
-          height: Dimensions.get("window").height * 0.07,
-        }}
-      >
-        <View
-          style={{
-            marginTop: Dimensions.get("window").width * 0.05,
-          }}
-        >
+      <View style={styles.header}>
+        <View style={styles.margin}>
           <BackButtonComponent
             width={size}
             height={size}
@@ -33,20 +23,8 @@ const AuthHeader = ({ title, backOnPress, theme = "white" }) => {
         </View>
       </View>
 
-      <View style={{ flexDirection: "row", justifyContent: "flex-start", width: Dimensions.get("window").width * 0.9 }}>
-        <Text
-          style={{
-            marginTop: Dimensions.get("window").height * 0.03125,
-            marginBottom: Dimensions.get("window").height * 0.03125,
-            height: Dimensions.get("window").height * 0.035,
-            fontSize: Dimensions.get("window").height * 0.03,
-            textAlign: "center",
-            fontFamily: "UnBatangBold",
-            color: textColor,
-          }}
-        >
-          {title}
-        </Text>
+      <View style={styles.titlebox}>
+        <Text style={[styles.titletext, color=textColor]}>{title}</Text>
       </View>
     </View>
   );
@@ -60,5 +38,25 @@ const styles = StyleSheet.create({
     height: Dimensions.get("window").height * 0.1675,
     justifyContent: "center",
     alignItems: "center",
+  },
+  header: {
+    width: Dimensions.get("window").width * 0.9,
+    height: Dimensions.get("window").height * 0.07,
+  },
+  margin: {
+    marginTop: Dimensions.get("window").width * 0.05,
+  },
+  titlebox: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    width: Dimensions.get("window").width * 0.9,
+  },
+  titletext: {
+    marginTop: Dimensions.get("window").height * 0.03125,
+    marginBottom: Dimensions.get("window").height * 0.03125,
+    height: Dimensions.get("window").height * 0.035,
+    fontSize: Dimensions.get("window").height * 0.03,
+    textAlign: "center",
+    fontFamily: "UnBatangBold",
   },
 });

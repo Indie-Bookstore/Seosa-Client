@@ -49,7 +49,7 @@
         }
       }
     },
-    "scheme": "newvalance",
+    "scheme": "seosa",
     "platforms": ["ios", "android", "web"],
     "extra": {
       "eas": {

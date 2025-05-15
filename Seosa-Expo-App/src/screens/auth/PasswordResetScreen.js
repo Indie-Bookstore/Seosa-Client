@@ -16,7 +16,6 @@ import PasswordInfoComponent from "../../components/common/info/passwordInfoComp
 import ButtonComponent from "../../components/common/button/ButtonComponent";
 import AlertComponent from "../../components/auth/AlertComponent";
 import api from "../../api/axios";
-import codegenNativeCommands from "react-native/Libraries/Utilities/codegenNativeCommands";
 
 const STATUSBAR_HEIGHT =
   Platform.OS === "ios" ? Constants.statusBarHeight : StatusBar.currentHeight;

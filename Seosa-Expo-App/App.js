@@ -15,7 +15,6 @@ import AuthCodeScreen from './src/screens/auth/AuthCodeScreen';
 import PasswordResetScreen from './src/screens/auth/PasswordResetScreen';
 import ResetDoneScreen from './src/screens/auth/ResetDoneScreen';
 import RegisterScreen from './src/screens/register/RegisterScreen';
-import KakaoLogin from './src/components/auth/KakaoLogin';
 import OnboardingScreen from './src/screens/auth/OnboardingScreen';
 import MainScreen from './src/screens/temp/MainScreen';
 import MySpaceScreen from './src/screens/myspace/MySpaceScreen';
@@ -74,7 +73,6 @@ export default function App() {
           <Stack.Screen name="PasswordReset" component={PasswordResetScreen} />
           <Stack.Screen name="ResetDone" component={ResetDoneScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
-          <Stack.Screen name="KakaoLogin" component={KakaoLogin} />
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />
           <Stack.Screen name="Main" component={MainScreen} />
           <Stack.Screen name="MySpace" component={MySpaceScreen} />

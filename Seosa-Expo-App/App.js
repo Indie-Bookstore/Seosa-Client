@@ -1,12 +1,11 @@
-import { enableScreens } from 'react-native-screens';
-enableScreens();
-
+// App.js
 import React, { useState, useEffect, useRef } from 'react';
 import { Animated, StyleSheet } from 'react-native';
 import * as Font from 'expo-font';
+import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Provider } from 'react-redux';
+
 import { store } from './src/store/store';
 
 import SplashScreen from './src/screens/home/SplashScreen';
@@ -38,40 +37,27 @@ export default function App() {
 
   // 폰트 로딩 & 2초 타이머
   useEffect(() => {
-    let isMounted = true;
-    const timer = setTimeout(() => {
-      if (isMounted) setTimerElapsed(true);
-    }, 2000);
+    let mounted = true;
+    const timer = setTimeout(() => mounted && setTimerElapsed(true), 2000);
 
-    const loadFonts = async () => {
-      try {
-        await Font.loadAsync({
-          'NotoSans-Regular': require('./assets/fonts/NotoSans-Regular.ttf'),
-          'NotoSans-Bold': require('./assets/fonts/NotoSans-Bold.ttf'),
-          'NotoSans-Medium': require('./assets/fonts/NotoSans-Medium.ttf'),
-        });
-        if (isMounted) setFontsLoaded(true);
-      } catch (error) {
-        console.error('폰트 로딩 오류:', error);
-      }
-    };
-
-    loadFonts();
+    Font.loadAsync({
+      'NotoSans-Regular': require('./assets/fonts/NotoSans-Regular.ttf'),
+      'NotoSans-Bold': require('./assets/fonts/NotoSans-Bold.ttf'),
+      'NotoSans-Medium': require('./assets/fonts/NotoSans-Medium.ttf'),
+    }).then(() => mounted && setFontsLoaded(true));
 
     return () => {
-      isMounted = false;
+      mounted = false;
       clearTimeout(timer);
     };
   }, []);
 
-  // 페이드 아웃 처리
+  // 스플래시 페이드 아웃
   useEffect(() => {
     if (fontsLoaded && timerElapsed) {
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 500, // 0.5초 동안 페이드 아웃
-        useNativeDriver: true,
-      }).start(() => setShowSplash(false));
+      Animated.timing(fadeAnim, { toValue: 0, duration: 500, useNativeDriver: true }).start(() =>
+        setShowSplash(false)
+      );
     }
   }, [fontsLoaded, timerElapsed]);
 
@@ -80,11 +66,7 @@ export default function App() {
       <NavigationContainer>
         <Stack.Navigator
           initialRouteName="Home"
-          screenOptions={{
-            headerShown: false,
-            animation: 'fade',
-            gestureEnabled: true
-          }}
+          screenOptions={{ headerShown: false, animation: 'fade', gestureEnabled: true }}
         >
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Auth" component={AuthScreen} />
@@ -104,18 +86,20 @@ export default function App() {
           <Stack.Screen name="TermsofUse" component={TermsofUseScreen} />
           <Stack.Screen name="gallery" component={PostGalleryScreen} />
         </Stack.Navigator>
-        {showSplash && (
-          <Animated.View
-            pointerEvents="box-none"
-            style={[
-              StyleSheet.absoluteFill,
-              { zIndex: 100, opacity: fadeAnim }
-            ]}
-          >
-            <SplashScreen />
-          </Animated.View>
-        )}
       </NavigationContainer>
+
+      {showSplash && (
+        <Animated.View
+          pointerEvents="box-none"
+          style={{
+            ...StyleSheet.absoluteFillObject,
+            zIndex: 100,
+            opacity: fadeAnim,
+          }}
+        >
+          <SplashScreen />
+        </Animated.View>
+      )}
     </Provider>
   );
 }

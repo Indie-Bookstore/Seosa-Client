@@ -1,3 +1,4 @@
+// App.js
 import React, { useState, useEffect, useRef } from 'react';
 import { Animated, StyleSheet } from 'react-native';
 import * as Font from 'expo-font';
@@ -27,6 +28,9 @@ import PostScreen from './src/screens/post/PostScreen';
 import PrivacyPolicyScreen from './src/screens/home/PrivacyPolicyScreen';
 import TermsofUseScreen from './src/screens/home/TermsofUseScreen';
 import PostGalleryScreen from './src/screens/post/PostGalleryScreen';
+import ArticleScreen from './src/screens/article/ArticleScreen';
+// ✨추가✨
+import MapPickerScreen from './src/screens/map/MapPickerScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -39,14 +43,14 @@ function RootApp() {
   const dispatch = useDispatch();
   const accessToken = useSelector((state) => state.auth.accessToken);
 
+  // 스플래시 & 폰트 로드
   useEffect(() => {
     let mounted = true;
     const timer = setTimeout(() => mounted && setTimerElapsed(true), 2000);
-
     Font.loadAsync({
       'NotoSans-Regular': require('./assets/fonts/NotoSans-Regular.ttf'),
-      'NotoSans-Bold': require('./assets/fonts/NotoSans-Bold.ttf'),
-      'NotoSans-Medium': require('./assets/fonts/NotoSans-Medium.ttf'),
+      'NotoSans-Bold':    require('./assets/fonts/NotoSans-Bold.ttf'),
+      'NotoSans-Medium':  require('./assets/fonts/NotoSans-Medium.ttf'),
     }).then(() => mounted && setFontsLoaded(true));
 
     return () => {
@@ -57,12 +61,15 @@ function RootApp() {
 
   useEffect(() => {
     if (fontsLoaded && timerElapsed) {
-      Animated.timing(fadeAnim, { toValue: 0, duration: 500, useNativeDriver: true }).start(() =>
-        setShowSplash(false)
-      );
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true
+      }).start(() => setShowSplash(false));
     }
   }, [fontsLoaded, timerElapsed]);
 
+  // 유저 정보 fetch
   useEffect(() => {
     const getUserInfo = async () => {
       try {
@@ -72,10 +79,7 @@ function RootApp() {
         console.error('유저 정보 가져오기 실패:', error);
       }
     };
-
-    if (accessToken) {
-      getUserInfo();
-    }
+    if (accessToken) getUserInfo();
   }, [accessToken]);
 
   return (
@@ -83,7 +87,11 @@ function RootApp() {
       <NavigationContainer ref={navigationRef}>
         <Stack.Navigator
           initialRouteName="Home"
-          screenOptions={{ headerShown: false, animation: 'fade', gestureEnabled: true }}
+          screenOptions={{
+            headerShown: false,
+            animation: 'fade',
+            gestureEnabled: true
+          }}
         >
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Auth" component={AuthScreen} />
@@ -101,6 +109,13 @@ function RootApp() {
           <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
           <Stack.Screen name="TermsofUse" component={TermsofUseScreen} />
           <Stack.Screen name="gallery" component={PostGalleryScreen} />
+          {/* 여기서 MapPickerScreen을 등록합니다 */}
+          <Stack.Screen
+            name="MapPicker"
+            component={MapPickerScreen}
+            options={{ title: '지도에서 위치 선택' }}
+          />
+          <Stack.Screen name="article" component={ArticleScreen} />
         </Stack.Navigator>
       </NavigationContainer>
 

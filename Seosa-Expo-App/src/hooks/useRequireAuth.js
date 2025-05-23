@@ -9,12 +9,11 @@ import { navigate } from '../utils/nav/RootNavigation';
 export function useRequireAuth() {
   const isLoggedIn = useSelector((state) => !!state.auth.accessToken);
   const [shouldRedirect, setShouldRedirect] = useState(false);
-  const alertShownRef = useRef(false); // ✅ Alert 중복 방지용
+  const alertShownRef = useRef(false); // Alert 중복 방지
 
   const navigation = useNavigation();
 
   useFocusEffect(
-    // ✅ useCallback으로 안정화 + ref로 중복방지
     React.useCallback(() => {
       if (!isLoggedIn && !alertShownRef.current) {
         alertShownRef.current = true;
@@ -41,7 +40,7 @@ export function useRequireAuth() {
   useEffect(() => {
     if (shouldRedirect) {
       navigate('Auth');
-      setShouldRedirect(false); // ✅ 다시 초기화
+      setShouldRedirect(false); // 초기화
     }
   }, [shouldRedirect]);
 

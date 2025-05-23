@@ -14,6 +14,7 @@ import LogoIcon from "../../icons/logo-green.svg";
 import EditIcon from "../../icons/edit-white.svg";
 import Post from "../../components/post/Post";
 import Footer from "../../components/common/footer/Footer";
+import { navigate } from "../../utils/nav/RootNavigation";
 
 const posts = [
   {
@@ -82,7 +83,7 @@ const PostGalleryScreen = ({ navigation }) => (
       ))}
       <View style={{ height: height * 0.08 }} />
     </ScrollView>
-    <TouchableOpacity style={styles.fab} onPress={() => {}}>
+    <TouchableOpacity style={styles.fab} onPress={() => navigate('article')}>
       <EditIcon width={28} height={28} />
     </TouchableOpacity>
     <Footer navigation={navigation} />

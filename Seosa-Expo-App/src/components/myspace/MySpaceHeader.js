@@ -1,5 +1,4 @@
-// 나의 공간 일반 사용자 헤더
-
+// components/myspace/MySpaceHeader.js
 import React, { useState } from "react";
 import {
   View,
@@ -7,9 +6,11 @@ import {
   StyleSheet,
   Dimensions,
   TouchableOpacity,
+  Image,
   Alert,
 } from "react-native";
 import { useSelector } from "react-redux";
+import { navigate } from "../../utils/nav/RootNavigation";
 import DotBtn from "../../icons/dot.svg";
 import EditBtn from "../../icons/edit.svg";
 import Bookmark from "../../icons/bookmark.svg";
@@ -17,20 +18,20 @@ import Comment from "../../icons/comment.svg";
 import BookmarkSelected from "../../icons/bookmark-selected.svg";
 import CommentSelected from "../../icons/comment-selected.svg";
 
-const MySpaceHeader = ({ selectedTab, setSelectedTab, navigation }) => {
-  const size = Dimensions.get("window").width * 0.067;
+const { width, height } = Dimensions.get("window");
+const size = width * 0.067;
+
+const MySpaceHeader = ({ selectedTab, setSelectedTab, profileImage }) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const user = useSelector((state) => state.auth.user);
 
-  const handleFaq = () => navigation.navigate("FAQ");
-
+  const handleFaq = () => navigate("FAQ");
   const handleLogout = () => {
     Alert.alert("로그아웃", "로그아웃하시겠습니까?", [
       { text: "아니오", style: "cancel" },
       { text: "예", onPress: () => console.log("로그아웃 진행") },
     ]);
   };
-
   const handleWithdrawal = () => {
     Alert.alert(
       "회원 탈퇴",
@@ -41,10 +42,8 @@ const MySpaceHeader = ({ selectedTab, setSelectedTab, navigation }) => {
       ]
     );
   };
-
-  const handleAdmin = () => navigation.navigate("AdminSpace");
-
-  const handleEdit = () => navigation.navigate("EditProfile");
+  const handleAdmin = () => navigate("AdminSpace");
+  const handleEdit = () => navigate("EditProfile");
 
   return (
     <View style={styles.container}>
@@ -57,7 +56,11 @@ const MySpaceHeader = ({ selectedTab, setSelectedTab, navigation }) => {
 
       <View style={styles.profileContainer}>
         <View style={styles.profile}>
-          <View style={styles.image}></View>
+          {profileImage ? (
+            <Image source={{ uri: profileImage }} style={styles.image} />
+          ) : (
+            <View style={styles.image} />
+          )}
           <TouchableOpacity style={styles.editbtn} onPress={handleEdit}>
             <EditBtn width={(size * 8) / 12} height={(size * 8) / 12} />
           </TouchableOpacity>
@@ -104,9 +107,6 @@ const MySpaceHeader = ({ selectedTab, setSelectedTab, navigation }) => {
     </View>
   );
 };
-
-const width = Dimensions.get("window").width;
-const height = Dimensions.get("window").height;
 
 const styles = StyleSheet.create({
   container: {
@@ -201,10 +201,9 @@ const styles = StyleSheet.create({
     borderBottomColor: "#FFEEAA",
     borderBottomWidth: 2,
   },
-  /* 🟡 토글 메뉴 스타일 */
   menu: {
     position: "absolute",
-    top: height * 0.0975 + 5, // dotbtn 아래 위치
+    top: height * 0.0975 + 5,
     right: width * 0.05,
     backgroundColor: "#FFF",
     borderRadius: 8,

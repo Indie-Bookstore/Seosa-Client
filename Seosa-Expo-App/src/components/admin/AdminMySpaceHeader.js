@@ -1,5 +1,3 @@
-// 나의 공간 관리자용 헤더
-
 import React, { useState } from "react";
 import {
   View,
@@ -9,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
+import { useSelector } from "react-redux"; // ✅ 추가
 import DotBtn from "../../icons/dot.svg";
 import EditBtn from "../../icons/edit.svg";
 import Bookmark from "../../icons/bookmark.svg";
@@ -21,6 +20,7 @@ import WriteSelected from "../../icons/write-selected.svg";
 const AdminMySpaceHeader = ({ selectedTab, setSelectedTab, navigation }) => {
   const size = Dimensions.get("window").width * 0.067;
   const [menuVisible, setMenuVisible] = useState(false);
+  const user = useSelector((state) => state.auth.user); // ✅ Redux에서 user 가져오기
 
   const handleLogout = () => {
     Alert.alert("로그아웃", "정말 로그아웃하시겠습니까?", [
@@ -30,23 +30,21 @@ const AdminMySpaceHeader = ({ selectedTab, setSelectedTab, navigation }) => {
   };
 
   const handleSettings = () => {
-    navigation.navigate("Settings");
+    navigation?.navigate("Settings");
   };
 
   return (
     <View style={styles.container}>
-      {/* 타이틀 */}
       <View style={styles.title}>
         <Text style={styles.titletext}>나의 공간</Text>
         <TouchableOpacity
           style={styles.dotbtn}
-          onPress={() => setMenuVisible(!menuVisible)} // 토글
+          onPress={() => setMenuVisible(!menuVisible)}
         >
           <DotBtn width={size} height={size} />
         </TouchableOpacity>
       </View>
 
-      {/* 프로필 이미지 & 편집 버튼 */}
       <View style={styles.profileContainer}>
         <View style={styles.profile}>
           <View style={styles.image}></View>
@@ -59,10 +57,10 @@ const AdminMySpaceHeader = ({ selectedTab, setSelectedTab, navigation }) => {
       {/* 사용자 정보 */}
       <View style={styles.infoContainer}>
         <Text style={styles.nickname}>닉네임</Text>
-        <Text style={styles.nicknameinput}>책손님</Text>
+        <Text style={styles.nicknameinput}>{user?.nickname || '책손님'}</Text> {/* ✅ 수정 */}
       </View>
 
-      {/* 글쓰기, 북마크, 댓글 */}
+      {/* 탭 */}
       <View style={styles.parts}>
         <TouchableOpacity
           style={selectedTab === "write" ? styles.selectedPart : styles.part}
@@ -86,7 +84,7 @@ const AdminMySpaceHeader = ({ selectedTab, setSelectedTab, navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* 🟡 토글 메뉴 (dotbtn 아래) */}
+      {/* 토글 메뉴 */}
       {menuVisible && (
         <View style={styles.menu}>
           <TouchableOpacity style={styles.menuItem} onPress={handleSettings}>
@@ -104,6 +102,7 @@ const AdminMySpaceHeader = ({ selectedTab, setSelectedTab, navigation }) => {
 const width = Dimensions.get("window").width;
 const height = Dimensions.get("window").height;
 
+// styles 그대로 유지
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -197,10 +196,9 @@ const styles = StyleSheet.create({
     borderBottomColor: "#FFEEAA",
     borderBottomWidth: 2,
   },
-  /* 🟡 토글 메뉴 스타일 */
   menu: {
     position: "absolute",
-    top: height * 0.0975 + 5, // dotbtn 아래 위치
+    top: height * 0.0975 + 5,
     right: width * 0.05,
     backgroundColor: "#FFF",
     borderRadius: 8,

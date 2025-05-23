@@ -1,12 +1,14 @@
-// App.js
 import React, { useState, useEffect, useRef } from 'react';
 import { Animated, StyleSheet } from 'react-native';
 import * as Font from 'expo-font';
-import { Provider } from 'react-redux';
+import { Provider, useDispatch, useSelector } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { store } from './src/store/store';
+import { setUser } from './src/store/authSlice';
+import { fetchUserInfo } from './src/api/userApi';
+import { navigationRef } from './src/utils/nav/RootNavigation';
 
 import SplashScreen from './src/screens/home/SplashScreen';
 import HomeScreen from './src/screens/home/HomeScreen';
@@ -28,13 +30,15 @@ import PostGalleryScreen from './src/screens/post/PostGalleryScreen';
 
 const Stack = createNativeStackNavigator();
 
-export default function App() {
+function RootApp() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [timerElapsed, setTimerElapsed] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  // 폰트 로딩 & 2초 타이머
+  const dispatch = useDispatch();
+  const accessToken = useSelector((state) => state.auth.accessToken);
+
   useEffect(() => {
     let mounted = true;
     const timer = setTimeout(() => mounted && setTimerElapsed(true), 2000);
@@ -51,7 +55,6 @@ export default function App() {
     };
   }, []);
 
-  // 스플래시 페이드 아웃
   useEffect(() => {
     if (fontsLoaded && timerElapsed) {
       Animated.timing(fadeAnim, { toValue: 0, duration: 500, useNativeDriver: true }).start(() =>
@@ -60,9 +63,24 @@ export default function App() {
     }
   }, [fontsLoaded, timerElapsed]);
 
+  useEffect(() => {
+    const getUserInfo = async () => {
+      try {
+        const userData = await fetchUserInfo();
+        dispatch(setUser(userData));
+      } catch (error) {
+        console.error('유저 정보 가져오기 실패:', error);
+      }
+    };
+
+    if (accessToken) {
+      getUserInfo();
+    }
+  }, [accessToken]);
+
   return (
-    <Provider store={store}>
-      <NavigationContainer>
+    <>
+      <NavigationContainer ref={navigationRef}>
         <Stack.Navigator
           initialRouteName="Home"
           screenOptions={{ headerShown: false, animation: 'fade', gestureEnabled: true }}
@@ -98,6 +116,14 @@ export default function App() {
           <SplashScreen />
         </Animated.View>
       )}
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <Provider store={store}>
+      <RootApp />
     </Provider>
   );
 }

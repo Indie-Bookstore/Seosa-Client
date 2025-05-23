@@ -1,9 +1,10 @@
-// 관리자 나의공간 페이지
+import React, { useState, useCallback } from 'react';
+import { View, StyleSheet, Platform, Alert } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import Constants from 'expo-constants';
+import { useFocusEffect } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
-import React, { useState } from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
-import { StatusBar } from "expo-status-bar";
-import Constants from "expo-constants";
 import Footer from '../../components/common/footer/Footer';
 import AdminMySpaceHeader from '../../components/admin/AdminMySpaceHeader';
 import AdminPostList from '../../components/admin/AdminPostList';
@@ -11,27 +12,39 @@ import MyBookmarkList from '../../components/myspace/MyBookmarkList';
 import MyCommentList from '../../components/myspace/MyCommentList';
 
 const STATUSBAR_HEIGHT =
-  Platform.OS === "ios" ? Constants.statusBarHeight : StatusBar.currentHeight;
+  Platform.OS === 'ios' ? Constants.statusBarHeight : StatusBar.currentHeight;
 
 const AdminMySpaceScreen = ({ navigation }) => {
-  const [selectedTab, setSelectedTab] = useState("write"); // 기본값: 글쓰기
+  const [selectedTab, setSelectedTab] = useState('write');
+  const user = useSelector((state) => state.auth.user);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!user || user.userRole !== 'ADMIN') {
+        Alert.alert('접근 제한', '관리자만 접근 가능한 화면입니다.', [
+          {
+            text: '확인',
+            onPress: () => navigation.navigate('Home'),
+          },
+        ]);
+      }
+    }, [user, navigation])
+  );
+
+  if (!user || user.userRole !== 'ADMIN') return null;
 
   return (
     <View style={styles.container}>
-      {/* 상태바 높이 적용 */}
       <View style={{ height: STATUSBAR_HEIGHT }} />
-      
-      {/* 헤더 */}
-      <AdminMySpaceHeader selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
-
-      {/* 선택된 콘텐츠 렌더링 */}
+      <AdminMySpaceHeader
+        selectedTab={selectedTab}
+        setSelectedTab={setSelectedTab}
+      />
       <View style={styles.content}>
-        {selectedTab === "write" && <AdminPostList />}
-        {selectedTab === "bookmark" && <MyBookmarkList />}
-        {selectedTab === "comment" && <MyCommentList />}
+        {selectedTab === 'write' && <AdminPostList />}
+        {selectedTab === 'bookmark' && <MyBookmarkList />}
+        {selectedTab === 'comment' && <MyCommentList />}
       </View>
-
-      {/* 푸터 */}
       <Footer navigation={navigation} />
     </View>
   );
@@ -42,10 +55,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
-    backgroundColor : "#FFFEFB"
+    backgroundColor: '#FFFEFB',
   },
   content: {
-    flex: 1, // 푸터를 바닥에 붙이기 위해 중간 콘텐츠 공간 확보
+    flex: 1,
     width: '100%',
   },
 });

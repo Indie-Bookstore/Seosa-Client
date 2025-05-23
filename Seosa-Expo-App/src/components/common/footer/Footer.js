@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Dimensions, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import { useRoute } from '@react-navigation/native';
+import { navigate } from '../../../utils/nav/RootNavigation'; // ✅ 전역 navigate 함수 import
+
 import HomeNav from '../../../icons/home.svg';
 import BookNav from '../../../icons/book.svg';
 import UserNav from '../../../icons/user.svg';
@@ -11,14 +13,14 @@ import UserSelNav from '../../../icons/user-selected.svg';
 const { width, height } = Dimensions.get('window');
 const ICON_SIZE = width * 0.067;
 
-const Footer = ({ navigation }) => {
+const Footer = () => {
   const route = useRoute();
   const current = route.name;
 
   const tabs = [
-    { name: 'Home', label: '홈', Icon: HomeNav, SelectedIcon: HomeSelNav, onPress: () => navigation.navigate('Home') },
-    { name: 'gallery', label: '글모음', Icon: BookNav, SelectedIcon: BookSelNav, onPress: () => navigation.navigate('gallery') },
-    { name: 'MySpace', label: '나의 공간', Icon: UserNav, SelectedIcon: UserSelNav, onPress: () => navigation.navigate('MySpace') },
+    { name: 'Home', label: '홈', Icon: HomeNav, SelectedIcon: HomeSelNav },
+    { name: 'gallery', label: '글모음', Icon: BookNav, SelectedIcon: BookSelNav },
+    { name: 'MySpace', label: '나의 공간', Icon: UserNav, SelectedIcon: UserSelNav },
   ];
 
   return (
@@ -28,8 +30,13 @@ const Footer = ({ navigation }) => {
           const focused = current === tab.name;
           const TabIcon = focused ? tab.SelectedIcon : tab.Icon;
           const textStyle = focused ? [styles.des, styles.selectedText] : styles.des;
+
           return (
-            <TouchableOpacity key={tab.name} style={styles.btnc} onPress={tab.onPress}>
+            <TouchableOpacity
+              key={tab.name}
+              style={styles.btnc}
+              onPress={() => navigate(tab.name)} // ✅ 전역 navigate 사용
+            >
               <TabIcon width={ICON_SIZE} height={ICON_SIZE} />
               <Text style={textStyle}>{tab.label}</Text>
             </TouchableOpacity>

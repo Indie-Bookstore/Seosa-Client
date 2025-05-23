@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
+import { useSelector } from "react-redux";
 import DotBtn from "../../icons/dot.svg";
 import EditBtn from "../../icons/edit.svg";
 import Bookmark from "../../icons/bookmark.svg";
@@ -19,15 +20,14 @@ import CommentSelected from "../../icons/comment-selected.svg";
 const MySpaceHeader = ({ selectedTab, setSelectedTab, navigation }) => {
   const size = Dimensions.get("window").width * 0.067;
   const [menuVisible, setMenuVisible] = useState(false);
+  const user = useSelector((state) => state.auth.user);
 
-  const handleFaq = () => {
-    navigation.navigate("FAQ");
-  };
+  const handleFaq = () => navigation.navigate("FAQ");
 
   const handleLogout = () => {
     Alert.alert("로그아웃", "로그아웃하시겠습니까?", [
       { text: "아니오", style: "cancel" },
-      { text: "예", onPress: () => console.log("로그아웃 진행") }, // TODO: 실제 로그아웃 처리
+      { text: "예", onPress: () => console.log("로그아웃 진행") },
     ]);
   };
 
@@ -37,33 +37,24 @@ const MySpaceHeader = ({ selectedTab, setSelectedTab, navigation }) => {
       "정말 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
       [
         { text: "아니오", style: "cancel" },
-        { text: "예", onPress: () => console.log("회원 탈퇴 진행") }, // TODO: 실제 탈퇴 처리
+        { text: "예", onPress: () => console.log("회원 탈퇴 진행") },
       ]
     );
   };
 
-  const handleAdmin = () => {
-    navigation.navigate("AdminSpace");
-  }
+  const handleAdmin = () => navigation.navigate("AdminSpace");
 
-  const handleEdit = () => {
-    navigation.navigate("EditProfile");
-  }
+  const handleEdit = () => navigation.navigate("EditProfile");
 
   return (
     <View style={styles.container}>
-      {/* 타이틀 */}
       <View style={styles.title}>
         <Text style={styles.titletext}>나의 공간</Text>
-        <TouchableOpacity
-          style={styles.dotbtn}
-          onPress={() => setMenuVisible(!menuVisible)} // 토글
-        >
+        <TouchableOpacity style={styles.dotbtn} onPress={() => setMenuVisible(!menuVisible)}>
           <DotBtn width={size} height={size} />
         </TouchableOpacity>
       </View>
 
-      {/* 프로필 이미지 & 편집 버튼 */}
       <View style={styles.profileContainer}>
         <View style={styles.profile}>
           <View style={styles.image}></View>
@@ -73,13 +64,11 @@ const MySpaceHeader = ({ selectedTab, setSelectedTab, navigation }) => {
         </View>
       </View>
 
-      {/* 사용자 정보 */}
       <View style={styles.infoContainer}>
         <Text style={styles.nickname}>닉네임</Text>
-        <Text style={styles.nicknameinput}>책손님</Text>
+        <Text style={styles.nicknameinput}>{user?.nickname || '책손님'}</Text>
       </View>
 
-      {/* 북마크, 댓글 탭 */}
       <View style={styles.parts}>
         <TouchableOpacity
           style={selectedTab === "bookmark" ? styles.selectedPart : styles.part}
@@ -96,7 +85,6 @@ const MySpaceHeader = ({ selectedTab, setSelectedTab, navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* 🟡 토글 메뉴 (dotbtn 아래) */}
       {menuVisible && (
         <View style={styles.menu}>
           <TouchableOpacity style={styles.menuItem} onPress={handleFaq}>

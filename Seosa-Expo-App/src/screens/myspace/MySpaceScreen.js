@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  StatusBar,
-  Platform,
-} from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import Constants from 'expo-constants';
 import { useRequireAuth } from '../../hooks/useRequireAuth';
+import { useSelector } from 'react-redux';
+import { navigate } from '../../utils/nav/RootNavigation';
 
 import MySpaceHeader from '../../components/myspace/MySpaceHeader';
 import MyBookmarkList from '../../components/myspace/MyBookmarkList';
@@ -16,28 +13,29 @@ import Footer from '../../components/common/footer/Footer';
 const STATUSBAR_HEIGHT =
   Platform.OS === 'ios'
     ? Constants.statusBarHeight
-    : StatusBar.currentHeight;
+    : Constants.statusBarHeight;
 
 export default function MySpaceScreen() {
-  const [selectedTab, setSelectedTab] = useState('bookmark');
   const isLoggedIn = useRequireAuth();
+  const [selectedTab, setSelectedTab] = useState('bookmark');
+  const user = useSelector(state => state.auth.user);
+  const profileImage = user?.profileImage || null;
 
-  if (!isLoggedIn) {
-    return null;
-  }
+  if (!isLoggedIn) return null;
 
   return (
     <View style={styles.container}>
       <View style={{ height: STATUSBAR_HEIGHT }} />
       <MySpaceHeader
         selectedTab={selectedTab}
-        setSelectedTab={setSelectedTab}
+        setSelectedTab={(tab) => setSelectedTab(tab)}
+        profileImage={profileImage}
       />
       <View style={styles.content}>
         {selectedTab === 'bookmark' ? (
-          <MyBookmarkList />
+          <MyBookmarkList onItemPress={(postId) => navigate('PostDetail', { postId })} />
         ) : (
-          <MyCommentList />
+          <MyCommentList onItemPress={(commentId) => navigate('CommentDetail', { commentId })} />
         )}
       </View>
       <Footer />

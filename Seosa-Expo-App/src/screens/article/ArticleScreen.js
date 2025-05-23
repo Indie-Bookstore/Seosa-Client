@@ -11,6 +11,7 @@ import {
   Keyboard,
   StatusBar as RNStatusBar,
   DeviceEventEmitter,
+  Alert,
 } from "react-native";
 import Constants from "expo-constants";
 import * as ImagePicker from "expo-image-picker";
@@ -43,7 +44,19 @@ export default function ArticleScreen({ navigation }) {
     instagramLink: "",
   });
 
-  // “서사 모아보기” 핸들러들
+  // 글쓰기 취소 확인
+  const handleCancel = () => {
+    Alert.alert(
+      "글쓰기 취소",
+      "정말 글쓰기를 그만두시겠습니까?",
+      [
+        { text: "아니요", style: "cancel" },
+        { text: "예", style: "destructive", onPress: () => navigation.goBack() },
+      ]
+    );
+  };
+
+  // 서사 모아보기 핸들러
   const handleAddNarrative = () => {
     if (narratives.length < 5) {
       setNarratives([...narratives, { title: "", author: "", review: "" }]);
@@ -95,7 +108,7 @@ export default function ArticleScreen({ navigation }) {
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <View style={{ height: STATUSBAR_HEIGHT }} />
-      <ArticleHeader />
+      <ArticleHeader onCancel={handleCancel} />
       <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
         <ArticleTitle />
         <ArticleEditor blocks={blocks} setBlocks={setBlocks} setFocusedIndex={setFocusedIndex} />

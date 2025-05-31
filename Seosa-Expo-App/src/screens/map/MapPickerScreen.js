@@ -1,7 +1,18 @@
+// src/screens/MapPickerScreen.js
+
 import React, { useState, useEffect } from 'react';
 import {
-  SafeAreaView, StyleSheet, View, TextInput, TouchableOpacity, Text,
-  FlatList, ActivityIndicator, Alert, Dimensions, DeviceEventEmitter,
+  SafeAreaView,
+  StyleSheet,
+  View,
+  TextInput,
+  TouchableOpacity,
+  Text,
+  FlatList,
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  DeviceEventEmitter,
 } from 'react-native';
 import * as Location from 'expo-location';
 import Constants from 'expo-constants';
@@ -16,7 +27,7 @@ export default function MapPickerScreen({ navigation }) {
   const [results, setResults]         = useState([]);
   const [loading, setLoading]         = useState(false);
 
-  /* 위치 권한 & 현재 위치 */
+  /* 1) 위치 권한 & 현재 위치 가져오기 */
   useEffect(() => {
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -29,7 +40,7 @@ export default function MapPickerScreen({ navigation }) {
     })();
   }, []);
 
-  /* 검색 */
+  /* 2) Kakao 키워드 검색 */
   const onSearch = async () => {
     if (!searchQuery.trim())  return Alert.alert('검색어를 입력해주세요');
     if (!location)            return Alert.alert('위치 정보를 가져오는 중입니다');
@@ -43,7 +54,6 @@ export default function MapPickerScreen({ navigation }) {
       );
       const json = await res.json();
 
-      /* 방어 로직 */
       if (Array.isArray(json.documents) && json.documents.length > 0) {
         setResults(json.documents);
       } else {
@@ -57,11 +67,14 @@ export default function MapPickerScreen({ navigation }) {
     }
   };
 
-  /* 장소 선택 → emit */
+  /* 3) 장소 선택 → 좌표(x/y), 주소, 우편번호(zone_no) emit */
   const selectPlace = (p) => {
+    // p.road_address가 없는 경우도 있으니, 방어적으로 처리
+    const zoneNo = p.road_address?.zone_no ?? '';
     DeviceEventEmitter.emit('mapSelect', {
       address: p.address_name,
       coords : { lat: parseFloat(p.y), lng: parseFloat(p.x) },
+      postalCode: zoneNo,
     });
     navigation.goBack();
   };
@@ -84,14 +97,19 @@ export default function MapPickerScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* 리스트 */}
+        {/* 검색 결과 리스트 */}
         <FlatList
           data={results}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <TouchableOpacity style={styles.item} onPress={() => selectPlace(item)}>
+            <TouchableOpacity
+              style={styles.item}
+              onPress={() => selectPlace(item)}
+            >
               <Text style={styles.title}>{item.place_name}</Text>
-              <Text style={styles.address}>{item.address_name}</Text>
+              <Text style={styles.address}>
+                {item.address_name}
+              </Text>
             </TouchableOpacity>
           )}
           ListEmptyComponent={

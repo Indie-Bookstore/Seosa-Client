@@ -1,4 +1,6 @@
-// src/hooks/useRequireAuth.js
+/** 
+ * src/hooks/useRequireAuth.js 
+*/ 
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';

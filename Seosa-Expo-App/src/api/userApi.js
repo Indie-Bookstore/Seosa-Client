@@ -1,3 +1,7 @@
+/**
+ * src/api/userApi.js
+ */
+
 import api from './axios.js';
 
 // 사용자 정보 조회 api GET /user

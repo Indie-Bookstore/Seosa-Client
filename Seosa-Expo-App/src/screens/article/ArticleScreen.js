@@ -1,3 +1,5 @@
+// src/screens/article/ArticleScreen.js
+
 import 'react-native-get-random-values';
 import React, { useState, useEffect } from 'react';
 import {
@@ -18,6 +20,8 @@ import Constants from 'expo-constants';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 
+import { createPost } from '../../api/postApi'; 
+
 import {
   S3_BUCKET,
   S3_REGION,
@@ -34,8 +38,6 @@ import ArticleEditor   from '../../components/article/ArticleEditor';
 import ArticleItemList from '../../components/article/ArticleItemList';
 import ArticleInfo     from '../../components/article/ArticleInfo';
 import AlbumIcon       from '../../icons/album-green.svg';
-
-import { createPost } from '../../api/postApi';
 
 const { width, height } = Dimensions.get('window');
 const DEFAULT_FAB_BOTTOM = height * 0.09;
@@ -163,7 +165,7 @@ export default function ArticleScreen({ navigation }) {
         location    : storeInfo.address,
         thumbnailUrl: thumbnail?.value ?? '',
         bookstoreReqDto: {
-          postalCode    : storeInfo.postalCode,    // ★ 여기에 postalCode가 반드시 들어가야 함
+          postalCode    : storeInfo.postalCode,   
           address       : storeInfo.address,
           detailedAddress,
           openDays      : storeInfo.openDays,
@@ -184,18 +186,19 @@ export default function ArticleScreen({ navigation }) {
         })),
       };
 
-      // → payload 찍어보기
+      // → payload 찍어보기(디버깅용)
       console.log("📨 전송할 postDto:", postDto);
 
       // === 4) createPost API 호출 ===
-      const res = await createPost(postDto);
-      const postId = res.data.postId;
+      // createPost는 `data` 객체({ postId: ..., ... })만 반환하므로,
+      // 아래처럼 구조분해해서 postId를 꺼내야 합니다.
+      const { postId } = await createPost(postDto);
 
       // === 5) PostScreen으로 이동 ===
       navigation.replace('Post', { postId });
     } catch (err) {
       console.error(err);
-      const msg = err.response?.data?.message ?? err.message ?? '알 수 없는 오류';
+      const msg = err.response?.message ?? err.message ?? '알 수 없는 오류';
       Alert.alert('등록 실패', msg);
     } finally {
       setSubmitting(false);

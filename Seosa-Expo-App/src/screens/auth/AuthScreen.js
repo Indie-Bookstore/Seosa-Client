@@ -58,6 +58,7 @@ export default function AuthScreen() {
             // 2) Redux에 토큰 저장
             dispatch(setReduxAccess(accessToken));
             dispatch(setReduxRefresh(refreshToken));
+            console.log(accessToken);
 
             // 3) WebView 닫기
             setShowWebView(false);

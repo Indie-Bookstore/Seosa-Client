@@ -1,4 +1,5 @@
 // components/myspace/MySpaceHeader.js
+
 import React, { useState } from "react";
 import {
   View,
@@ -9,7 +10,7 @@ import {
   Image,
   Alert,
 } from "react-native";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { navigate } from "../../utils/nav/RootNavigation";
 import DotBtn from "../../icons/dot.svg";
 import EditBtn from "../../icons/edit.svg";
@@ -17,6 +18,9 @@ import Bookmark from "../../icons/bookmark.svg";
 import Comment from "../../icons/comment.svg";
 import BookmarkSelected from "../../icons/bookmark-selected.svg";
 import CommentSelected from "../../icons/comment-selected.svg";
+import api from "../../api/axios";
+import { clearAuth } from "../../store/authSlice";
+import { removeRefreshToken, removeAccessToken } from "../../utils/tokenStorage"; // accessToken 삭제도 추가
 
 const { width, height } = Dimensions.get("window");
 const size = width * 0.067;
@@ -24,32 +28,80 @@ const size = width * 0.067;
 const MySpaceHeader = ({ selectedTab, setSelectedTab, profileImage }) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const user = useSelector((state) => state.auth.user);
+  const dispatch = useDispatch();
 
   const handleFaq = () => navigate("FAQ");
+
+  // 로그아웃 함수
   const handleLogout = () => {
     Alert.alert("로그아웃", "로그아웃하시겠습니까?", [
       { text: "아니오", style: "cancel" },
-      { text: "예", onPress: () => console.log("로그아웃 진행") },
+      {
+        text: "예",
+        onPress: async () => {
+          try {
+            // 1) SecureStore에서 refreshToken과 accessToken 모두 삭제
+            await removeRefreshToken();
+            await removeAccessToken();
+
+            // 2) Redux auth 상태 초기화
+            dispatch(clearAuth());
+
+            // 3) Auth 화면으로 이동
+            navigate("Auth");
+          } catch (err) {
+            console.error("로그아웃 처리 중 오류:", err);
+            Alert.alert("오류", "로그아웃에 실패했습니다.");
+          }
+        },
+      },
     ]);
   };
+
+  // 회원 탈퇴 함수
   const handleWithdrawal = () => {
     Alert.alert(
       "회원 탈퇴",
       "정말 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
       [
         { text: "아니오", style: "cancel" },
-        { text: "예", onPress: () => console.log("회원 탈퇴 진행") },
+        {
+          text: "예",
+          onPress: async () => {
+            try {
+              // 1) API 호출로 회원 탈퇴
+              await api.delete("/user");
+
+              // 2) 탈퇴 성공 시 SecureStore 토큰 전부 삭제
+              await removeRefreshToken();
+              await removeAccessToken();
+
+              // 3) Redux auth 상태 초기화
+              dispatch(clearAuth());
+
+              // 4) 알림 및 Auth 화면 이동
+              Alert.alert("탈퇴 완료", "회원 탈퇴가 완료되었습니다.");
+              navigate("Auth");
+            } catch (err) {
+              console.error("회원 탈퇴 실패:", err);
+              Alert.alert("오류", "회원 탈퇴에 실패했습니다.");
+            }
+          },
+        },
       ]
     );
   };
-  const handleAdmin = () => navigate("AdminSpace");
+
   const handleEdit = () => navigate("EditProfile");
 
   return (
     <View style={styles.container}>
       <View style={styles.title}>
         <Text style={styles.titletext}>나의 공간</Text>
-        <TouchableOpacity style={styles.dotbtn} onPress={() => setMenuVisible(!menuVisible)}>
+        <TouchableOpacity
+          style={styles.dotbtn}
+          onPress={() => setMenuVisible(!menuVisible)}
+        >
           <DotBtn width={size} height={size} />
         </TouchableOpacity>
       </View>
@@ -69,7 +121,7 @@ const MySpaceHeader = ({ selectedTab, setSelectedTab, profileImage }) => {
 
       <View style={styles.infoContainer}>
         <Text style={styles.nickname}>닉네임</Text>
-        <Text style={styles.nicknameinput}>{user?.nickname || '책손님'}</Text>
+        <Text style={styles.nicknameinput}>{user?.nickname || "책손님"}</Text>
       </View>
 
       <View style={styles.parts}>
@@ -98,9 +150,6 @@ const MySpaceHeader = ({ selectedTab, setSelectedTab, profileImage }) => {
           </TouchableOpacity>
           <TouchableOpacity style={styles.menuItem} onPress={handleWithdrawal}>
             <Text style={[styles.menuText, styles.logoutText]}>탈퇴하기</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem} onPress={handleAdmin}>
-            <Text style={[styles.menuText, styles.logoutText]}>관리자 화면</Text>
           </TouchableOpacity>
         </View>
       )}

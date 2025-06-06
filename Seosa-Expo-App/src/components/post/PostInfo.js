@@ -1,5 +1,3 @@
-// src/components/post/PostInfo.js
-
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Dimensions, Image, ActivityIndicator, Alert } from "react-native";
 import LocationIcon from "../../icons/location.svg";
@@ -17,7 +15,7 @@ const kakaoKey =
   process.env.EXPO_PUBLIC_KAKAO_REST_KEY;
 
 export default function PostInfo({ info }) {
-  const [coords, setCoords]       = useState(null);  // { lat, lng }
+  const [coords, setCoords] = useState(null);  // { lat, lng }
   const [loadingMap, setLoadingMap] = useState(false);
 
   const {
@@ -73,8 +71,6 @@ export default function PostInfo({ info }) {
   /* 2) Static Map URL 생성 */
   const getStaticMapUrl = () => {
     if (!coords) return null;
-    // 예: Kakao Static Map API
-    // https://dapi.kakao.com/v2/maps/sdk/staticmap?appkey={REST_KEY}&center={lat,lng}&level={zoom}&width={px}&height={px}
     const zoom  = 3; // 지도의 확대/축소 레벨 (0~14, 숫자 낮을수록 더 멀리)
     const pxW   = Math.floor(width * 0.9);          // 이미지 가로(px)
     const pxH   = Math.floor(height * 0.2175);      // 이미지 세로(px)
@@ -85,7 +81,6 @@ export default function PostInfo({ info }) {
            `&w=${pxW}` +
            `&h=${pxH}` +
            `&markers=${lng},${lat}`; 
-    // markers 파라미터가 추가된 예시: 지도 위에 마커 찍기
   };
 
   const staticMapUrl = getStaticMapUrl();

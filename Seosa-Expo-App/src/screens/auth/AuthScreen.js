@@ -1,3 +1,4 @@
+// src/screens/auth/AuthScreen.js
 import "react-native-url-polyfill/auto";
 import React, { useState, useCallback } from "react";
 import {
@@ -13,14 +14,18 @@ import AuthHeader from "../../components/auth/AuthHeader";
 import { StatusBar } from "expo-status-bar";
 import Constants from "expo-constants";
 import { WebView } from "react-native-webview";
-import * as SecureStore from "expo-secure-store";
+
 import { useDispatch } from "react-redux";
-import { setAccessToken, setRefreshToken, setIsTemporary } from "../../store/authSlice";
+import { setAccessToken as setReduxAccess, setRefreshToken as setReduxRefresh } from "../../store/authSlice";
+
+import { setAccessToken as storeAccessToken, setRefreshToken as storeRefreshToken } from "../../utils/tokenStorage";
+
+import { navigate } from "../../utils/nav/RootNavigation";
 
 const STATUSBAR_HEIGHT =
   Platform.OS === "ios" ? Constants.statusBarHeight : StatusBar.currentHeight;
 
-export default function AuthScreen({ navigation }) {
+export default function AuthScreen() {
   const dispatch = useDispatch();
   const [showWebView, setShowWebView] = useState(false);
 
@@ -32,45 +37,35 @@ export default function AuthScreen({ navigation }) {
     "&state=oRVjpLMTMogzVmGk2ScC_4G7GPh4b6av2IO-zlESILk%3D" +
     "&redirect_uri=https://seosa.o-r.kr/login/oauth2/code/kakao";
 
-  // WebView URL 상태 변화 감지
   const handleNavStateChange = useCallback(
     async (navState) => {
       const { url } = navState;
       console.log("🔍 WebView navState:", navState);
       console.log("🔍 URL:", url);
-      if (url.startsWith("http://10.240.11.153:8081/Auth")) {
+
+      if (url.includes("accessToken=") && url.includes("refreshToken=")) {
         const [, queryString] = url.split("?");
-        console.log("🔍 queryString:", queryString);  
         const params = new URLSearchParams(queryString);
         const accessToken = params.get("accessToken");
         const refreshToken = params.get("refreshToken");
-        const message = params.get("message"); // 임시회원 메시지
-        console.log("🔍 Parsed params:", {
-        accessToken,
-        refreshToken,
-        message,
-      });
 
         if (accessToken && refreshToken) {
           try {
-            await SecureStore.setItemAsync("accessToken", accessToken);
-            await SecureStore.setItemAsync("refreshToken", refreshToken);
+            // 1) SecureStore에 토큰 저장 (헬퍼 함수 사용)
+            await storeAccessToken(accessToken);
+            await storeRefreshToken(refreshToken);
 
-            dispatch(setAccessToken(accessToken));
-            dispatch(setRefreshToken(refreshToken));
+            // 2) Redux에 토큰 저장
+            dispatch(setReduxAccess(accessToken));
+            dispatch(setReduxRefresh(refreshToken));
 
-            // 임시회원 여부 판단
-            const isTemporary = message === "회원가입을 완료해주세요";
-            dispatch(setIsTemporary(isTemporary));
-
+            // 3) WebView 닫기
             setShowWebView(false);
-            // 임시회원이면 온보딩, 아니면 메인으로
-            if (isTemporary) {
-              navigation.replace("Onboarding");
-            } else {
-              navigation.replace("Home");
-            }
+
+            // 4) 홈 화면으로 이동
+            navigate("Home");
           } catch (e) {
+            console.error("🔴 토큰 저장 오류:", e);
             Alert.alert("로그인 오류", "토큰 저장에 실패했습니다.");
           }
         } else {
@@ -78,13 +73,16 @@ export default function AuthScreen({ navigation }) {
         }
       }
     },
-    [dispatch, navigation]
+    [dispatch]
   );
 
   const handleKakaoLoginPress = () => {
     setShowWebView(true);
   };
-  const handleLocalRegisterPress = () => navigation.navigate("Register");
+
+  const handleLocalRegisterPress = () => {
+    navigate("Register");
+  };
 
   return (
     <View style={styles.container}>

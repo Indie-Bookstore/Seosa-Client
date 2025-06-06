@@ -1,9 +1,8 @@
-import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, Platform, Alert } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
+// src/screens/admin/AdminMySpaceScreen.js
+
+import React, { useState } from 'react';
+import { View, StyleSheet, Platform } from 'react-native';
 import Constants from 'expo-constants';
-import { useFocusEffect } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 
 import Footer from '../../components/common/footer/Footer';
 import AdminMySpaceHeader from '../../components/admin/AdminMySpaceHeader';
@@ -14,24 +13,8 @@ import MyCommentList from '../../components/myspace/MyCommentList';
 const STATUSBAR_HEIGHT =
   Platform.OS === 'ios' ? Constants.statusBarHeight : StatusBar.currentHeight;
 
-const AdminMySpaceScreen = ({ navigation }) => {
+export default function AdminMySpaceScreen() {
   const [selectedTab, setSelectedTab] = useState('write');
-  const user = useSelector((state) => state.auth.user);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!user || user.userRole !== 'ADMIN') {
-        Alert.alert('접근 제한', '관리자만 접근 가능한 화면입니다.', [
-          {
-            text: '확인',
-            onPress: () => navigation.navigate('Home'),
-          },
-        ]);
-      }
-    }, [user, navigation])
-  );
-
-  if (!user || user.userRole !== 'ADMIN') return null;
 
   return (
     <View style={styles.container}>
@@ -45,10 +28,10 @@ const AdminMySpaceScreen = ({ navigation }) => {
         {selectedTab === 'bookmark' && <MyBookmarkList />}
         {selectedTab === 'comment' && <MyCommentList />}
       </View>
-      <Footer navigation={navigation} />
+      <Footer />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -62,5 +45,3 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 });
-
-export default AdminMySpaceScreen;

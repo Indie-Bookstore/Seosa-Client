@@ -5,6 +5,7 @@
 export const protectedScreens = [
   'MySpace',
   'EditProfile',
+  'gallery',
   'Post',
   'AdminSpace',
 ];

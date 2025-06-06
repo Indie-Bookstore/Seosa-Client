@@ -1,6 +1,6 @@
 /**
  * 글(Post) 관련 API 모음
- * - ADMIN 전용
+ * - ADMIN, EDITOR 전용
  */
 
 import api from './axios';

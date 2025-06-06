@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   Dimensions,
   Platform,
   StatusBar as RNStatusBar,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import Constants from "expo-constants";
 import LogoIcon from "../../icons/logo-green.svg";
@@ -15,23 +17,8 @@ import EditIcon from "../../icons/edit-white.svg";
 import Post from "../../components/post/Post";
 import Footer from "../../components/common/footer/Footer";
 import { navigate } from "../../utils/nav/RootNavigation";
-
-const posts = [
-  {
-    id: "1",
-    title: "제목 예시입니다.",
-    date: "24.12.07",
-    nickname: "닉네임",
-    image: require("../../icons/thumbnail-large.jpg"),
-  },
-  {
-    id: "2",
-    title: "제목예시가나다라마바사아자차카파타하가갸거겨고교구규그기",
-    date: "24.12.07",
-    nickname: "닉네임",
-    image: require("../../icons/thumbnail-large.jpg"),
-  },
-];
+import api from "../../api/axios";
+import { useRequireAuth } from "../../hooks/useRequireAuth";
 
 const { width, height } = Dimensions.get("window");
 const CARD_MARGIN = 16;
@@ -43,52 +30,123 @@ const STATUSBAR_HEIGHT =
     : RNStatusBar.currentHeight || 0;
 const size = width * 0.1;
 
-const PostGalleryScreen = ({ navigation }) => (
-  <View style={styles.container}>
-    <View style={[styles.logoSection, { paddingTop: STATUSBAR_HEIGHT }]}>
-      <LogoIcon width={size} height={size} />
-    </View>
-    <ScrollView
-      contentContainerStyle={styles.scrollContainer}
-      showsVerticalScrollIndicator={false}
-      bounces={false}
-      overScrollMode="never"
-    >
-      <View style={styles.titlecontainer}>
-        <View style={[styles.firstline, { paddingLeft: OFFSET }]}>
-          <View style={styles.linecontainer}>
-            <Text style={styles.title}>글모음</Text>
-            <View style={styles.rightline} />
-          </View>
-        </View>
-        <View style={[styles.secondline, { paddingRight: OFFSET }]}>
-          <View style={styles.linecontainer}>
-            <View style={styles.leftline} />
-            <Text style={styles.subtext}>
-              독립출판물을 사랑하는 사람들의 이야기
-            </Text>
-          </View>
-        </View>
+const PostGalleryScreen = ({ navigation }) => {
+  // MySpaceScreen과 동일하게 useRequireAuth 호출
+  const isLoggedIn = useRequireAuth();
+
+  // 로그인되지 않은 경우 렌더링 중단
+  if (!isLoggedIn) return null;
+
+  const [posts, setPosts] = useState([]);
+  const [cursorId, setCursorId] = useState(null);
+  const [hasNext, setHasNext] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  const fetchPosts = useCallback(async () => {
+    if (!hasNext || loading) return;
+
+    setLoading(true);
+    try {
+      const response = await api.get("/post/main", {
+        params: { cursor: cursorId },
+      });
+      const { posts: newPosts, cursorId: newCursorId, hasNext: newHasNext } =
+        response.data;
+
+      setPosts((prevPosts) => [...prevPosts, ...newPosts]);
+      setCursorId(newCursorId);
+      setHasNext(newHasNext);
+    } catch (error) {
+      console.error("게시글 조회 실패:", error);
+      Alert.alert("오류", "게시글을 불러오지 못했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  }, [cursorId, hasNext, loading]);
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  return (
+    <View style={styles.container}>
+      <View style={[styles.logoSection, { paddingTop: STATUSBAR_HEIGHT }]}>
+        <LogoIcon width={size} height={size} />
       </View>
-      {posts.map((item) => (
-        <View
-          key={item.id}
-          style={[
-            styles.cardWrapper,
-            { width: CARD_WIDTH, marginHorizontal: CARD_MARGIN },
-          ]}
-        >
-          <Post {...item} />
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+        overScrollMode="never"
+        onMomentumScrollEnd={() => {
+          if (hasNext && !loading) {
+            fetchPosts();
+          }
+        }}
+      >
+        <View style={styles.titlecontainer}>
+          <View style={[styles.firstline, { paddingLeft: OFFSET }]}>
+            <View style={styles.linecontainer}>
+              <Text style={styles.title}>글모음</Text>
+              <View style={styles.rightline} />
+            </View>
+          </View>
+          <View style={[styles.secondline, { paddingRight: OFFSET }]}>
+            <View style={styles.linecontainer}>
+              <View style={styles.leftline} />
+              <Text style={styles.subtext}>
+                독립출판물을 사랑하는 사람들의 이야기
+              </Text>
+            </View>
+          </View>
         </View>
-      ))}
-      <View style={{ height: height * 0.08 }} />
-    </ScrollView>
-    <TouchableOpacity style={styles.fab} onPress={() => navigate('article')}>
-      <EditIcon width={28} height={28} />
-    </TouchableOpacity>
-    <Footer navigation={navigation} />
-  </View>
-);
+        {posts.map((item) => (
+          <View
+            key={item.postId}
+            style={[
+              styles.cardWrapper,
+              { width: CARD_WIDTH, marginHorizontal: CARD_MARGIN },
+            ]}
+          >
+            <Post
+              id={item.postId}
+              title={item.title}
+              date={new Date(item.createdAt).toLocaleDateString("ko-KR", {
+                year: "2-digit",
+                month: "2-digit",
+                day: "2-digit",
+              })}
+              nickname={item.userName}
+              image={
+                item.thumbnailUrl
+                  ? { uri: item.thumbnailUrl }
+                  : require("../../icons/thumbnail-large.jpg")
+              }
+              onPress={() =>
+                navigation.navigate("PostScreen", { postId: item.postId })
+              }
+            />
+          </View>
+        ))}
+        {loading && (
+          <ActivityIndicator
+            style={{ marginVertical: 20 }}
+            size="large"
+            color="#487153"
+          />
+        )}
+        <View style={{ height: height * 0.08 }} />
+      </ScrollView>
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => navigate("article")}
+      >
+        <EditIcon width={28} height={28} />
+      </TouchableOpacity>
+      <Footer navigation={navigation} />
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFFBEA", alignItems: "center" },

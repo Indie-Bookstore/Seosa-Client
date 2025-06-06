@@ -1,5 +1,3 @@
-// src/screens/post/PostScreen.js
-
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -28,14 +26,14 @@ export default function PostScreen({ navigation, route }) {
 
   const { postId } = route.params;
   const [postData, setPostData] = useState(null);
-  const [loading, setLoading]   = useState(true);
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  /* “뒤로가기” 핸들러 */
   const handleBack = () => {
     navigation.goBack();
   };
 
-  /* GET /post/{postId} */
+  // 게시글 데이터 불러오기
   useEffect(() => {
     const fetchPost = async () => {
       try {
@@ -52,6 +50,37 @@ export default function PostScreen({ navigation, route }) {
     fetchPost();
   }, [postId]);
 
+  // 댓글 목록 불러오기
+  const fetchComments = async () => {
+    try {
+      const res = await api.get(`/comment/post/${postId}`);
+      setComments(res.data);
+    } catch (err) {
+      console.error('댓글 목록 불러오기 실패:', err);
+      Alert.alert('오류', '댓글 목록을 불러오지 못했습니다.');
+    }
+  };
+
+  // 댓글 초기 로딩
+  useEffect(() => {
+    fetchComments();
+  }, [postId]);
+
+  // 댓글 작성
+  const handleAddComment = async (text) => {
+    if (!text.trim()) {
+      Alert.alert('알림', '댓글 내용을 입력해주세요.');
+      return;
+    }
+    try {
+      await api.post(`/comment/${postId}`, { text });
+      fetchComments();  // 댓글 새로고침
+    } catch (err) {
+      console.error('댓글 작성 실패:', err);
+      Alert.alert('오류', '댓글 작성에 실패했습니다.');
+    }
+  };
+
   if (loading || !postData) {
     return (
       <View style={styles.loadingContainer}>
@@ -64,30 +93,22 @@ export default function PostScreen({ navigation, route }) {
     <View style={styles.container}>
       <View style={{ height: STATUSBAR_HEIGHT }} />
       <PostHeader
-        title="나의 공간"
+        title={postData.title}
         onBackPress={handleBack}
         onDotPress={() => console.log('Dot 버튼 눌림')}
         navigation={navigation}
       />
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* 제목 + 생성일 */}
         <PostTitle title={postData.title} date={postData.createdAt} />
-
-        {/* 본문(문장 + 이미지) */}
         <PostContent contents={postData.contentResDtoList} />
-
-        {/* “서사 모아보기” (상품 리스트) */}
         <PostItem products={postData.productResDtoList} />
-
-        {/* 서점 정보 (우편번호 → 정적지도 렌더링) */}
         <PostInfo info={postData.bookstoreResDto} />
-
-        {/* 댓글 입력 폼 */}
         <PostEditor />
-
-        {/* 댓글 목록 */}
-        <PostComment />
+        <PostComment
+          comments={comments}
+          onSubmit={handleAddComment}
+        />
       </ScrollView>
     </View>
   );

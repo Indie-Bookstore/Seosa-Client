@@ -1,7 +1,8 @@
+// src/screens/myspace/MySpaceScreen.js
+
 import React, { useState } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import Constants from 'expo-constants';
-import { useRequireAuth } from '../../hooks/useRequireAuth';
 import { useSelector } from 'react-redux';
 import { navigate } from '../../utils/nav/RootNavigation';
 
@@ -16,26 +17,23 @@ const STATUSBAR_HEIGHT =
     : Constants.statusBarHeight;
 
 export default function MySpaceScreen() {
-  const isLoggedIn = useRequireAuth();
   const [selectedTab, setSelectedTab] = useState('bookmark');
   const user = useSelector(state => state.auth.user);
   const profileImage = user?.profileImage || null;
-
-  if (!isLoggedIn) return null;
 
   return (
     <View style={styles.container}>
       <View style={{ height: STATUSBAR_HEIGHT }} />
       <MySpaceHeader
         selectedTab={selectedTab}
-        setSelectedTab={(tab) => setSelectedTab(tab)}
+        setSelectedTab={tab => setSelectedTab(tab)}
         profileImage={profileImage}
       />
       <View style={styles.content}>
         {selectedTab === 'bookmark' ? (
-          <MyBookmarkList onItemPress={(postId) => navigate('PostDetail', { postId })} />
+          <MyBookmarkList onItemPress={postId => navigate('PostDetail', { postId })} />
         ) : (
-          <MyCommentList onItemPress={(commentId) => navigate('CommentDetail', { commentId })} />
+          <MyCommentList onItemPress={commentId => navigate('CommentDetail', { commentId })} />
         )}
       </View>
       <Footer />

@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Dimensions, TouchableOpacity, StyleSheet, Text } from 'react-native';
+import { View, Dimensions, TouchableOpacity, StyleSheet, Text, Platform, Alert } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { navigate } from '../../../utils/nav/RootNavigation'; // ✅ 전역 navigate 함수 import
+import { useSelector } from 'react-redux';
 
 import HomeNav from '../../../icons/home.svg';
 import BookNav from '../../../icons/book.svg';
@@ -17,11 +18,41 @@ const Footer = () => {
   const route = useRoute();
   const current = route.name;
 
+  // Redux에서 accessToken 여부를 가져와서 로그인 상태 판별
+  const accessToken = useSelector((state) => state.auth.accessToken);
+
+  // 탭 정보 배열
   const tabs = [
     { name: 'Home', label: '홈', Icon: HomeNav, SelectedIcon: HomeSelNav },
     { name: 'gallery', label: '글모음', Icon: BookNav, SelectedIcon: BookSelNav },
     { name: 'MySpace', label: '나의 공간', Icon: UserNav, SelectedIcon: UserSelNav },
   ];
+
+  // Protected 탭(글모음, 나의 공간 등)에 접근할 때 호출되는 함수
+  const handleProtectedNavigate = (screenName) => {
+    if (!accessToken) {
+      // 웹일 경우 window.confirm, 모바일일 경우 Alert 사용
+      if (Platform.OS === 'web') {
+        const confirmed = window.confirm('로그인이 필요합니다. 로그인하시겠습니까?');
+        if (confirmed) {
+          navigate('Auth');
+        }
+      } else {
+        Alert.alert(
+          '로그인 필요',
+          '로그인이 필요합니다.',
+          [
+            { text: '취소', style: 'cancel' },
+            { text: '로그인하기', onPress: () => navigate('Auth') },
+          ],
+          { cancelable: true }
+        );
+      }
+    } else {
+      // 로그인 상태면 해당 스크린으로 이동
+      navigate(screenName);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -31,11 +62,20 @@ const Footer = () => {
           const TabIcon = focused ? tab.SelectedIcon : tab.Icon;
           const textStyle = focused ? [styles.des, styles.selectedText] : styles.des;
 
+          // 탭이 Home이면 무조건 이동, 아니면 로그인 체크
+          const onPressHandler = () => {
+            if (tab.name === 'Home') {
+              navigate('Home');
+            } else {
+              handleProtectedNavigate(tab.name);
+            }
+          };
+
           return (
             <TouchableOpacity
               key={tab.name}
               style={styles.btnc}
-              onPress={() => navigate(tab.name)} // ✅ 전역 navigate 사용
+              onPress={onPressHandler}
             >
               <TabIcon width={ICON_SIZE} height={ICON_SIZE} />
               <Text style={textStyle}>{tab.label}</Text>

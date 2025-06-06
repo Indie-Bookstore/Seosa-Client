@@ -1,5 +1,4 @@
-// Auth Screen 메인 컴포넌트
-
+// src/components/auth/AuthComponent.js
 import React, { useState } from "react";
 import {
   View,
@@ -15,11 +14,12 @@ import api from "../../api/axios";
 import { setAccessToken } from "../../store/authSlice";
 // expo-secure-store util 함수 (refresh token 저장)
 import { setRefreshToken as saveRefreshToken } from "../../utils/tokenStorage";
+// 네비게이션 리셋용 ref
+import { navigationRef } from "../../utils/nav/RootNavigation";
 
 const AuthComponent = ({
   onKakaoLoginPress,
   onLocalRegisterPress,
-  navigation,
 }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -61,10 +61,12 @@ const AuthComponent = ({
       setLoginError("로그인에 성공했습니다!");
 
       // 로그인 성공 후 스택 초기화 및 Main 화면으로 이동
-    navigation.reset({
-      index: 0, // 활성화할 경로의 인덱스
-      routes: [{ name: "Main" }], // 이동할 경로 설정
-    });
+      if (navigationRef.isReady()) {
+        navigationRef.resetRoot({
+          index: 0,
+          routes: [{ name: "Home" }],
+        });
+      }
     } catch (error) {
       console.error("🚨 Login error:", error);
       if (error.response) {
@@ -154,7 +156,6 @@ const AuthComponent = ({
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {

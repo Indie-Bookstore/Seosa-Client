@@ -1,5 +1,3 @@
-// src/components/admin/AdminMySpaceHeader.js
-
 import React, { useState } from "react";
 import {
   View,
@@ -10,7 +8,8 @@ import {
   Alert,
   Image,
 } from "react-native";
-import { useDispatch } from "react-redux";
+import { navigate } from "../../utils/nav/RootNavigation";
+
 import DotBtn from "../../icons/dot.svg";
 import EditBtn from "../../icons/edit.svg";
 import Bookmark from "../../icons/bookmark.svg";
@@ -19,37 +18,30 @@ import Write from "../../icons/write.svg";
 import BookmarkSelected from "../../icons/bookmark-selected.svg";
 import CommentSelected from "../../icons/comment-selected.svg";
 import WriteSelected from "../../icons/write-selected.svg";
-import { clearAuth } from "../../store/authSlice";
-import { removeRefreshToken, removeAccessToken } from "../../utils/tokenStorage";
-import { navigate } from "../../utils/nav/RootNavigation";
+
+import api from "../../api/axios";
+import { logout } from "../../utils/logout"; // ★ 공통 로그아웃
 
 const { width, height } = Dimensions.get("window");
 const size = width * 0.067;
 
-const AdminMySpaceHeader = ({ selectedTab, setSelectedTab, profileImage, nickname }) => {
+export default function AdminMySpaceHeader({
+  selectedTab,
+  setSelectedTab,
+  profileImage,
+  nickname,
+}) {
   const [menuVisible, setMenuVisible] = useState(false);
-  const dispatch = useDispatch();
 
+  /* 로그아웃 */
   const handleLogout = () => {
     Alert.alert("로그아웃", "정말 로그아웃하시겠습니까?", [
       { text: "아니오", style: "cancel" },
-      {
-        text: "예",
-        onPress: async () => {
-          try {
-            await removeRefreshToken();
-            await removeAccessToken();
-            dispatch(clearAuth());
-            navigate("Auth");
-          } catch (err) {
-            console.error("관리자 로그아웃 중 오류:", err);
-            Alert.alert("오류", "로그아웃에 실패했습니다.");
-          }
-        },
-      },
+      { text: "예", onPress: () => logout() }, // ★
     ]);
   };
 
+  /* 회원 탈퇴 */
   const handleWithdraw = () => {
     Alert.alert(
       "회원 탈퇴",
@@ -60,19 +52,8 @@ const AdminMySpaceHeader = ({ selectedTab, setSelectedTab, profileImage, nicknam
           text: "예",
           onPress: async () => {
             try {
-              // 1) API 호출로 회원 탈퇴
-              await api.delete("/user");
-
-              // 2) 탈퇴 성공 시 SecureStore 토큰 전부 삭제
-              await removeRefreshToken();
-              await removeAccessToken();
-
-              // 3) Redux auth 상태 초기화
-              dispatch(clearAuth());
-
-              // 4) 알림 및 Auth 화면 이동
-              Alert.alert("탈퇴 완료", "회원 탈퇴가 완료되었습니다.");
-              navigate("Auth");
+              await api.delete("/user"); // 서버 회원 탈퇴
+              await logout(); // ★ 동일 로그아웃 처리
             } catch (err) {
               console.error("회원 탈퇴 실패:", err);
               Alert.alert("오류", "회원 탈퇴에 실패했습니다.");
@@ -83,9 +64,7 @@ const AdminMySpaceHeader = ({ selectedTab, setSelectedTab, profileImage, nicknam
     );
   };
 
-  const handleEditProfile = () => {
-    navigate("EditProfile");
-  };
+  const handleEditProfile = () => navigate("EditProfile");
 
   return (
     <View style={styles.container}>
@@ -99,6 +78,7 @@ const AdminMySpaceHeader = ({ selectedTab, setSelectedTab, profileImage, nicknam
         </TouchableOpacity>
       </View>
 
+      {/* 프로필 */}
       <View style={styles.profileContainer}>
         <View style={styles.profile}>
           {profileImage ? (
@@ -112,7 +92,7 @@ const AdminMySpaceHeader = ({ selectedTab, setSelectedTab, profileImage, nicknam
         </View>
       </View>
 
-      {/* 사용자 정보 */}
+      {/* 닉네임 */}
       <View style={styles.infoContainer}>
         <Text style={styles.nickname}>닉네임</Text>
         <Text style={styles.nicknameinput}>{nickname || "책손님"}</Text>
@@ -155,13 +135,14 @@ const AdminMySpaceHeader = ({ selectedTab, setSelectedTab, profileImage, nicknam
       )}
     </View>
   );
-};
+}
 
+/* ───── 스타일 ───── */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    width: width,
+    width,
     backgroundColor: "#487153",
     maxHeight: height * 0.3925,
     position: "relative",
@@ -171,7 +152,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    width: width,
+    width,
   },
   titletext: {
     color: "#FFFFFF",
@@ -180,14 +161,9 @@ const styles = StyleSheet.create({
     marginLeft: width * 0.05,
     fontFamily: "UnBatangBold",
   },
-  dotbtn: {
-    marginRight: width * 0.05,
-  },
-  profileContainer: {
-    height: height * 0.16625,
-    width: width,
-    alignItems: "center",
-  },
+  dotbtn: { marginRight: width * 0.05 },
+
+  profileContainer: { height: height * 0.16625, width, alignItems: "center" },
   profile: {
     height: height * 0.16625,
     flexDirection: "row",
@@ -211,9 +187,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+
   infoContainer: {
     marginTop: height * 0.02,
-    width: width,
+    width,
     flexDirection: "row",
     height: height * 0.02875,
     justifyContent: "center",
@@ -225,12 +202,10 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     width: width * 0.125,
   },
-  nicknameinput: {
-    color: "#FFFFFF",
-    fontSize: height * 0.02,
-  },
+  nicknameinput: { color: "#FFFFFF", fontSize: height * 0.02 },
+
   parts: {
-    width: width,
+    width,
     flexDirection: "row",
     alignItems: "center",
     position: "absolute",
@@ -250,6 +225,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#FFEEAA",
     borderBottomWidth: 2,
   },
+
   menu: {
     position: "absolute",
     top: height * 0.0975 + 5,
@@ -264,18 +240,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  menuItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-  },
-  menuText: {
-    fontSize: 14,
-    color: "#333",
-  },
-  logoutText: {
-    color: "#FF3333",
-    fontWeight: "bold",
-  },
+  menuItem: { paddingVertical: 12, paddingHorizontal: 15 },
+  menuText: { fontSize: 14, color: "#333" },
+  logoutText: { color: "#FF3333", fontWeight: "bold" },
 });
-
-export default AdminMySpaceHeader;

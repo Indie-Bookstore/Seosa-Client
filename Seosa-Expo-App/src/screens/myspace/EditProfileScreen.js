@@ -1,4 +1,3 @@
-// screens/EditProfileScreen.js
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -25,7 +24,7 @@ import AlertComponent from "../../components/auth/AlertComponent";
 import ButtonComponent from "../../components/common/button/ButtonComponent";
 import { goBack } from "../../utils/nav/RootNavigation";
 import api from "../../api/axios";
-import { fetchUserInfo } from "../../api/userApi";           
+import { fetchUserInfo } from "../../api/userApi";
 
 import {
   S3_BUCKET,
@@ -40,7 +39,7 @@ const { width, height } = Dimensions.get("window");
 const STATUSBAR_HEIGHT =
   Platform.OS === "ios" ? Constants.statusBarHeight : RNStatusBar.currentHeight;
 
-/* ───────── AWS S3 설정 ───────── */
+/* ───── AWS S3 설정 ───── */
 const s3 = new S3Client({
   region: S3_REGION,
   credentials: fromCognitoIdentityPool({
@@ -65,24 +64,29 @@ const uploadToS3 = async (uri, key) => {
 };
 
 export default function EditProfileScreen() {
-  const dispatch = useDispatch();                             
-  const user = useSelector((state) => state.auth.user);
+  const dispatch = useDispatch();
+  const user = useSelector((s) => s.auth.user);
 
-  const [profileImage, setProfileImage] = useState(null);         
-  const [nickname, setNickname]     = useState("");
-  const [msg, setMsg]               = useState("");
-  const [msgError, setMsgError]     = useState(false);
-  const [checking, setChecking]     = useState(false);
+  /* 모든 훅 선언 */
+  const [profileImage, setProfileImage] = useState(null);
+  const [nickname, setNickname] = useState("");
+  const [msg, setMsg] = useState("");
+  const [msgError, setMsgError] = useState(false);
+  const [checking, setChecking] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  /* user 변경 시 초기값 반영 */
   useEffect(() => {
     if (user?.profileImage) setProfileImage(user.profileImage);
-    if (user?.nickname)     setNickname(user.nickname);
+    if (user?.nickname) setNickname(user.nickname);
   }, [user]);
+
+  /* ★ user 정보가 없으면 화면 자체를 제거 */
+  if (!user) return null;
 
   const size = width * 0.067;
 
-  /* ① 이미지 선택 ― 로컬 URI만 저장 */
+  /* 이미지 선택(로컬 URI만 저장) */
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
@@ -100,7 +104,7 @@ export default function EditProfileScreen() {
     }
   };
 
-  /* ② 닉네임 중복 확인 */
+  /* 닉네임 중복 확인 */
   const checkNickname = async () => {
     const trimmed = nickname.trim();
     if (!trimmed) {
@@ -121,9 +125,7 @@ export default function EditProfileScreen() {
         setMsg("이미 존재하는 닉네임입니다.");
         setMsgError(true);
       } else if (code === "VALIDATION_FAILED") {
-        setMsg(
-          err.response.data.message.replace("유효성 검사 실패: ", "")
-        );
+        setMsg(err.response.data.message.replace("유효성 검사 실패: ", ""));
         setMsgError(true);
       } else {
         setMsg("닉네임 확인 중 오류가 발생했습니다.");
@@ -134,7 +136,7 @@ export default function EditProfileScreen() {
     }
   };
 
-  /* ③ “수정 완료” → S3 업로드 후 PATCH */
+  /* 수정 완료 → S3 업로드 → PATCH → 최신 유저 정보 갱신 */
   const handleSubmit = async () => {
     const trimmed = nickname.trim();
     if (!trimmed) {
@@ -146,7 +148,6 @@ export default function EditProfileScreen() {
     setSubmitting(true);
     try {
       let imageUrl = user.profileImage || "";
-
       if (profileImage?.startsWith("file://")) {
         const key = `profiles/${Date.now()}_${profileImage.split("/").pop()}`;
         imageUrl = await uploadToS3(profileImage, key);
@@ -159,10 +160,10 @@ export default function EditProfileScreen() {
         profileImage: imageUrl,
       });
 
-      /* ④ 최신 유저 정보 다시 가져오기 */
+      /* 최신 정보 재조회 후 store 갱신 */
       try {
-        const fresh = await fetchUserInfo();                      
-        dispatch(setUser(fresh));                                 
+        const fresh = await fetchUserInfo();
+        dispatch(setUser(fresh));
       } catch (e) {
         console.warn("⚠️  프로필 리프레시 실패:", e?.response?.data || e);
       }
@@ -185,11 +186,12 @@ export default function EditProfileScreen() {
     }
   };
 
-  /* ───────── UI ───────── */
+  /* UI */
   return (
     <View style={styles.container}>
       <View style={{ height: STATUSBAR_HEIGHT }} />
       <AuthHeader title="내 정보 수정하기" backOnPress={goBack} />
+
       <View style={styles.profileContainer}>
         <View style={styles.profile}>
           <TouchableOpacity onPress={pickImage} style={styles.imageContainer}>
@@ -220,7 +222,9 @@ export default function EditProfileScreen() {
           }}
           onDuplicateCheck={checkNickname}
           description={checking ? "확인중…" : "중복확인"}
-          duplicateBtnType={nickname.trim() && !checking ? "btn-green" : "btn-gray"}
+          duplicateBtnType={
+            nickname.trim() && !checking ? "btn-green" : "btn-gray"
+          }
           disabled={!nickname.trim() || checking}
         />
         {msg !== "" && <AlertComponent description={msg} isError={msgError} />}
@@ -239,13 +243,9 @@ export default function EditProfileScreen() {
   );
 }
 
-/* ───────── 스타일: 그대로 ───────── */
+/* ───── 스타일(변경 없음) ───── */
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFFEFB",
-    alignItems: "center",
-  },
+  container: { flex: 1, backgroundColor: "#FFFEFB", alignItems: "center" },
   profileContainer: {
     height: height * 0.16625,
     width,
@@ -259,10 +259,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     position: "relative",
   },
-  imageContainer: {
-    borderRadius: 100,
-    overflow: "hidden",
-  },
+  imageContainer: { borderRadius: 100, overflow: "hidden" },
   image: {
     height: height * 0.16625,
     width: height * 0.16625,
@@ -280,10 +277,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  formContainer: {
-    width: "90%",
-    flex: 1,
-  },
+  formContainer: { width: "90%", flex: 1 },
   buttonContainer: {
     position: "absolute",
     bottom: height * 0.05,

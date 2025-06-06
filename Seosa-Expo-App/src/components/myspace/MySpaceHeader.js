@@ -1,5 +1,3 @@
-// components/myspace/MySpaceHeader.js
-
 import React, { useState } from "react";
 import {
   View,
@@ -10,55 +8,45 @@ import {
   Image,
   Alert,
 } from "react-native";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { navigate } from "../../utils/nav/RootNavigation";
+
 import DotBtn from "../../icons/dot.svg";
 import EditBtn from "../../icons/edit.svg";
 import Bookmark from "../../icons/bookmark.svg";
 import Comment from "../../icons/comment.svg";
 import BookmarkSelected from "../../icons/bookmark-selected.svg";
 import CommentSelected from "../../icons/comment-selected.svg";
+
 import api from "../../api/axios";
-import { clearAuth } from "../../store/authSlice";
-import { removeRefreshToken, removeAccessToken } from "../../utils/tokenStorage"; // accessToken 삭제도 추가
+import { logout } from "../../utils/logout"; // ★ 공통 로그아웃 함수
 
 const { width, height } = Dimensions.get("window");
 const size = width * 0.067;
 
-const MySpaceHeader = ({ selectedTab, setSelectedTab, profileImage }) => {
+export default function MySpaceHeader({
+  selectedTab,
+  setSelectedTab,
+  profileImage,
+}) {
   const [menuVisible, setMenuVisible] = useState(false);
   const user = useSelector((state) => state.auth.user);
-  const dispatch = useDispatch();
 
+  /* FAQ 화면 이동 */
   const handleFaq = () => navigate("FAQ");
 
-  // 로그아웃 함수
+  /* 로그아웃 */
   const handleLogout = () => {
     Alert.alert("로그아웃", "로그아웃하시겠습니까?", [
       { text: "아니오", style: "cancel" },
       {
         text: "예",
-        onPress: async () => {
-          try {
-            // 1) SecureStore에서 refreshToken과 accessToken 모두 삭제
-            await removeRefreshToken();
-            await removeAccessToken();
-
-            // 2) Redux auth 상태 초기화
-            dispatch(clearAuth());
-
-            // 3) Auth 화면으로 이동
-            navigate("Auth");
-          } catch (err) {
-            console.error("로그아웃 처리 중 오류:", err);
-            Alert.alert("오류", "로그아웃에 실패했습니다.");
-          }
-        },
+        onPress: () => logout(), // ★ 공통 로그아웃 호출
       },
     ]);
   };
 
-  // 회원 탈퇴 함수
+  /* 회원 탈퇴 */
   const handleWithdrawal = () => {
     Alert.alert(
       "회원 탈퇴",
@@ -69,19 +57,8 @@ const MySpaceHeader = ({ selectedTab, setSelectedTab, profileImage }) => {
           text: "예",
           onPress: async () => {
             try {
-              // 1) API 호출로 회원 탈퇴
-              await api.delete("/user");
-
-              // 2) 탈퇴 성공 시 SecureStore 토큰 전부 삭제
-              await removeRefreshToken();
-              await removeAccessToken();
-
-              // 3) Redux auth 상태 초기화
-              dispatch(clearAuth());
-
-              // 4) 알림 및 Auth 화면 이동
-              Alert.alert("탈퇴 완료", "회원 탈퇴가 완료되었습니다.");
-              navigate("Auth");
+              await api.delete("/user"); // 서버 탈퇴
+              await logout(); // ★ 탈퇴 후 동일 로그아웃 처리
             } catch (err) {
               console.error("회원 탈퇴 실패:", err);
               Alert.alert("오류", "회원 탈퇴에 실패했습니다.");
@@ -92,10 +69,12 @@ const MySpaceHeader = ({ selectedTab, setSelectedTab, profileImage }) => {
     );
   };
 
+  /* 프로필 수정 화면 이동 */
   const handleEdit = () => navigate("EditProfile");
 
   return (
     <View style={styles.container}>
+      {/* 상태바 자리 */}
       <View style={styles.title}>
         <Text style={styles.titletext}>나의 공간</Text>
         <TouchableOpacity
@@ -106,6 +85,7 @@ const MySpaceHeader = ({ selectedTab, setSelectedTab, profileImage }) => {
         </TouchableOpacity>
       </View>
 
+      {/* 프로필 썸네일 */}
       <View style={styles.profileContainer}>
         <View style={styles.profile}>
           {profileImage ? (
@@ -119,11 +99,13 @@ const MySpaceHeader = ({ selectedTab, setSelectedTab, profileImage }) => {
         </View>
       </View>
 
+      {/* 닉네임 */}
       <View style={styles.infoContainer}>
         <Text style={styles.nickname}>닉네임</Text>
         <Text style={styles.nicknameinput}>{user?.nickname || "책손님"}</Text>
       </View>
 
+      {/* 탭 선택 */}
       <View style={styles.parts}>
         <TouchableOpacity
           style={selectedTab === "bookmark" ? styles.selectedPart : styles.part}
@@ -140,6 +122,7 @@ const MySpaceHeader = ({ selectedTab, setSelectedTab, profileImage }) => {
         </TouchableOpacity>
       </View>
 
+      {/* 토글 메뉴 */}
       {menuVisible && (
         <View style={styles.menu}>
           <TouchableOpacity style={styles.menuItem} onPress={handleFaq}>
@@ -155,13 +138,14 @@ const MySpaceHeader = ({ selectedTab, setSelectedTab, profileImage }) => {
       )}
     </View>
   );
-};
+}
 
+/* ───── 스타일 ───── */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    width: width,
+    width,
     backgroundColor: "#487153",
     maxHeight: height * 0.3925,
     position: "relative",
@@ -171,7 +155,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    width: width,
+    width,
   },
   titletext: {
     color: "#FFFFFF",
@@ -180,14 +164,10 @@ const styles = StyleSheet.create({
     marginLeft: width * 0.05,
     fontFamily: "UnBatangBold",
   },
-  dotbtn: {
-    marginRight: width * 0.05,
-  },
-  profileContainer: {
-    height: height * 0.16625,
-    width: width,
-    alignItems: "center",
-  },
+  dotbtn: { marginRight: width * 0.05 },
+
+  /* 프로필 썸네일 */
+  profileContainer: { height: height * 0.16625, width, alignItems: "center" },
   profile: {
     height: height * 0.16625,
     flexDirection: "row",
@@ -211,9 +191,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+
+  /* 닉네임 */
   infoContainer: {
     marginTop: height * 0.02,
-    width: width,
+    width,
     flexDirection: "row",
     height: height * 0.02875,
     justifyContent: "center",
@@ -225,12 +207,11 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     width: width * 0.125,
   },
-  nicknameinput: {
-    color: "#FFFFFF",
-    fontSize: height * 0.02,
-  },
+  nicknameinput: { color: "#FFFFFF", fontSize: height * 0.02 },
+
+  /* 탭 */
   parts: {
-    width: width,
+    width,
     flexDirection: "row",
     alignItems: "center",
     position: "absolute",
@@ -250,6 +231,8 @@ const styles = StyleSheet.create({
     borderBottomColor: "#FFEEAA",
     borderBottomWidth: 2,
   },
+
+  /* 메뉴 */
   menu: {
     position: "absolute",
     top: height * 0.0975 + 5,
@@ -264,18 +247,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  menuItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-  },
-  menuText: {
-    fontSize: 14,
-    color: "#333",
-  },
-  logoutText: {
-    color: "#FF3333",
-    fontWeight: "bold",
-  },
+  menuItem: { paddingVertical: 12, paddingHorizontal: 15 },
+  menuText: { fontSize: 14, color: "#333" },
+  logoutText: { color: "#FF3333", fontWeight: "bold" },
 });
-
-export default MySpaceHeader;

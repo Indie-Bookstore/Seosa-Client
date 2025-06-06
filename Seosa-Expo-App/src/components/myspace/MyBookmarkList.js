@@ -1,117 +1,122 @@
-import React, { useState } from "react";
-import { View, StyleSheet, Dimensions, Text, Alert, ScrollView } from "react-native";
-import SmallButtonComponent from "../common/button/SmallButtonComponent";
+// src/components/myspace/MyBookmarkList.js
+
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  StyleSheet,
+  Dimensions,
+  Text,
+  Alert,
+  ActivityIndicator,
+  FlatList,
+} from "react-native";
+import api from "../../api/axios";
 import PostList from "../post/PostList";
 
-const MyBookmarkList = () => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [selectedPosts, setSelectedPosts] = useState([]);
+const { width, height } = Dimensions.get("window");
+const HEADER_HEIGHT = height * 0.06;
+const PADDING_HORIZONTAL = width * 0.05;
 
-  const [bookmarks, setBookmarks] = useState([
-    { id: 1, title: "가나다라마바사아자차카파타하", image: require("../../icons/thumbnail.jpg") },
-    { id: 2, title: "ABCDEFG", image: require("../../icons/thumbnail.jpg") },
-    { id: 3, title: "1234567890", image: require("../../icons/thumbnail.jpg") },
-    { id: 4, title: "테스트 데이터", image: require("../../icons/thumbnail.jpg") },
-    { id: 5, title: "React Native", image: require("../../icons/thumbnail.jpg") },
-    { id: 6, title: "Post Item", image: require("../../icons/thumbnail.jpg") },
-    { id: 7, title: "New Data", image: require("../../icons/thumbnail.jpg") },
-    { id: 8, title: "가나다라마바사아자차카파타하", image: require("../../icons/thumbnail.jpg") },
-    { id: 9, title: "ABCDEFG", image: require("../../icons/thumbnail.jpg") },
-    { id: 10, title: "1234567890", image: require("../../icons/thumbnail.jpg") },
-    { id: 11, title: "테스트 데이터", image: require("../../icons/thumbnail.jpg") },
-    { id: 12, title: "React Native", image: require("../../icons/thumbnail.jpg") },
-    { id: 13, title: "Post Item", image: require("../../icons/thumbnail.jpg") },
-    { id: 14, title: "New Data", image: require("../../icons/thumbnail.jpg") },
-  ]);
+const MyBookmarkList = ({ onItemPress }) => {
+  const [posts, setPosts] = useState([]); // 저장한 게시글 리스트
+  const [cursorId, setCursorId] = useState(null);
+  const [hasNext, setHasNext] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const toggleEditMode = () => {
-    setIsEditing(!isEditing);
-    setSelectedPosts([]);
-  };
-
-  const deleteSelectedPosts = () => {
-    if (selectedPosts.length === 0) {
-      Alert.alert("알림", "삭제할 항목을 선택하세요.");
-      return;
+  // 1) 저장한 북마크 목록 9개 조회
+  const fetchMyBookmarks = async () => {
+    try {
+      setLoading(true);
+      const url = cursorId
+        ? `/bookmark/mypage?cursor=${cursorId}`
+        : "/bookmark/mypage";
+      const response = await api.get(url);
+      // response.data: { posts: [...], cursorId: ..., hasNext: boolean }
+      if (cursorId) {
+        setPosts((prev) => [...prev, ...response.data.posts]);
+      } else {
+        setPosts(response.data.posts);
+      }
+      setCursorId(response.data.cursorId);
+      setHasNext(response.data.hasNext);
+    } catch (err) {
+      console.error("북마크 목록 조회 실패:", err.response?.data || err.message);
+      Alert.alert("오류", "저장한 글 목록을 불러오지 못했습니다.");
+    } finally {
+      setLoading(false);
     }
-
-    Alert.alert(
-      "삭제 확인",
-      "정말 삭제하시겠습니까?",
-      [
-        {
-          text: "취소",
-          style: "cancel",
-        },
-        {
-          text: "삭제",
-          style: "destructive",
-          onPress: () => {
-            const updatedBookmarks = bookmarks.filter((post) => !selectedPosts.includes(post.id));
-            setBookmarks([...updatedBookmarks]);
-            setSelectedPosts([]);
-            setIsEditing(false);
-          },
-        },
-      ]
-    );
   };
 
-  const width = Dimensions.get("window").width;
-  const height = Dimensions.get("window").height;
-  const FOOTER_HEIGHT = height * 0.07; // 푸터 높이 (기존 Footer 높이와 동일하게 조정)
+  useEffect(() => {
+    fetchMyBookmarks();
+  }, []);
+
+  const loadMore = () => {
+    if (hasNext && !loading) {
+      fetchMyBookmarks();
+    }
+  };
+
+  const renderItem = ({ item }) => (
+    <PostList
+      key={item.postId}
+      posts={[item]}
+      onItemPress={() => onItemPress(item.postId)}
+    />
+  );
+
+  if (loading && !posts.length) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#487153" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
+      {/* 헤더: 단순 “내가 저장한 글” 타이틀 */}
       <View style={styles.bookmarkHeader}>
         <Text style={styles.headertitle}>내가 저장한 글</Text>
-        <SmallButtonComponent
-          btnType={isEditing ? "btn-red" : "btn-yellow"}
-          description={isEditing ? "삭제" : "편집"}
-          onPress={isEditing ? deleteSelectedPosts : toggleEditMode}
-        />
       </View>
 
-      {/* 리스트에만 스크롤 적용, paddingBottom 추가, 스크롤바 숨김 */}
-      <ScrollView
-        style={styles.scrollContainer}
-        contentContainerStyle={{ paddingBottom: FOOTER_HEIGHT }}
+      {/* 저장한 게시글 리스트 */}
+      <FlatList
+        data={posts}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.postId.toString()}
+        contentContainerStyle={{ paddingBottom: PADDING_HORIZONTAL }}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
         showsVerticalScrollIndicator={false}
-      >
-        <PostList
-          posts={bookmarks}
-          isEditing={isEditing}
-          selectedPosts={selectedPosts}
-          setSelectedPosts={setSelectedPosts}
-        />
-      </ScrollView>
+      />
     </View>
   );
 };
-
-const width = Dimensions.get("window").width;
-const height = Dimensions.get("window").height;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   bookmarkHeader: {
     width: width * 0.9,
-    height: height * 0.06,
+    height: HEADER_HEIGHT,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    marginTop: 10,
+    marginBottom: 10,
   },
   headertitle: {
     fontSize: height * 0.02625,
     color: "#888888",
     fontWeight: "500",
-  },
-  scrollContainer: {
-    width: width * 0.9,
-    flex: 1,
   },
 });
 

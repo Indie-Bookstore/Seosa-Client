@@ -1,24 +1,18 @@
 // src/components/myspace/MyBookmarkList.js
 
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  StyleSheet,
-  Dimensions,
-  Text,
-  Alert,
-  ActivityIndicator,
-  FlatList,
-} from "react-native";
-import api from "../../api/axios";
+import { View, StyleSheet, Dimensions, Text, Alert, ScrollView } from "react-native";
+import SmallButtonComponent from "../common/button/SmallButtonComponent";
 import PostList from "../post/PostList";
+import api from "../../api/axios";
 
-const { width, height } = Dimensions.get("window");
-const HEADER_HEIGHT = height * 0.06;
-const PADDING_HORIZONTAL = width * 0.05;
+const width = Dimensions.get("window").width;
+const height = Dimensions.get("window").height;
 
 const MyBookmarkList = ({ onItemPress }) => {
-  const [posts, setPosts] = useState([]); // 저장한 게시글 리스트
+  const [isEditing, setIsEditing] = useState(false);
+  const [selectedPosts, setSelectedPosts] = useState([]);
+  const [bookmarks, setBookmarks] = useState([]);
   const [cursorId, setCursorId] = useState(null);
   const [hasNext, setHasNext] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -27,15 +21,12 @@ const MyBookmarkList = ({ onItemPress }) => {
   const fetchMyBookmarks = async () => {
     try {
       setLoading(true);
-      const url = cursorId
-        ? `/bookmark/mypage?cursor=${cursorId}`
-        : "/bookmark/mypage";
+      const url = cursorId ? `/bookmark/mypage?cursor=${cursorId}` : "/bookmark/mypage";
       const response = await api.get(url);
-      // response.data: { posts: [...], cursorId: ..., hasNext: boolean }
       if (cursorId) {
-        setPosts((prev) => [...prev, ...response.data.posts]);
+        setBookmarks((prev) => [...prev, ...response.data.posts]);
       } else {
-        setPosts(response.data.posts);
+        setBookmarks(response.data.posts);
       }
       setCursorId(response.data.cursorId);
       setHasNext(response.data.hasNext);
@@ -57,39 +48,73 @@ const MyBookmarkList = ({ onItemPress }) => {
     }
   };
 
-  const renderItem = ({ item }) => (
-    <PostList
-      key={item.postId}
-      posts={[item]}
-      onItemPress={() => onItemPress(item.postId)}
-    />
-  );
+  const toggleEditMode = () => {
+    setIsEditing(!isEditing);
+    setSelectedPosts([]);
+  };
 
-  if (loading && !posts.length) {
+  const deleteSelectedPosts = () => {
+    if (selectedPosts.length === 0) {
+      Alert.alert("알림", "삭제할 항목을 선택하세요.");
+      return;
+    }
+
+    Alert.alert(
+      "삭제 확인",
+      "정말 삭제하시겠습니까?",
+      [
+        { text: "취소", style: "cancel" },
+        {
+          text: "삭제",
+          style: "destructive",
+          onPress: () => {
+            const updated = bookmarks.filter((post) => !selectedPosts.includes(post.postId));
+            setBookmarks(updated);
+            setSelectedPosts([]);
+            setIsEditing(false);
+          },
+        },
+      ]
+    );
+  };
+
+  if (loading && bookmarks.length === 0) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#487153" />
+      <View style={styles.container}>
+        <Text>로딩 중...</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {/* 헤더: 단순 “내가 저장한 글” 타이틀 */}
       <View style={styles.bookmarkHeader}>
         <Text style={styles.headertitle}>내가 저장한 글</Text>
+        <SmallButtonComponent
+          btnType={isEditing ? "btn-red" : "btn-yellow"}
+          description={isEditing ? "삭제" : "편집"}
+          onPress={isEditing ? deleteSelectedPosts : toggleEditMode}
+        />
       </View>
 
-      {/* 저장한 게시글 리스트 */}
-      <FlatList
-        data={posts}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.postId.toString()}
-        contentContainerStyle={{ paddingBottom: PADDING_HORIZONTAL }}
-        onEndReached={loadMore}
-        onEndReachedThreshold={0.5}
+      <ScrollView
+        style={styles.scrollContainer}
+        contentContainerStyle={{ paddingBottom: height * 0.07 }}
+        onMomentumScrollEnd={loadMore}
         showsVerticalScrollIndicator={false}
-      />
+      >
+        <PostList
+          posts={bookmarks.map((p) => ({
+            postId: p.postId,
+            title: p.title,
+            thumbnailUrl: p.thumbnailUrl,
+          }))}
+          isEditing={isEditing}
+          selectedPosts={selectedPosts}
+          setSelectedPosts={setSelectedPosts}
+          onItemPress={(postId) => onItemPress(postId)}
+        />
+      </ScrollView>
     </View>
   );
 };
@@ -99,24 +124,21 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   bookmarkHeader: {
     width: width * 0.9,
-    height: HEADER_HEIGHT,
+    height: height * 0.06,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 10,
-    marginBottom: 10,
   },
   headertitle: {
     fontSize: height * 0.02625,
     color: "#888888",
     fontWeight: "500",
+  },
+  scrollContainer: {
+    width: width * 0.9,
+    flex: 1,
   },
 });
 

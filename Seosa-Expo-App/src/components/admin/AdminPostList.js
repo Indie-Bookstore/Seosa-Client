@@ -1,47 +1,31 @@
 // src/components/admin/AdminPostList.js
 
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  StyleSheet,
-  Dimensions,
-  Text,
-  Alert,
-  ActivityIndicator,
-  TouchableOpacity,
-  FlatList,
-} from "react-native";
-import { useSelector } from "react-redux";
-import api from "../../api/axios";
+import { View, StyleSheet, Dimensions, Text, Alert, ScrollView } from "react-native";
+import SmallButtonComponent from "../common/button/SmallButtonComponent";
 import PostList from "../post/PostList";
+import api from "../../api/axios";
 
-const { width, height } = Dimensions.get("window");
-const HEADER_HEIGHT = height * 0.06;
-const PADDING_HORIZONTAL = width * 0.05;
+const width = Dimensions.get("window").width;
+const height = Dimensions.get("window").height;
 
-const AdminPostList = () => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [selectedPosts, setSelectedPosts] = useState([]);
+const AdminPostList = ({ onItemPress }) => {
+  const [isEditing, setIsEditing] = useState(false); // 편집 모드 여부
+  const [selectedPosts, setSelectedPosts] = useState([]); // 선택된 postId 배열
   const [posts, setPosts] = useState([]); // 서버에서 받아온 게시글 리스트
   const [cursorId, setCursorId] = useState(null); // 다음 페이지를 위한 cursor
   const [hasNext, setHasNext] = useState(false);
   const [loading, setLoading] = useState(true);
-  const accessToken = useSelector((state) => state.auth.accessToken);
 
-  // 1) 마이페이지에서 내가 쓴 글 9개 조회
+  // 1) 내가 작성한 글 9개 조회
   const fetchMyPosts = async () => {
     try {
       setLoading(true);
-      const url = cursorId
-        ? `/post/mypage?cursor=${cursorId}`
-        : "/post/mypage";
+      const url = cursorId ? `/post/mypage?cursor=${cursorId}` : "/post/mypage";
       const response = await api.get(url);
-      // response.data: { posts: [...], cursorId: ..., hasNext: boolean }
       if (cursorId) {
-        // 다음 페이지를 로드할 때
         setPosts((prev) => [...prev, ...response.data.posts]);
       } else {
-        // 첫 로드
         setPosts(response.data.posts);
       }
       setCursorId(response.data.cursorId);
@@ -59,86 +43,100 @@ const AdminPostList = () => {
   }, []);
 
   // 2) 선택된 글 삭제
-  const deleteSelectedPosts = async () => {
+  const deleteSelectedPosts = () => {
     if (selectedPosts.length === 0) {
       Alert.alert("알림", "삭제할 글을 선택하세요.");
       return;
     }
 
-    Alert.alert("삭제 확인", "정말 선택한 글을 삭제하시겠습니까?", [
-      { text: "취소", style: "cancel" },
-      {
-        text: "삭제",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            // 선택된 각 postId에 대해 DELETE 요청
-            await Promise.all(
-              selectedPosts.map((postId) => api.delete(`/post/${postId}`))
-            );
-            // 삭제 성공 후 로컬 상태에서 제거
-            setPosts((prev) =>
-              prev.filter((post) => !selectedPosts.includes(post.postId))
-            );
-            setSelectedPosts([]);
-            setIsEditing(false);
-          } catch (err) {
-            console.error("게시글 삭제 실패:", err.response?.data || err.message);
-            Alert.alert("오류", "게시글 삭제에 실패했습니다.");
-          }
+    Alert.alert(
+      "삭제 확인",
+      "정말 선택한 글을 삭제하시겠습니까?",
+      [
+        { text: "취소", style: "cancel" },
+        {
+          text: "삭제",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await Promise.all(
+                selectedPosts.map((postId) => api.delete(`/post/${postId}`))
+              );
+              setPosts((prev) =>
+                prev.filter((post) => !selectedPosts.includes(post.postId))
+              );
+              setSelectedPosts([]);
+              setIsEditing(false);
+            } catch (err) {
+              console.error("게시글 삭제 실패:", err.response?.data || err.message);
+              Alert.alert("오류", "게시글 삭제에 실패했습니다.");
+            }
+          },
         },
-      },
-    ]);
+      ]
+    );
   };
 
-  // 3) FlatList 하단에서 추가 페이지 로드
+  // 3) 다음 페이지 로드 (스크롤 끝에 도달 시)
   const loadMore = () => {
     if (hasNext && !loading) {
       fetchMyPosts();
     }
   };
 
-  // 4) FlatList 아이템 렌더러
-  const renderItem = ({ item }) => (
-    <PostList
-      key={item.postId}
-      posts={[item]}
-      isEditing={isEditing}
-      selectedPosts={selectedPosts}
-      setSelectedPosts={setSelectedPosts}
-    />
-  );
+  // 4) 편집 모드 토글
+  const toggleEditMode = () => {
+    setIsEditing(!isEditing);
+    setSelectedPosts([]);
+  };
 
-  if (loading && !posts.length) {
+  // 5) 개별 포스트 클릭 처리
+  const handleItemPress = (postId) => {
+    if (!isEditing) {
+      onItemPress(postId);
+    }
+  };
+
+  // 6) 포스트 리스트가 로드 중이고 빈 배열 상태면 로딩 화면
+  if (loading && posts.length === 0) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#487153" />
+      <View style={styles.container}>
+        <Text>로딩 중...</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {/* 헤더 영역: 편집 / 삭제 버튼 */}
+      {/* 헤더: '내가 작성한 글' + 편집/삭제 버튼 */}
       <View style={styles.bookmarkHeader}>
         <Text style={styles.headertitle}>내가 작성한 글</Text>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={isEditing ? deleteSelectedPosts : () => { setIsEditing(true); setSelectedPosts([]); }}
-        >
-          <Text style={styles.buttonText}>{isEditing ? "삭제" : "편집"}</Text>
-        </TouchableOpacity>
+        <SmallButtonComponent
+          btnType={isEditing ? "btn-red" : "btn-yellow"}
+          description={isEditing ? "삭제" : "편집"}
+          onPress={isEditing ? deleteSelectedPosts : toggleEditMode}
+        />
       </View>
 
-      {/* 게시글 리스트 */}
-      <FlatList
-        data={posts}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.postId.toString()}
-        contentContainerStyle={{ paddingBottom: PADDING_HORIZONTAL }}
-        onEndReached={loadMore}
-        onEndReachedThreshold={0.5}
-      />
+      {/* 포스트 리스트 (스크롤 가능) */}
+      <ScrollView
+        style={styles.scrollContainer}
+        contentContainerStyle={{ paddingBottom: height * 0.07 }}
+        onMomentumScrollEnd={loadMore}
+        showsVerticalScrollIndicator={false}
+      >
+        <PostList
+          posts={posts.map((p) => ({
+            postId: p.postId,
+            title: p.title,
+            thumbnailUrl: p.thumbnailUrl,
+          }))}
+          isEditing={isEditing}
+          selectedPosts={selectedPosts}
+          setSelectedPosts={setSelectedPosts}
+          onItemPress={handleItemPress}
+        />
+      </ScrollView>
     </View>
   );
 };
@@ -148,34 +146,21 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   bookmarkHeader: {
     width: width * 0.9,
-    height: HEADER_HEIGHT,
+    height: height * 0.06,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 10,
-    marginBottom: 10,
   },
   headertitle: {
     fontSize: height * 0.02625,
     color: "#888888",
     fontWeight: "500",
   },
-  button: {
-    backgroundColor: "#E2E7E3",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-  },
-  buttonText: {
-    color: "#487153",
-    fontWeight: "600",
+  scrollContainer: {
+    width: width * 0.9,
+    flex: 1,
   },
 });
 

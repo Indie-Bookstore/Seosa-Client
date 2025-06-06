@@ -15,7 +15,7 @@ import RadioSelected from "../../icons/radio-selected.svg";
 
 const { width, height } = Dimensions.get("window");
 
-// 3개씩 묶고 빈 자리 채우기
+// 3개씩 그룹화하는 함수 + 빈 자리 채우기
 const chunkArrayWithPlaceholder = (arr, size) => {
   if (!arr || arr.length === 0) return [];
 
@@ -26,18 +26,19 @@ const chunkArrayWithPlaceholder = (arr, size) => {
 
   const lastRow = chunks[chunks.length - 1];
   while (lastRow.length < size) {
-    lastRow.push({ postId: `placeholder-${lastRow.length}`, isPlaceholder: true });
+    // placeholder용 id 값은 “placeholder-<index>” 형태로 고유하게 생성
+    lastRow.push({ id: `placeholder-${lastRow.length}`, isPlaceholder: true });
   }
+
   return chunks;
 };
 
 /**
- * @param {object[]} posts                - API에서 받아온 포스트 객체 배열
- *     (각 객체는 { postId, title, thumbnailUrl, userId, userName, createdAt, … } 형태)
+ * @param {object[]} posts                - 포스트 배열 (각 객체는 { id, title, image } 형태)
  * @param {boolean}  isEditing            - 편집 모드 여부
- * @param {number[]} selectedPosts        - 선택된 postId 배열
+ * @param {number[]} selectedPosts        - 선택된 post ID 배열
  * @param {function} setSelectedPosts     - 선택 토글 함수
- * @param {function} onItemPress          - (postId) => void. 클릭 시 호출
+ * @param {function} onItemPress          - (postId) => void, 카드 클릭 시 호출
  */
 const PostList = ({
   posts = [],
@@ -46,15 +47,14 @@ const PostList = ({
   setSelectedPosts = () => {},
   onItemPress = () => {},
 }) => {
-  // 1) postId 순 정렬 후 3개씩 묶고, 빈 자리는 placeholder로 채우기
+  // posts를 id 순으로 정렬한 뒤 3개씩 그룹화(빈 자리 placeholder 포함)
   const chunkedPosts = useMemo(() => {
     if (!posts) return [];
-    // API에서 받아온 posts는 postId 키를 사용하므로 post.postId 순으로 정렬
-    const sortedPosts = [...posts].sort((a, b) => a.postId - b.postId);
+    const sortedPosts = [...posts].sort((a, b) => a.id - b.id);
     return chunkArrayWithPlaceholder(sortedPosts, 3);
   }, [posts]);
 
-  // 2) 라디오 버튼 선택/해제
+  // 라디오 버튼 선택/해제
   const toggleSelectPost = (postId) => {
     if (selectedPosts.includes(postId)) {
       setSelectedPosts(selectedPosts.filter((id) => id !== postId));
@@ -69,34 +69,21 @@ const PostList = ({
         <View key={rowIndex} style={styles.posts}>
           {row.map((post) => (
             <View
-              key={post.postId}
+              key={post.id}
               style={[styles.post, post.isPlaceholder && styles.placeholder]}
             >
               {!post.isPlaceholder && (
                 <>
-                  {/* 3) 포스트 카드를 터치 가능 영역으로 */}
                   <TouchableOpacity
                     activeOpacity={0.8}
                     style={StyleSheet.absoluteFill}
                     onPress={() => {
                       if (!isEditing) {
-                        // 편집 모드가 아닐 때만 상세 페이지로 이동
-                        onItemPress(post.postId);
+                        onItemPress(post.id);
                       }
                     }}
                   >
-                    {/* 4) 이미지 렌더링: thumbnailUrl이 있을 때 네트워크, 없으면 로컬 플레이스홀더 */}
-                    {post.thumbnailUrl ? (
-                      <Image
-                        source={{ uri: post.thumbnailUrl }}
-                        style={styles.image}
-                      />
-                    ) : (
-                      <Image
-                        source={require("../../icons/thumbnail.jpg")}
-                        style={styles.image}
-                      />
-                    )}
+                    <Image source={post.image} style={styles.image} />
 
                     <LinearGradient
                       colors={["transparent", "rgba(0, 0, 0, 0.6)"]}
@@ -107,13 +94,12 @@ const PostList = ({
                     </Text>
                   </TouchableOpacity>
 
-                  {/* 5) 편집 모드일 때만 라디오 버튼 */}
                   {isEditing && (
                     <TouchableOpacity
                       style={styles.radioButton}
-                      onPress={() => toggleSelectPost(post.postId)}
+                      onPress={() => toggleSelectPost(post.id)}
                     >
-                      {selectedPosts.includes(post.postId) ? (
+                      {selectedPosts.includes(post.id) ? (
                         <RadioSelected width={20} height={20} />
                       ) : (
                         <Radio width={20} height={20} />
@@ -146,7 +132,6 @@ const styles = StyleSheet.create({
     position: "relative",
     borderRadius: 5,
     overflow: "hidden",
-    backgroundColor: "#eee",
   },
   placeholder: {
     backgroundColor: "transparent",

@@ -1,4 +1,4 @@
-// components/myspace/AdminMySpaceHeader.js
+// src/components/admin/AdminMySpaceHeader.js
 
 import React, { useState } from "react";
 import {
@@ -8,8 +8,9 @@ import {
   Dimensions,
   TouchableOpacity,
   Alert,
+  Image,
 } from "react-native";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import DotBtn from "../../icons/dot.svg";
 import EditBtn from "../../icons/edit.svg";
 import Bookmark from "../../icons/bookmark.svg";
@@ -19,16 +20,16 @@ import BookmarkSelected from "../../icons/bookmark-selected.svg";
 import CommentSelected from "../../icons/comment-selected.svg";
 import WriteSelected from "../../icons/write-selected.svg";
 import { clearAuth } from "../../store/authSlice";
-import { removeRefreshToken, removeAccessToken } from "../../utils/tokenStorage"; // accessToken 삭제 추가
+import { removeRefreshToken, removeAccessToken } from "../../utils/tokenStorage";
 import { navigate } from "../../utils/nav/RootNavigation";
 
-const AdminMySpaceHeader = ({ selectedTab, setSelectedTab, navigation }) => {
-  const size = Dimensions.get("window").width * 0.067;
+const { width, height } = Dimensions.get("window");
+const size = width * 0.067;
+
+const AdminMySpaceHeader = ({ selectedTab, setSelectedTab, profileImage, nickname }) => {
   const [menuVisible, setMenuVisible] = useState(false);
-  const user = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
 
-  // ✅ 관리자 헤더 로그아웃 처리: refreshToken + accessToken 삭제 후 Redux 초기화, Auth 화면으로 이동
   const handleLogout = () => {
     Alert.alert("로그아웃", "정말 로그아웃하시겠습니까?", [
       { text: "아니오", style: "cancel" },
@@ -36,14 +37,9 @@ const AdminMySpaceHeader = ({ selectedTab, setSelectedTab, navigation }) => {
         text: "예",
         onPress: async () => {
           try {
-            // 1) SecureStore에서 refreshToken과 accessToken 모두 삭제
             await removeRefreshToken();
             await removeAccessToken();
-
-            // 2) Redux auth 상태 초기화
             dispatch(clearAuth());
-
-            // 3) Auth 화면으로 이동
             navigate("Auth");
           } catch (err) {
             console.error("관리자 로그아웃 중 오류:", err);
@@ -54,8 +50,41 @@ const AdminMySpaceHeader = ({ selectedTab, setSelectedTab, navigation }) => {
     ]);
   };
 
-  const handleSettings = () => {
-    navigation?.navigate("Settings");
+  const handleWithdraw = () => {
+    Alert.alert(
+      "회원 탈퇴",
+      "정말 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+      [
+        { text: "아니오", style: "cancel" },
+        {
+          text: "예",
+          onPress: async () => {
+            try {
+              // 1) API 호출로 회원 탈퇴
+              await api.delete("/user");
+
+              // 2) 탈퇴 성공 시 SecureStore 토큰 전부 삭제
+              await removeRefreshToken();
+              await removeAccessToken();
+
+              // 3) Redux auth 상태 초기화
+              dispatch(clearAuth());
+
+              // 4) 알림 및 Auth 화면 이동
+              Alert.alert("탈퇴 완료", "회원 탈퇴가 완료되었습니다.");
+              navigate("Auth");
+            } catch (err) {
+              console.error("회원 탈퇴 실패:", err);
+              Alert.alert("오류", "회원 탈퇴에 실패했습니다.");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleEditProfile = () => {
+    navigate("EditProfile");
   };
 
   return (
@@ -72,8 +101,12 @@ const AdminMySpaceHeader = ({ selectedTab, setSelectedTab, navigation }) => {
 
       <View style={styles.profileContainer}>
         <View style={styles.profile}>
-          <View style={styles.image} />
-          <TouchableOpacity style={styles.editbtn}>
+          {profileImage ? (
+            <Image source={{ uri: profileImage }} style={styles.image} />
+          ) : (
+            <View style={styles.image} />
+          )}
+          <TouchableOpacity style={styles.editbtn} onPress={handleEditProfile}>
             <EditBtn width={(size * 8) / 12} height={(size * 8) / 12} />
           </TouchableOpacity>
         </View>
@@ -82,7 +115,7 @@ const AdminMySpaceHeader = ({ selectedTab, setSelectedTab, navigation }) => {
       {/* 사용자 정보 */}
       <View style={styles.infoContainer}>
         <Text style={styles.nickname}>닉네임</Text>
-        <Text style={styles.nicknameinput}>{user?.nickname || "책손님"}</Text>
+        <Text style={styles.nicknameinput}>{nickname || "책손님"}</Text>
       </View>
 
       {/* 탭 */}
@@ -112,20 +145,17 @@ const AdminMySpaceHeader = ({ selectedTab, setSelectedTab, navigation }) => {
       {/* 토글 메뉴 */}
       {menuVisible && (
         <View style={styles.menu}>
-          <TouchableOpacity style={styles.menuItem} onPress={handleSettings}>
-            <Text style={styles.menuText}>설정</Text>
-          </TouchableOpacity>
           <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
             <Text style={[styles.menuText, styles.logoutText]}>로그아웃</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem} onPress={handleWithdraw}>
+            <Text style={[styles.menuText, styles.logoutText]}>회원탈퇴</Text>
           </TouchableOpacity>
         </View>
       )}
     </View>
   );
 };
-
-const width = Dimensions.get("window").width;
-const height = Dimensions.get("window").height;
 
 const styles = StyleSheet.create({
   container: {

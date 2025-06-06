@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Platform, StatusBar as RNStatusBar } from 'react-native';
 import Constants from 'expo-constants';
-import { navigate } from '../../utils/nav/RootNavigation'; // ← navigate 임포트 추가
+import { useSelector } from 'react-redux';
+import { navigate } from '../../utils/nav/RootNavigation';
 
 import Footer from '../../components/common/footer/Footer';
 import AdminMySpaceHeader from '../../components/admin/AdminMySpaceHeader';
@@ -18,6 +19,8 @@ const STATUSBAR_HEIGHT =
 
 export default function AdminMySpaceScreen() {
   const [selectedTab, setSelectedTab] = useState('write');
+  const user = useSelector(state => state.auth.user);
+  const profileImage = user?.profileImage || null;
 
   return (
     <View style={styles.container}>
@@ -28,21 +31,20 @@ export default function AdminMySpaceScreen() {
       <AdminMySpaceHeader
         selectedTab={selectedTab}
         setSelectedTab={setSelectedTab}
+        profileImage={profileImage}
+        nickname={user?.nickname}
       />
 
       {/* 컨텐츠 영역 */}
       <View style={styles.content}>
         {selectedTab === 'write' && (
-          <AdminPostList onItemPress={(postId) => navigate('Post', {postId})}/>)}
+          <AdminPostList onItemPress={(postId) => navigate('Post', { postId })} />
+        )}
         {selectedTab === 'bookmark' && (
-          <MyBookmarkList
-            onItemPress={(postId) => navigate('Post', { postId })}
-          />
+          <MyBookmarkList onItemPress={(postId) => navigate('Post', { postId })} />
         )}
         {selectedTab === 'comment' && (
-          <MyCommentList
-            onItemPress={(postId) => navigate('Post', { postId })}
-          />
+          <MyCommentList onItemPress={(postId) => navigate('Post', { postId })} />
         )}
       </View>
 

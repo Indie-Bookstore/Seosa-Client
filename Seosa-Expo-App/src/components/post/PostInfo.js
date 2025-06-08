@@ -9,7 +9,7 @@ import Constants from "expo-constants";
 const { width, height } = Dimensions.get("window");
 const ICON_SIZE = height * 0.02;
 
-// Kakao REST API Key (env에 EXPO_PUBLIC_KAKAO_REST_KEY로 넣어두신 값)
+// Kakao REST API Key
 const kakaoKey =
   Constants.expoConfig?.extra?.kakaoRestKey ??
   process.env.EXPO_PUBLIC_KAKAO_REST_KEY;

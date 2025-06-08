@@ -67,6 +67,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: height * 0.25,
     marginBottom: 20,
+    fontFamily:"Unbatang-Bold"
   },
   subText: {
     fontSize: height * 0.02,
@@ -75,6 +76,7 @@ const styles = StyleSheet.create({
     lineHeight: height * 0.025,
     marginTop: height * 0.30,
     textAlign: 'center',
+    fontFamily:"Unbatang-Bold"
   },
   leftSection: { alignItems: 'center', marginRight: 20 },
   rightSection: { alignItems: 'center', marginLeft: 20 },

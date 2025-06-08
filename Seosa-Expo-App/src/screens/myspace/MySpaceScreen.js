@@ -11,10 +11,7 @@ import MyBookmarkList from '../../components/myspace/MyBookmarkList';
 import MyCommentList from '../../components/myspace/MyCommentList';
 import Footer from '../../components/common/footer/Footer';
 
-const STATUSBAR_HEIGHT =
-  Platform.OS === 'ios'
-    ? Constants.statusBarHeight
-    : RNStatusBar.currentHeight || 0;
+const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 export default function MySpaceScreen() {
   const [selectedTab, setSelectedTab] = useState('bookmark');

@@ -3,13 +3,10 @@
 import React from 'react';
 import { View, StyleSheet, Platform, Text, Dimensions } from 'react-native';
 import AuthHeader from '../../components/auth/AuthHeader';
-import { StatusBar } from 'expo-status-bar';
 import Constants from 'expo-constants';
 import FaqList from '../../components/admin/FaqList';
 
-const STATUSBAR_HEIGHT = Platform.OS === 'ios'
-  ? Constants.statusBarHeight
-  : StatusBar.currentHeight;
+const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 const FaqScreen = ({navigation}) => {
 

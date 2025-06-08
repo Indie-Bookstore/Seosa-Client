@@ -1,16 +1,12 @@
 // 회원가입 화면
 
 import React from "react";
-import { View, StyleSheet, Platform, Text, Dimensions } from "react-native";
+import { View, StyleSheet} from "react-native";
 import AuthHeader from "../../components/auth/AuthHeader";
-import { StatusBar } from "expo-status-bar";
 import Constants from 'expo-constants';
 import RegisterComponent from "../../components/register/RegisterComponent";
 
-// status bar 높이를 제외하고 싶은데 어떻게 해야 할지 아직 잘 모르겠음
-const STATUSBAR_HEIGHT = Platform.OS === 'ios' 
-  ? Constants.statusBarHeight 
-  : StatusBar.currentHeight;
+const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 const RegisterScreen = ({navigation}) => {
 

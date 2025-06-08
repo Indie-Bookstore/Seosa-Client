@@ -10,8 +10,7 @@ import AlertComponent from "../../components/auth/AlertComponent";
 import { useSelector } from "react-redux";
 import api from "../../api/axios";
 
-const STATUSBAR_HEIGHT =
-  Platform.OS === "ios" ? Constants.statusBarHeight : StatusBar.currentHeight;
+const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 const AuthCodeScreen = ({navigation}) => {
   

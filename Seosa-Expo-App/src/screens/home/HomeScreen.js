@@ -1,12 +1,12 @@
 import React from 'react';
-import { View, StyleSheet, Platform, Dimensions, Text, ScrollView } from 'react-native';
+import { View, StyleSheet, Dimensions, Text, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import Constants from 'expo-constants';
 import LogoIcon from '../../icons/logo-yellow.svg';
 import Footer from '../../components/common/footer/Footer';
 import HomeInfo from '../../components/home/HomeInfo.js';
 
-const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? Constants.statusBarHeight : StatusBar.currentHeight;
+const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 const { width, height } = Dimensions.get('window');
 
 const VerticalText = ({ children, style }) => (

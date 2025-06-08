@@ -5,7 +5,7 @@ import {
   Platform,
   StatusBar as RNStatusBar,
 } from "react-native";
-import Constants from "expo-constants";
+import Constants from "expo-constants"; 
 import { useSelector } from "react-redux";
 import { navigate } from "../../utils/nav/RootNavigation";
 
@@ -15,10 +15,7 @@ import AdminPostList from "../../components/admin/AdminPostList";
 import MyBookmarkList from "../../components/myspace/MyBookmarkList";
 import MyCommentList from "../../components/myspace/MyCommentList";
 
-const STATUSBAR_HEIGHT =
-  Platform.OS === "ios"
-    ? Constants.statusBarHeight
-    : RNStatusBar.currentHeight || 0;
+const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 export default function AdminMySpaceScreen() {
   /* 모든 훅 선언 */
@@ -26,7 +23,6 @@ export default function AdminMySpaceScreen() {
   const user = useSelector((state) => state.auth.user);
   const profileImage = user?.profileImage || null;
 
-  /* ★ user가 없으면 화면을 렌더하지 않음 */
   if (!user) return null;
 
   return (

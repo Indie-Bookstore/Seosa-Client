@@ -24,10 +24,9 @@ const { width, height } = Dimensions.get("window");
 const CARD_MARGIN = 16;
 const CARD_WIDTH = width - CARD_MARGIN * 2;
 const OFFSET = width * 0.05;
-const STATUSBAR_HEIGHT =
-  Platform.OS === "ios"
-    ? Constants.statusBarHeight
-    : RNStatusBar.currentHeight || 0;
+
+const STATUSBAR_HEIGHT = Constants.statusBarHeight;
+
 const size = width * 0.1;
 
 const PostGalleryScreen = ({ navigation }) => {

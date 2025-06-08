@@ -2,14 +2,10 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
-  Platform,
   Dimensions,
   TouchableOpacity,
   Image,
-  StatusBar as RNStatusBar,
   Alert,
-  Text,
-  ActivityIndicator,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import * as ImagePicker from "expo-image-picker";
@@ -36,8 +32,7 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { fromCognitoIdentityPool } from "@aws-sdk/credential-provider-cognito-identity";
 
 const { width, height } = Dimensions.get("window");
-const STATUSBAR_HEIGHT =
-  Platform.OS === "ios" ? Constants.statusBarHeight : RNStatusBar.currentHeight;
+const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 /* ───── AWS S3 설정 ───── */
 const s3 = new S3Client({

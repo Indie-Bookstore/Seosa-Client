@@ -41,6 +41,9 @@ export default function AdminMySpaceHeader({
     ]);
   };
 
+    /* FAQ 화면 이동 */
+    const handleFaq = () => navigate("FAQ");
+
   /* 회원 탈퇴 */
   const handleWithdraw = () => {
     Alert.alert(
@@ -125,6 +128,9 @@ export default function AdminMySpaceHeader({
       {/* 토글 메뉴 */}
       {menuVisible && (
         <View style={styles.menu}>
+          <TouchableOpacity style={styles.menuItem} onPress={handleFaq}>
+                      <Text style={styles.menuText}>FAQ / 문의하기</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
             <Text style={[styles.menuText, styles.logoutText]}>로그아웃</Text>
           </TouchableOpacity>

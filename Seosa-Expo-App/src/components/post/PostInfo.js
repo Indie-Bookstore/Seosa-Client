@@ -103,7 +103,7 @@ export default function PostInfo({ info }) {
           />
         ) : (
           <View style={styles.mapPlaceholder}>
-            <Text style={{ color: "#999" }}>지도 정보 없음</Text>
+            <Text style={{ color: "#999", fontFamily: "NotoSans-Regular" }}>지도 정보 없음</Text>
           </View>
         )}
       </View>
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     fontSize: height * 0.023,
     color: "#666666",
     fontWeight: "500",
-    fontFamily: "Noto Sans",
+    fontFamily: "NotoSans-Regular",
   },
   mapWrapper: {
     width: width * 0.9,
@@ -191,10 +191,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666666",
     marginLeft: 6,
+    fontFamily:"NotoSans-Regular"
   },
   link: {
     fontSize: 14,
     color: "#3f729b",
     marginLeft: 6,
+    fontFamily:"NotoSans-Regular"
   },
 });

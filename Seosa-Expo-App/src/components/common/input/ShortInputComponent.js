@@ -31,7 +31,7 @@ const ShortInputComponent = ({
           }}
         >
           {title}
-          {required && <Text style={{ color: "red" }}>*</Text>}
+          {required && <Text style={{ color: "red", fontFamily: "NotoSans-Regular" }}>*</Text>}
         </Text>
       )}
       <View

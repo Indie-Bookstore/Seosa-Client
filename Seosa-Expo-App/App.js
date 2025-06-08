@@ -47,6 +47,7 @@ import PostGalleryScreen   from './src/screens/post/PostGalleryScreen';
 
 import ArticleScreen       from './src/screens/article/ArticleScreen';
 import MapPickerScreen     from './src/screens/map/MapPickerScreen';
+import FaqScreen from './src/screens/faq/FaqScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -99,6 +100,8 @@ function RootApp() {
       'NotoSans-Regular': require('./assets/fonts/NotoSans-Regular.ttf'),
       'NotoSans-Bold'   : require('./assets/fonts/NotoSans-Bold.ttf'),
       'NotoSans-Medium' : require('./assets/fonts/NotoSans-Medium.ttf'),
+      'UnBatang'        : require('./assets/fonts/UnBatang.ttf'),
+      'UnBatang-Bold'   : require('./assets/fonts/UnBatangBold.ttf'),
     }).then(() => mounted && setFontsLoaded(true));
 
     return () => { mounted = false; clearTimeout(t); };
@@ -166,6 +169,7 @@ function RootApp() {
         <Stack.Screen name="ResetDone"     component={ResetDoneScreen} />
         <Stack.Screen name="Register"      component={RegisterScreen} />
         <Stack.Screen name="Onboarding"    component={OnboardingScreen} />
+        <Stack.Screen name="FAQ"           component={FaqScreen} />
 
         {/* MySpace / Admin */}
         <Stack.Screen name="MySpace"       component={MySpaceOrAdmin} />

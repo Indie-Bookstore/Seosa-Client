@@ -3,7 +3,7 @@
 import { Dimensions, StyleSheet, View, Text } from "react-native";
 import BackButtonComponent from "../common/button/BackButtonComponent";
 
-const AuthHeader = ({ title, backOnPress, theme = "white" }) => {
+const AuthHeader = ({ title, backOnPress, theme = "white", color }) => {
   const size = Dimensions.get("window").width * 0.067;
 
   const isGreen = theme === "green";
@@ -57,6 +57,6 @@ const styles = StyleSheet.create({
     height: Dimensions.get("window").height * 0.035,
     fontSize: Dimensions.get("window").height * 0.03,
     textAlign: "center",
-    fontFamily: "UnBatangBold",
+    fontFamily: "UnBatang-Bold",
   },
 });

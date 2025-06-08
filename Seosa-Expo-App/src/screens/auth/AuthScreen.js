@@ -11,7 +11,6 @@ import {
 } from "react-native";
 import AuthComponent from "../../components/auth/AuthComponent";
 import AuthHeader from "../../components/auth/AuthHeader";
-import { StatusBar } from "expo-status-bar";
 import Constants from "expo-constants";
 import { WebView } from "react-native-webview";
 
@@ -22,8 +21,7 @@ import { setAccessToken as storeAccessToken, setRefreshToken as storeRefreshToke
 
 import { navigate } from "../../utils/nav/RootNavigation";
 
-const STATUSBAR_HEIGHT =
-  Platform.OS === "ios" ? Constants.statusBarHeight : StatusBar.currentHeight;
+const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 export default function AuthScreen() {
   const dispatch = useDispatch();

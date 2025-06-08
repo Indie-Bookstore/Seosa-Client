@@ -41,9 +41,9 @@ import AlbumIcon       from '../../icons/album-green.svg';
 
 const { width, height } = Dimensions.get('window');
 const DEFAULT_FAB_BOTTOM = height * 0.09;
-const STATUSBAR_HEIGHT = Platform.OS === 'ios'
-  ? Constants.statusBarHeight
-  : NTStatusBar.currentHeight || 0;
+
+// 상태바 높이 상수
+const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 const s3 = new S3Client({
   region: S3_REGION,
@@ -190,8 +190,6 @@ export default function ArticleScreen({ navigation }) {
       console.log("📨 전송할 postDto:", postDto);
 
       // === 4) createPost API 호출 ===
-      // createPost는 `data` 객체({ postId: ..., ... })만 반환하므로,
-      // 아래처럼 구조분해해서 postId를 꺼내야 합니다.
       const { postId } = await createPost(postDto);
 
       // === 5) PostScreen으로 이동 ===
@@ -207,24 +205,19 @@ export default function ArticleScreen({ navigation }) {
 
   /* ──── 이미지 삽입 핸들러 ──── */
   const pickImageAndInsert = async () => {
-    // 미디어 라이브러리 권한 요청
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('권한 필요', '갤러리 접근 권한을 허용해주세요.');
       return;
     }
 
-    // 이미지 선택
     const res = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       quality   : 1,
     });
     if (res.canceled) return;
 
-    // 선택된 로컬 URI(예: file:///…)
     const uri = res.assets[0].uri;
-
-    // 현재 포커스된 블록 인덱스 다음에 삽입
     const idx = focusedIndex + 1;
     setBlocks(prev => [
       ...prev.slice(0, idx),
@@ -232,20 +225,16 @@ export default function ArticleScreen({ navigation }) {
       { type:'text', value:'' },
       ...prev.slice(idx),
     ]);
-
-    // 키보드 닫기
     Keyboard.dismiss();
   };
 
   /* ──── UI 렌더링 ──── */
   return (
     <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={[styles.container, { paddingTop: STATUSBAR_HEIGHT }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={STATUSBAR_HEIGHT}
     >
-      {/* 상태바 높이 만큼 띄우기 */}
-      <View style={{ height: STATUSBAR_HEIGHT }} />
-
       {/* 헤더: 취소(뒤로가기) / 등록 버튼 */}
       <ArticleHeader onCancel={() => navigation.goBack()} onSubmit={handleSubmit} />
 
@@ -254,17 +243,12 @@ export default function ArticleScreen({ navigation }) {
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
       >
-        {/* 1) 제목 입력 */}
         <ArticleTitle value={title} onChangeText={setTitle} />
-
-        {/* 2) 블록 편집기(텍스트/이미지) */}
         <ArticleEditor
           blocks={blocks}
           setBlocks={setBlocks}
           setFocusedIndex={setFocusedIndex}
         />
-
-        {/* 3) 서사 모아보기(상품 리스트) */}
         <ArticleItemList
           items={narratives}
           onAdd={() =>
@@ -283,8 +267,6 @@ export default function ArticleScreen({ navigation }) {
             setNarratives(narratives.filter((_, idx) => idx !== i))
           }
         />
-
-        {/* 4) 서점 정보(주소, 지도 선택, 상세주소 등) */}
         <ArticleInfo
           info={storeInfo}
           detailedAddress={detailedAddress}
@@ -314,7 +296,6 @@ export default function ArticleScreen({ navigation }) {
         <AlbumIcon width={28} height={28} />
       </TouchableOpacity>
 
-      {/* 6) 로딩 오버레이(제출 처리 중) */}
       {submitting && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#487153" />
@@ -324,7 +305,6 @@ export default function ArticleScreen({ navigation }) {
   );
 }
 
-/* ──── Styles ──── */
 const styles = StyleSheet.create({
   container: {
     flex: 1,

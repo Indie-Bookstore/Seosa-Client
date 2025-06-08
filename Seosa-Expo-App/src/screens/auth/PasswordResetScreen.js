@@ -3,13 +3,11 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
-  Platform,
   StyleSheet,
   Dimensions,
 
 } from "react-native";
 import AuthHeader from "../../components/auth/AuthHeader";
-import { StatusBar } from "expo-status-bar";
 import Constants from "expo-constants";
 import PasswordInputComponent from "../../components/common/input/PasswordInputComponent";
 import PasswordInfoComponent from "../../components/common/info/passwordInfoComponent";
@@ -17,8 +15,7 @@ import ButtonComponent from "../../components/common/button/ButtonComponent";
 import AlertComponent from "../../components/auth/AlertComponent";
 import api from "../../api/axios";
 
-const STATUSBAR_HEIGHT =
-  Platform.OS === "ios" ? Constants.statusBarHeight : StatusBar.currentHeight;
+const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 const PasswordResetScreen = ({ navigation }) => {
   // 상태 관리

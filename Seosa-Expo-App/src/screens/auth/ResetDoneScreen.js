@@ -1,15 +1,13 @@
 // 비밀번호 리셋 완료 화면
 
-import { View, Platform, StyleSheet, Dimensions, Text } from "react-native";
+import { View, StyleSheet, Dimensions, Text } from "react-native";
 import AuthHeader from "../../components/auth/AuthHeader";
-import { StatusBar } from "expo-status-bar";
 import Constants from "expo-constants";
 import ButtonComponent from "../../components/common/button/ButtonComponent";
 import { CommonActions } from '@react-navigation/native';
 
 
-const STATUSBAR_HEIGHT =
-  Platform.OS === "ios" ? Constants.statusBarHeight : StatusBar.currentHeight;
+const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 const ResetDoneScreen = ({ navigation }) => {
 

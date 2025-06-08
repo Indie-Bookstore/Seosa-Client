@@ -157,7 +157,6 @@ const styles = StyleSheet.create({
   title_text: {
     fontSize: height * 0.023,
     color: "#666666",
-    fontWeight: "500",
     fontFamily: "NotoSans-Regular",
   },
   mapWrapper: {

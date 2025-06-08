@@ -69,14 +69,12 @@ const styles = StyleSheet.create({
    textAlign: "center",
    alignContent:"center",
    fontSize:height*0.02125,
-   fontWeight:500,
    fontFamily:"NotoSans-Regular"
   },
   description: {
    textAlign: "center",
    alignContent:"center",
    fontSize:height*0.015,
-   fontWeight:400,
    marginTop:height*0.05875,
    color:"#487153",
    fontFamily:"NotoSans-Regular"

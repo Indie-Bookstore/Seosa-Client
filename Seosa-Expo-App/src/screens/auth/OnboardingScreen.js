@@ -1,36 +1,84 @@
-// src/screens/auth/SignupScreen.js
-// (삭제될 화면)
+// src/screens/auth/OnboardingScreen.js
 
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, Text, Dimensions } from 'react-native';
+import {
+  View,
+  TextInput,
+  Button,
+  StyleSheet,
+  Text,
+  Dimensions,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import api from '../../api/axios';
-import { setUser, setIsTemporary } from '../../store/authSlice';
+import {
+  setUser,
+  setAccessToken as setReduxAccessToken,
+  setIsTemporary,
+} from '../../store/authSlice';
+import { setRefreshToken as storeRefreshToken } from '../../utils/tokenStorage';
+import { navigate } from '../../utils/nav/RootNavigation';
+
+const { height } = Dimensions.get('window');
 
 const OnboardingScreen = ({ navigation }) => {
   const [nickname, setNickname] = useState('');
   const [userRoleCode, setUserRoleCode] = useState('');
+  const [loading, setLoading] = useState(false);
+
   const dispatch = useDispatch();
   const accessToken = useSelector(state => state.auth.accessToken);
 
   const handleSignup = async () => {
+    if (!nickname.trim()) {
+      Alert.alert('알림', '닉네임을 입력해주세요.');
+      return;
+    }
+
+    setLoading(true);
     try {
-      // 헤더에 access token을 포함하여 추가 회원가입 API 호출
-      const response = await api.post('/oauth2/signup', { nickname, userRoleCode });
-      // 백엔드에서 업데이트된 user 정보를 반환한다고 가정
-      dispatch(setUser(response.data.user));
-      // 추가 회원가입 완료 후 임시회원 플래그 해제
+      // PATCH /oauth2/signup 호출로 변경
+      const response = await api.patch(
+        '/oauth2/signup',
+        { nickname, userRoleCode }
+      );
+
+      // 응답으로 새로운 토큰을 받아온다고 가정
+      const {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+      } = response.data;
+
+      // 새로운 RefreshToken을 SecureStore에 저장
+      await storeRefreshToken(newRefreshToken);
+      // Redux에 새로운 AccessToken 저장
+      dispatch(setReduxAccessToken(newAccessToken));
+
+      // 토큰이 갱신되었으므로 다시 /user로 유저 정보 조회
+      const userRes = await api.get('/user');
+      const updatedUser = userRes.data;
+
+      // Redux에 유저 정보 저장
+      dispatch(setUser(updatedUser));
+      // 임시회원 플래그 해제
       dispatch(setIsTemporary(false));
-      navigation.navigate('Main');
+
+      // Onboarding 완료 후 이동할 화면 (예: MySpace)
+      navigate('MySpace');
     } catch (error) {
-      console.error('Signup error:', error);
-      // 에러 처리 (예: 사용자에게 에러 메시지 노출)
+      console.error('OAuth2 Signup error:', error);
+      Alert.alert('오류', '추가 회원가입에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.header}>추가 회원가입</Text>
+
       <TextInput
         style={styles.input}
         placeholder="닉네임"
@@ -43,7 +91,12 @@ const OnboardingScreen = ({ navigation }) => {
         value={userRoleCode}
         onChangeText={setUserRoleCode}
       />
-      <Button title="회원가입 완료" onPress={handleSignup} />
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#487153" style={{ marginTop: 20 }} />
+      ) : (
+        <Button title="회원가입 완료" onPress={handleSignup} />
+      )}
     </View>
   );
 };
@@ -56,8 +109,8 @@ const styles = StyleSheet.create({
     backgroundColor:'#FFFEFB'
   },
   header: {
-    fontSize: Dimensions.get('window').height * 0.03,
-    marginBottom: Dimensions.get('window').height * 0.02,
+    fontSize: height * 0.03,
+    marginBottom: height * 0.02,
   },
   input: {
     width: '80%',

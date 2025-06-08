@@ -1,53 +1,65 @@
-// 관리자 나의공간 페이지
+import React, { useState } from "react";
+import {
+  View,
+  StyleSheet,
+  Platform,
+  StatusBar as RNStatusBar,
+} from "react-native";
+import Constants from "expo-constants"; 
+import { useSelector } from "react-redux";
+import { navigate } from "../../utils/nav/RootNavigation";
 
-import React, { useState } from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
-import { StatusBar } from "expo-status-bar";
-import Constants from "expo-constants";
-import Footer from '../../components/common/footer/Footer';
-import AdminMySpaceHeader from '../../components/admin/AdminMySpaceHeader';
-import AdminPostList from '../../components/admin/AdminPostList';
-import MyBookmarkList from '../../components/myspace/MyBookmarkList';
-import MyCommentList from '../../components/myspace/MyCommentList';
+import Footer from "../../components/common/footer/Footer";
+import AdminMySpaceHeader from "../../components/admin/AdminMySpaceHeader";
+import AdminPostList from "../../components/admin/AdminPostList";
+import MyBookmarkList from "../../components/myspace/MyBookmarkList";
+import MyCommentList from "../../components/myspace/MyCommentList";
 
-const STATUSBAR_HEIGHT =
-  Platform.OS === "ios" ? Constants.statusBarHeight : StatusBar.currentHeight;
+const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
-const AdminMySpaceScreen = ({ navigation }) => {
-  const [selectedTab, setSelectedTab] = useState("write"); // 기본값: 글쓰기
+export default function AdminMySpaceScreen() {
+  /* 모든 훅 선언 */
+  const [selectedTab, setSelectedTab] = useState("write");
+  const user = useSelector((state) => state.auth.user);
+  const profileImage = user?.profileImage || null;
+
+  if (!user) return null;
 
   return (
     <View style={styles.container}>
-      {/* 상태바 높이 적용 */}
       <View style={{ height: STATUSBAR_HEIGHT }} />
-      
-      {/* 헤더 */}
-      <AdminMySpaceHeader selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
 
-      {/* 선택된 콘텐츠 렌더링 */}
+      <AdminMySpaceHeader
+        selectedTab={selectedTab}
+        setSelectedTab={setSelectedTab}
+        profileImage={profileImage}
+        nickname={user.nickname}
+      />
+
       <View style={styles.content}>
-        {selectedTab === "write" && <AdminPostList />}
-        {selectedTab === "bookmark" && <MyBookmarkList />}
-        {selectedTab === "comment" && <MyCommentList />}
+        {selectedTab === "write" && (
+          <AdminPostList
+            onItemPress={(postId) => navigate("Post", { postId })}
+          />
+        )}
+        {selectedTab === "bookmark" && (
+          <MyBookmarkList
+            onItemPress={(postId) => navigate("Post", { postId })}
+          />
+        )}
+        {selectedTab === "comment" && (
+          <MyCommentList
+            onItemPress={(postId) => navigate("Post", { postId })}
+          />
+        )}
       </View>
 
-      {/* 푸터 */}
-      <Footer navigation={navigation} />
+      <Footer />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    backgroundColor : "#FFFEFB"
-  },
-  content: {
-    flex: 1, // 푸터를 바닥에 붙이기 위해 중간 콘텐츠 공간 확보
-    width: '100%',
-  },
+  container: { flex: 1, backgroundColor: "#FFFEFB", alignItems: "center" },
+  content: { flex: 1, width: "100%" },
 });
-
-export default AdminMySpaceScreen;

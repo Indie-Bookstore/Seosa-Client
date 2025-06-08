@@ -1,13 +1,11 @@
 // splash 화면
 
 import React from "react";
-import { View, StyleSheet, Platform, Dimensions, Text } from "react-native";
-import { StatusBar } from "expo-status-bar";
+import { View, StyleSheet, Dimensions, Text } from "react-native";
 import Constants from "expo-constants";
 import LogoIcon from "../../icons/logo-green.svg";
 
-const STATUSBAR_HEIGHT =
-  Platform.OS === "ios" ? Constants.statusBarHeight : StatusBar.currentHeight;
+const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 const { width, height } = Dimensions.get("window");
 
@@ -41,6 +39,7 @@ const styles = StyleSheet.create({
     fontSize: height * 0.02,
     color: "#487153",
     marginTop: height * 0.02,
+    fontFamily:"Unbatang-Bold"
   },
 });
 

@@ -27,11 +27,10 @@ const ShortInputComponent = ({
             marginBottom: Dimensions.get("window").height * 0.005,
             color: "#666666",
             fontFamily: "NotoSans-Regular",
-            fontWeight: "500",
           }}
         >
           {title}
-          {required && <Text style={{ color: "red" }}>*</Text>}
+          {required && <Text style={{ color: "red", fontFamily: "NotoSans-Regular" }}>*</Text>}
         </Text>
       )}
       <View
@@ -63,7 +62,6 @@ const ShortInputComponent = ({
               color: color,
               fontSize: 16,
               fontFamily: "NotoSans-Regular",
-              fontWeight: "400",
               paddingRight: 60,
             }}
             placeholder={placeholder}

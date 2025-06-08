@@ -1,15 +1,13 @@
 // 비밀번호 리셋 완료 화면
 
-import { View, Platform, StyleSheet, Dimensions, Text } from "react-native";
+import { View, StyleSheet, Dimensions, Text } from "react-native";
 import AuthHeader from "../../components/auth/AuthHeader";
-import { StatusBar } from "expo-status-bar";
 import Constants from "expo-constants";
 import ButtonComponent from "../../components/common/button/ButtonComponent";
 import { CommonActions } from '@react-navigation/native';
 
 
-const STATUSBAR_HEIGHT =
-  Platform.OS === "ios" ? Constants.statusBarHeight : StatusBar.currentHeight;
+const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 const ResetDoneScreen = ({ navigation }) => {
 
@@ -71,15 +69,15 @@ const styles = StyleSheet.create({
    textAlign: "center",
    alignContent:"center",
    fontSize:height*0.02125,
-   fontWeight:500
+   fontFamily:"NotoSans-Regular"
   },
   description: {
    textAlign: "center",
    alignContent:"center",
    fontSize:height*0.015,
-   fontWeight:400,
    marginTop:height*0.05875,
-   color:"#487153"
+   color:"#487153",
+   fontFamily:"NotoSans-Regular"
   },
   spacer: {
     height: height * 0.01,

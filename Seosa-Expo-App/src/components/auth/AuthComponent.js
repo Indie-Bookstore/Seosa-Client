@@ -1,10 +1,11 @@
-// Auth Screen 메인 컴포넌트
-
+// src/components/auth/AuthComponent.js
 import React, { useState } from "react";
 import {
   View,
   StyleSheet,
   Dimensions,
+  TouchableOpacity,
+  Text,
 } from "react-native";
 import { useDispatch } from "react-redux";
 import ButtonComponent from "../common/button/ButtonComponent";
@@ -13,19 +14,17 @@ import AlertComponent from "./AlertComponent";
 import PasswordInputComponent from "../common/input/PasswordInputComponent";
 import api from "../../api/axios";
 import { setAccessToken } from "../../store/authSlice";
-// expo-secure-store util 함수 (refresh token 저장)
+
 import { setRefreshToken as saveRefreshToken } from "../../utils/tokenStorage";
 
-const AuthComponent = ({
-  onKakaoLoginPress,
-  onLocalRegisterPress,
-  navigation,
-}) => {
+import { navigationRef, navigate } from "../../utils/nav/RootNavigation";
+
+const AuthComponent = ({ onKakaoLoginPress, onLocalRegisterPress }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [loginError, setLoginError] = useState(""); // 로그인 관련 알림 (에러/성공)
-  const [passwordError, setPasswordError] = useState(""); // 비밀번호 관련 에러
+  const [loginError, setLoginError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   const dispatch = useDispatch();
 
@@ -61,10 +60,12 @@ const AuthComponent = ({
       setLoginError("로그인에 성공했습니다!");
 
       // 로그인 성공 후 스택 초기화 및 Main 화면으로 이동
-    navigation.reset({
-      index: 0, // 활성화할 경로의 인덱스
-      routes: [{ name: "Main" }], // 이동할 경로 설정
-    });
+      if (navigationRef.isReady()) {
+        navigationRef.resetRoot({
+          index: 0,
+          routes: [{ name: "Home" }],
+        });
+      }
     } catch (error) {
       console.error("🚨 Login error:", error);
       if (error.response) {
@@ -151,41 +152,55 @@ const AuthComponent = ({
           description="이메일로 회원가입하기"
         />
       </View>
+      <View style={styles.reset}>
+        <TouchableOpacity
+          onPress={() => {
+            if (navigationRef.isReady()) {
+              navigate("AuthCode");
+            }
+          }}
+        >
+          <Text style={styles.resettext}>계정 찾기/비밀번호 재설정</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
+const { width, height } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    height: Dimensions.get("window").height * 0.5075,
-    marginTop: Dimensions.get("window").height * 0.02,
+    height: height * 0.5075,
+    marginTop: height * 0.02,
   },
   topContainer: {
-    height: Dimensions.get("window").height * 0.3025,
+    height: height * 0.3025,
   },
   kakaoButtonContainer: {
-    marginBottom: Dimensions.get("window").height * 0.0375,
+    marginBottom: height * 0.0375,
   },
   passwordInputContainer: {
-    marginTop: Dimensions.get("window").height * 0.0125,
+    marginTop: height * 0.0125,
   },
   loginButtonContainer: {
-    marginTop: Dimensions.get("window").height * 0.04375,
+    marginTop: height * 0.04375,
   },
   registerButtonContainer: {
-    marginTop: Dimensions.get("window").height * 0.0125,
+    marginTop: height * 0.0125,
   },
   forgotPasswordContainer: {
-    marginTop: Dimensions.get("window").height * 0.025,
+    marginTop: height * 0.025,
   },
-  forgotPasswordText: {
+  reset: {
+    marginTop: height * 0.025,
+  },
+  resettext: {
     color: "#666666",
-    fontSize: Dimensions.get("window").height * 0.015,
     fontFamily: "NotoSans-Regular",
-    fontWeight: "400",
+    fontSize: height * 0.015,
   },
 });
 

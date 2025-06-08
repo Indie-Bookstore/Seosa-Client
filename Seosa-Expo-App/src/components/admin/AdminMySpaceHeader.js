@@ -1,5 +1,3 @@
-// 나의 공간 관리자용 헤더
-
 import React, { useState } from "react";
 import {
   View,
@@ -8,7 +6,10 @@ import {
   Dimensions,
   TouchableOpacity,
   Alert,
+  Image,
 } from "react-native";
+import { navigate } from "../../utils/nav/RootNavigation";
+
 import DotBtn from "../../icons/dot.svg";
 import EditBtn from "../../icons/edit.svg";
 import Bookmark from "../../icons/bookmark.svg";
@@ -18,51 +19,89 @@ import BookmarkSelected from "../../icons/bookmark-selected.svg";
 import CommentSelected from "../../icons/comment-selected.svg";
 import WriteSelected from "../../icons/write-selected.svg";
 
-const AdminMySpaceHeader = ({ selectedTab, setSelectedTab, navigation }) => {
-  const size = Dimensions.get("window").width * 0.067;
+import api from "../../api/axios";
+import { logout } from "../../utils/logout"; // ★ 공통 로그아웃
+
+const { width, height } = Dimensions.get("window");
+const size = width * 0.067;
+
+export default function AdminMySpaceHeader({
+  selectedTab,
+  setSelectedTab,
+  profileImage,
+  nickname,
+}) {
   const [menuVisible, setMenuVisible] = useState(false);
 
+  /* 로그아웃 */
   const handleLogout = () => {
     Alert.alert("로그아웃", "정말 로그아웃하시겠습니까?", [
       { text: "아니오", style: "cancel" },
-      { text: "예", onPress: () => console.log("로그아웃 진행") }, // TODO: 실제 로그아웃 처리
+      { text: "예", onPress: () => logout() }, // ★
     ]);
   };
 
-  const handleSettings = () => {
-    navigation.navigate("Settings");
+    /* FAQ 화면 이동 */
+    const handleFaq = () => navigate("FAQ");
+
+  /* 회원 탈퇴 */
+  const handleWithdraw = () => {
+    Alert.alert(
+      "회원 탈퇴",
+      "정말 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+      [
+        { text: "아니오", style: "cancel" },
+        {
+          text: "예",
+          onPress: async () => {
+            try {
+              await api.delete("/user"); // 서버 회원 탈퇴
+              await logout(); // ★ 동일 로그아웃 처리
+            } catch (err) {
+              console.error("회원 탈퇴 실패:", err);
+              Alert.alert("오류", "회원 탈퇴에 실패했습니다.");
+            }
+          },
+        },
+      ]
+    );
   };
+
+  const handleEditProfile = () => navigate("EditProfile");
 
   return (
     <View style={styles.container}>
-      {/* 타이틀 */}
       <View style={styles.title}>
         <Text style={styles.titletext}>나의 공간</Text>
         <TouchableOpacity
           style={styles.dotbtn}
-          onPress={() => setMenuVisible(!menuVisible)} // 토글
+          onPress={() => setMenuVisible(!menuVisible)}
         >
           <DotBtn width={size} height={size} />
         </TouchableOpacity>
       </View>
 
-      {/* 프로필 이미지 & 편집 버튼 */}
+      {/* 프로필 */}
       <View style={styles.profileContainer}>
         <View style={styles.profile}>
-          <View style={styles.image}></View>
-          <TouchableOpacity style={styles.editbtn}>
+          {profileImage ? (
+            <Image source={{ uri: profileImage }} style={styles.image} />
+          ) : (
+            <View style={styles.image} />
+          )}
+          <TouchableOpacity style={styles.editbtn} onPress={handleEditProfile}>
             <EditBtn width={(size * 8) / 12} height={(size * 8) / 12} />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* 사용자 정보 */}
+      {/* 닉네임 */}
       <View style={styles.infoContainer}>
         <Text style={styles.nickname}>닉네임</Text>
-        <Text style={styles.nicknameinput}>책손님</Text>
+        <Text style={styles.nicknameinput}>{nickname || "책손님"}</Text>
       </View>
 
-      {/* 글쓰기, 북마크, 댓글 */}
+      {/* 탭 */}
       <View style={styles.parts}>
         <TouchableOpacity
           style={selectedTab === "write" ? styles.selectedPart : styles.part}
@@ -86,29 +125,30 @@ const AdminMySpaceHeader = ({ selectedTab, setSelectedTab, navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* 🟡 토글 메뉴 (dotbtn 아래) */}
+      {/* 토글 메뉴 */}
       {menuVisible && (
         <View style={styles.menu}>
-          <TouchableOpacity style={styles.menuItem} onPress={handleSettings}>
-            <Text style={styles.menuText}>설정</Text>
+          <TouchableOpacity style={styles.menuItem} onPress={handleFaq}>
+                      <Text style={styles.menuText}>FAQ / 문의하기</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
             <Text style={[styles.menuText, styles.logoutText]}>로그아웃</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem} onPress={handleWithdraw}>
+            <Text style={[styles.menuText, styles.logoutText]}>회원탈퇴</Text>
           </TouchableOpacity>
         </View>
       )}
     </View>
   );
-};
+}
 
-const width = Dimensions.get("window").width;
-const height = Dimensions.get("window").height;
-
+/* ───── 스타일 ───── */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    width: width,
+    width,
     backgroundColor: "#487153",
     maxHeight: height * 0.3925,
     position: "relative",
@@ -118,23 +158,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    width: width,
+    width,
   },
   titletext: {
     color: "#FFFFFF",
     fontSize: width * 0.067,
-    fontWeight: "bold",
     marginLeft: width * 0.05,
     fontFamily: "UnBatangBold",
   },
-  dotbtn: {
-    marginRight: width * 0.05,
-  },
-  profileContainer: {
-    height: height * 0.16625,
-    width: width,
-    alignItems: "center",
-  },
+  dotbtn: { marginRight: width * 0.05 },
+
+  profileContainer: { height: height * 0.16625, width, alignItems: "center" },
   profile: {
     height: height * 0.16625,
     flexDirection: "row",
@@ -158,9 +192,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+
   infoContainer: {
     marginTop: height * 0.02,
-    width: width,
+    width,
     flexDirection: "row",
     height: height * 0.02875,
     justifyContent: "center",
@@ -169,15 +204,13 @@ const styles = StyleSheet.create({
   nickname: {
     color: "#FFFFFF",
     fontSize: height * 0.023,
-    fontWeight: "600",
+    fontFamily:"NotoSans-Regular",
     width: width * 0.125,
   },
-  nicknameinput: {
-    color: "#FFFFFF",
-    fontSize: height * 0.02,
-  },
+  nicknameinput: { color: "#FFFFFF", fontSize: height * 0.02 },
+
   parts: {
-    width: width,
+    width,
     flexDirection: "row",
     alignItems: "center",
     position: "absolute",
@@ -197,10 +230,10 @@ const styles = StyleSheet.create({
     borderBottomColor: "#FFEEAA",
     borderBottomWidth: 2,
   },
-  /* 🟡 토글 메뉴 스타일 */
+
   menu: {
     position: "absolute",
-    top: height * 0.0975 + 5, // dotbtn 아래 위치
+    top: height * 0.0975 + 5,
     right: width * 0.05,
     backgroundColor: "#FFF",
     borderRadius: 8,
@@ -212,18 +245,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  menuItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-  },
-  menuText: {
-    fontSize: 14,
-    color: "#333",
-  },
-  logoutText: {
-    color: "#FF3333",
-    fontWeight: "bold",
-  },
+  menuItem: { paddingVertical: 12, paddingHorizontal: 15 },
+  menuText: { fontSize: 14, color: "#333", fontFamily:"NotoSans-Regular" },
+  logoutText: { color: "#FF3333", fontFamily:"NotoSans-Regular"},
 });
-
-export default AdminMySpaceHeader;

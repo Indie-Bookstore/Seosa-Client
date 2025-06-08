@@ -1,25 +1,21 @@
-// 비밀번호 리셋 화면
+// src/screens/auth/PasswordResetScreen.js
 
 import React, { useState, useEffect } from "react";
 import {
   View,
-  Platform,
   StyleSheet,
   Dimensions,
-
 } from "react-native";
 import AuthHeader from "../../components/auth/AuthHeader";
-import { StatusBar } from "expo-status-bar";
 import Constants from "expo-constants";
 import PasswordInputComponent from "../../components/common/input/PasswordInputComponent";
 import PasswordInfoComponent from "../../components/common/info/passwordInfoComponent";
 import ButtonComponent from "../../components/common/button/ButtonComponent";
 import AlertComponent from "../../components/auth/AlertComponent";
 import api from "../../api/axios";
-import codegenNativeCommands from "react-native/Libraries/Utilities/codegenNativeCommands";
 
-const STATUSBAR_HEIGHT =
-  Platform.OS === "ios" ? Constants.statusBarHeight : StatusBar.currentHeight;
+const { width, height } = Dimensions.get("window");
+const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 const PasswordResetScreen = ({ navigation }) => {
   // 상태 관리
@@ -38,7 +34,6 @@ const PasswordResetScreen = ({ navigation }) => {
 
   // 비밀번호 유효성 검사
   useEffect(() => {
-    
     const lengthValid = password.length >= 8;
     const letterValid = /[a-zA-Z]/.test(password);
     const numberValid = /[0-9]/.test(password);
@@ -63,64 +58,53 @@ const PasswordResetScreen = ({ navigation }) => {
     );
   }, [password, confirmPassword]);
 
-  /* 비밀번호 변경 요청
+  // 비밀번호 변경 요청
   const handlePasswordReset = async () => {
-    if (!isPasswordVerified) return;
+    if (!isPasswordVerified || isLoading) return;
 
+    // 초기화
+    setErrors({ password: "", general: "" });
     setIsLoading(true);
-    try {
-      const response = await api.patch("/user/password", {
-        newPassword1: password,
-        newPassword2: confirmPassword
-      });
 
-      if (response.status === 200) {
-        Alert.alert("성공", "비밀번호가 성공적으로 변경되었습니다.");
-        navigation.goBack();
-      }
+    try {
+      // PATCH /user/password 호출
+      await api.patch("/user/password", {
+        newPassword1: password,
+        newPassword2: confirmPassword,
+      });
+      // 성공 시 완료 화면으로 이동
+      navigation.replace("ResetDone");
     } catch (error) {
-      handleApiError(error);
+      // 서버 에러 코드 별 에러 메세지 세팅
+      let errorMessage = "알 수 없는 오류가 발생했습니다.";
+      if (error.response?.data) {
+        const { code, message } = error.response.data;
+        switch (code) {
+          case "PASSWORD_MISMATCH":
+            errorMessage = "비밀번호가 일치하지 않습니다.";
+            break;
+          case "VALIDATION_FAILED":
+            errorMessage =
+              "비밀번호 요구사항을 확인해주세요 (최소 8자, 영문+숫자 조합)";
+            break;
+          default:
+            errorMessage = message;
+        }
+      }
+      setErrors((prev) => ({ ...prev, general: errorMessage }));
     } finally {
       setIsLoading(false);
     }
   };
-  */
-
-  const handlePasswordReset = () => {
-    navigation.navigate('ResetDone');
-  };
 
   const handleBack = () => {
     navigation.goBack();
-  }
-
-  // API 오류 처리
-  const handleApiError = (error) => {
-    let errorMessage = "알 수 없는 오류가 발생했습니다.";
-
-    if (error.response?.data) {
-      const { code, message } = error.response.data;
-      switch (code) {
-        case "PASSWORD_MISMATCH":
-          errorMessage = "비밀번호가 일치하지 않습니다.";
-          break;
-        case "VALIDATION_FAILED":
-          errorMessage =
-            "비밀번호 요구사항을 확인해주세요 (최소 8자, 영문+숫자 조합)";
-          break;
-        default:
-          errorMessage = message;
-      }
-    }
-
-    setErrors((prev) => ({ ...prev, general: errorMessage }));
   };
-
 
   return (
     <View style={styles.screen}>
       <View style={{ height: STATUSBAR_HEIGHT }} />
-      <AuthHeader title="비밀번호 재설정" backOnPress={handleBack}/>
+      <AuthHeader title="비밀번호 재설정" backOnPress={handleBack} />
 
       <View style={styles.pwcontainer}>
         <PasswordInputComponent
@@ -148,11 +132,10 @@ const PasswordResetScreen = ({ navigation }) => {
           value={confirmPassword}
         />
 
-        {errors.password && (
-          <AlertComponent description={errors.password} />
-        )}
-        {errors.general && <AlertComponent description={errors.general} />}
+        {errors.password && <AlertComponent description={errors.password} isError={true} />}
+        {errors.general && <AlertComponent description={errors.general} isError={true} />}
       </View>
+
       <View style={styles.buttonContainer}>
         <ButtonComponent
           btnType={isPasswordVerified ? "btn-green" : "btn-gray"}
@@ -164,8 +147,6 @@ const PasswordResetScreen = ({ navigation }) => {
     </View>
   );
 };
-
-const { width, height } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   screen: {

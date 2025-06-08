@@ -1,61 +1,71 @@
-// src/api/api.js
-// api 요청 통합 파일
+/**
+ * src/api/axios.js
+ */
+import axios from "axios";
+import {
+  getRefreshToken,
+  setRefreshToken,
+} from "../utils/tokenStorage";
+import { store } from "../store/store";
+import { setAccessToken } from "../store/authSlice";
+import { Alert } from "react-native";
+import { logout } from "../utils/logout";             // ← 공통 로그아웃
 
-import axios from 'axios';
-import { getRefreshToken, setRefreshToken, removeRefreshToken } from '../utils/tokenStorage';
-import { store } from '../store/store';
-import { setAccessToken, clearAuth } from '../store/authSlice';
-
+/* Axios 인스턴스 */
 const api = axios.create({
-  baseURL: 'https://seosa.o-r.kr',
+  baseURL: "https://seosa.o-r.kr",
   timeout: 10000,
 });
 
-// 요청 인터셉터
+/* ─── 요청 인터셉터 ─── */
 api.interceptors.request.use(
   (config) => {
     if (config.skipAuth) return config;
-    
-    const state = store.getState();
-    const token = state.auth.accessToken;
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-    }
+    const token = store.getState().auth.accessToken;
+    if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// 응답 인터셉터
+/* ─── 응답 인터셉터 ─── */
 api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-    
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      
+  (res) => res,
+  async (err) => {
+    if (err.response?.data) console.error(err.response.data);
+
+    const original = err.config;
+
+    /* 첫 401 → 토큰 재발급 */
+    if (err.response?.status === 401 && !original._retry) {
+      original._retry = true;
       try {
         const refreshToken = await getRefreshToken();
-        const response = await axios.post(
-          'https://seosa.o-r.kr/refresh-token',
+        const { data } = await axios.post(
+          "https://seosa.o-r.kr/reissue",
           { refreshToken },
           { skipAuth: true }
         );
-        
-        const { accessToken, refreshToken: newRefreshToken } = response.data;
-        await setRefreshToken(newRefreshToken);
-        store.dispatch(setAccessToken(accessToken));
-        
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        return api(originalRequest);
-      } catch (refreshError) {
-        await removeRefreshToken();
-        store.dispatch(clearAuth());
-        return Promise.reject(refreshError);
+        await setRefreshToken(data.refreshToken);
+        store.dispatch(setAccessToken(data.accessToken));
+        original.headers.Authorization = `Bearer ${data.accessToken}`;
+        return api(original);
+      } catch (reissueError) {
+        Alert.alert("인증 만료", "다시 로그인해주세요.", [
+          { text: "확인", onPress: () => logout() },   // ← 공통 로그아웃
+        ]);
+        return Promise.reject(reissueError);
       }
     }
-    return Promise.reject(error);
+
+    /* 재발급 후에도 401 → 즉시 로그아웃 */
+    if (err.response?.status === 401 && original._retry) {
+      Alert.alert("인증 만료", "다시 로그인해주세요.", [
+        { text: "확인", onPress: () => logout() },     // ← 공통 로그아웃
+      ]);
+    }
+
+    return Promise.reject(err);
   }
 );
 

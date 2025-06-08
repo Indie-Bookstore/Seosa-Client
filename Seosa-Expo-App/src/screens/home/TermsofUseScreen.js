@@ -1,11 +1,10 @@
 import React from 'react';
-import { View, StyleSheet, Platform, Dimensions, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { StatusBar } from "expo-status-bar";
+import { View, StyleSheet, Dimensions, Text, ScrollView, TouchableOpacity } from 'react-native';
 import Constants from "expo-constants";
 import Footer from '../../components/common/footer/Footer';
 import CloseIcon from '../../icons/close.svg';
 
-const STATUSBAR_HEIGHT = Platform.OS === "ios" ? Constants.statusBarHeight : StatusBar.currentHeight;
+const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 const { width, height } = Dimensions.get('window');
 
 const TermsofUseScreen = ({ navigation }) => {
@@ -93,9 +92,8 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: width * 0.055,
-    fontWeight: "bold",
     color: "#487153",
-    fontFamily: "UnBatangBold",
+    fontFamily: "UnBatang-Bold",
     textAlign: "center",
     marginLeft:width*0.02
   },
@@ -110,18 +108,17 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: width * 0.045,
-    fontWeight: "bold",
     color: "#666666",
     marginTop: 20,
     marginBottom: 8,
-    fontFamily: "UnBatangBold",
+    fontFamily: "NotoSans-Medium",
   },
   text: {
     fontSize: width * 0.038,
     color: "#666666",
     lineHeight: 22,
     marginBottom: 8,
-    fontFamily: "UnBatang",
+    fontFamily: "NotoSans-Regular",
   },
 });
 

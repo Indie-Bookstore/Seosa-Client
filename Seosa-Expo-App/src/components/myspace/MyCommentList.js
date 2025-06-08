@@ -1,28 +1,52 @@
-import React, { useState } from "react";
+// src/components/myspace/MyCommentList.js
+
+import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Dimensions, Text, Alert, ScrollView } from "react-native";
 import SmallButtonComponent from "../common/button/SmallButtonComponent";
 import PostList from "../post/PostList";
+import api from "../../api/axios";
 
-const MyCommentList = () => {
+const width = Dimensions.get("window").width;
+const height = Dimensions.get("window").height;
+
+const MyCommentList = ({ onItemPress }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedPosts, setSelectedPosts] = useState([]);
+  const [commentsPosts, setCommentsPosts] = useState([]);
+  const [cursorId, setCursorId] = useState(null);
+  const [hasNext, setHasNext] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const [bookmarks, setBookmarks] = useState([
-    { id: 1, title: "가나다라마바사아자차카파타하", image: require("../../icons/thumbnail.jpg") },
-    { id: 2, title: "ABCDEFG", image: require("../../icons/thumbnail.jpg") },
-    { id: 3, title: "1234567890", image: require("../../icons/thumbnail.jpg") },
-    { id: 4, title: "테스트 데이터", image: require("../../icons/thumbnail.jpg") },
-    { id: 5, title: "React Native", image: require("../../icons/thumbnail.jpg") },
-    { id: 6, title: "Post Item", image: require("../../icons/thumbnail.jpg") },
-    { id: 7, title: "New Data", image: require("../../icons/thumbnail.jpg") },
-    { id: 8, title: "가나다라마바사아자차카파타하", image: require("../../icons/thumbnail.jpg") },
-    { id: 9, title: "ABCDEFG", image: require("../../icons/thumbnail.jpg") },
-    { id: 10, title: "1234567890", image: require("../../icons/thumbnail.jpg") },
-    { id: 11, title: "테스트 데이터", image: require("../../icons/thumbnail.jpg") },
-    { id: 12, title: "React Native", image: require("../../icons/thumbnail.jpg") },
-    { id: 13, title: "Post Item", image: require("../../icons/thumbnail.jpg") },
-    { id: 14, title: "New Data", image: require("../../icons/thumbnail.jpg") },
-  ]);
+  // 1) 내 댓글 단 게시글 목록 9개 조회
+  const fetchMyComments = async () => {
+    try {
+      setLoading(true);
+      const url = cursorId ? `/comment/mypage?cursor=${cursorId}` : "/comment/mypage";
+      const response = await api.get(url);
+      if (cursorId) {
+        setCommentsPosts((prev) => [...prev, ...response.data.posts]);
+      } else {
+        setCommentsPosts(response.data.posts);
+      }
+      setCursorId(response.data.cursorId);
+      setHasNext(response.data.hasNext);
+    } catch (err) {
+      console.error("내 댓글 목록 조회 실패:", err.response?.data || err.message);
+      Alert.alert("오류", "댓글 목록을 불러오지 못했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMyComments();
+  }, []);
+
+  const loadMore = () => {
+    if (hasNext && !loading) {
+      fetchMyComments();
+    }
+  };
 
   const toggleEditMode = () => {
     setIsEditing(!isEditing);
@@ -39,16 +63,13 @@ const MyCommentList = () => {
       "삭제 확인",
       "정말 삭제하시겠습니까?",
       [
-        {
-          text: "취소",
-          style: "cancel",
-        },
+        { text: "취소", style: "cancel" },
         {
           text: "삭제",
           style: "destructive",
           onPress: () => {
-            const updatedBookmarks = bookmarks.filter((post) => !selectedPosts.includes(post.id));
-            setBookmarks([...updatedBookmarks]);
+            const updated = commentsPosts.filter((post) => !selectedPosts.includes(post.postId));
+            setCommentsPosts(updated);
             setSelectedPosts([]);
             setIsEditing(false);
           },
@@ -57,9 +78,13 @@ const MyCommentList = () => {
     );
   };
 
-  const width = Dimensions.get("window").width;
-  const height = Dimensions.get("window").height;
-  const FOOTER_HEIGHT = height * 0.07; // 푸터 높이 (기존 Footer 높이와 동일하게 조정)
+  if (loading && commentsPosts.length === 0) {
+    return (
+      <View style={styles.container}>
+        <Text>로딩 중...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -72,25 +97,27 @@ const MyCommentList = () => {
         />
       </View>
 
-      {/* 리스트에만 스크롤 적용, paddingBottom 추가, 스크롤바 숨김 */}
       <ScrollView
         style={styles.scrollContainer}
-        contentContainerStyle={{ paddingBottom: FOOTER_HEIGHT }}
+        contentContainerStyle={{ paddingBottom: height * 0.07 }}
+        onMomentumScrollEnd={loadMore}
         showsVerticalScrollIndicator={false}
       >
         <PostList
-          posts={bookmarks}
+          posts={commentsPosts.map((p) => ({
+            postId: p.postId,
+            title: p.title,
+            thumbnailUrl: p.thumbnailUrl,
+          }))}
           isEditing={isEditing}
           selectedPosts={selectedPosts}
           setSelectedPosts={setSelectedPosts}
+          onItemPress={(postId) => onItemPress(postId)}
         />
       </ScrollView>
     </View>
   );
 };
-
-const width = Dimensions.get("window").width;
-const height = Dimensions.get("window").height;
 
 const styles = StyleSheet.create({
   container: {

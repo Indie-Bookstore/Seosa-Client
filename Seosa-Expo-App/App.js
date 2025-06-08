@@ -1,121 +1,189 @@
-import { enableScreens } from 'react-native-screens';
-enableScreens();
+import 'react-native-get-random-values';
+import 'react-native-url-polyfill/auto';
+
+if (typeof global.Buffer === 'undefined') {
+  global.Buffer = require('buffer').Buffer;
+}
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Animated, StyleSheet } from 'react-native';
-import * as Font from 'expo-font';
+import { useFonts } from 'expo-font';
+import { Provider, useDispatch, useSelector } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Provider } from 'react-redux';
-import { store } from './src/store/store';
 
-import SplashScreen from './src/screens/home/SplashScreen';
+import { store } from './src/store/store';
+import {
+  setUser,
+  setAccessToken,
+  setRefreshToken,
+  clearAuth,
+} from './src/store/authSlice';
+import { fetchUserInfo } from './src/api/userApi';
+import {
+  getRefreshToken as loadRefreshToken,
+  getAccessToken as loadAccessToken,
+} from './src/utils/tokenStorage';
+import { navigationRef, navigate } from './src/utils/nav/RootNavigation';
+
+/* ───────── 스크린 import ───────── */
+import SplashUI from './src/screens/home/SplashScreen';
 import HomeScreen from './src/screens/home/HomeScreen';
 import AuthScreen from './src/screens/auth/AuthScreen';
 import AuthCodeScreen from './src/screens/auth/AuthCodeScreen';
 import PasswordResetScreen from './src/screens/auth/PasswordResetScreen';
 import ResetDoneScreen from './src/screens/auth/ResetDoneScreen';
 import RegisterScreen from './src/screens/register/RegisterScreen';
-import KakaoLogin from './src/components/auth/KakaoLogin';
 import OnboardingScreen from './src/screens/auth/OnboardingScreen';
-import MainScreen from './src/screens/temp/MainScreen';
 import MySpaceScreen from './src/screens/myspace/MySpaceScreen';
-import FaqScreen from './src/screens/faq/FaqScreen';
 import AdminMySpaceScreen from './src/screens/admin/AdminMySpaceScreen';
 import EditProfileScreen from './src/screens/myspace/EditProfileScreen';
-import PostScreen from './src/screens/post/PostScreen';
 import PrivacyPolicyScreen from './src/screens/home/PrivacyPolicyScreen';
 import TermsofUseScreen from './src/screens/home/TermsofUseScreen';
+import PostScreen from './src/screens/post/PostScreen';
 import PostGalleryScreen from './src/screens/post/PostGalleryScreen';
+import ArticleScreen from './src/screens/article/ArticleScreen';
+import MapPickerScreen from './src/screens/map/MapPickerScreen';
+import FaqScreen from './src/screens/faq/FaqScreen';
 
 const Stack = createNativeStackNavigator();
 
-export default function App() {
-  const [fontsLoaded, setFontsLoaded] = useState(false);
+function MySpaceOrAdmin(props) {
+  const user = useSelector((state) => state.auth.user);
+  if (!user) return null;
+  return (user.userRole === 'ADMIN' || user.userRole === 'EDITOR')
+    ? <AdminMySpaceScreen {...props} />
+    : <MySpaceScreen {...props} />;
+}
+
+function RootApp() {
+  // 로딩 상태
   const [timerElapsed, setTimerElapsed] = useState(false);
-  const [showSplash, setShowSplash] = useState(true);
+  const [tokensLoaded, setTokensLoaded] = useState(false);
+  const [userLoaded, setUserLoaded] = useState(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  // 폰트 로딩 & 2초 타이머
+  const dispatch = useDispatch();
+  const accessToken = useSelector((state) => state.auth.accessToken);
+  const user = useSelector((state) => state.auth.user);
+
+  // 1) 토큰 복원
   useEffect(() => {
-    let isMounted = true;
-    const timer = setTimeout(() => {
-      if (isMounted) setTimerElapsed(true);
-    }, 2000);
-
-    const loadFonts = async () => {
+    let mounted = true;
+    (async () => {
       try {
-        await Font.loadAsync({
-          'NotoSans-Regular': require('./assets/fonts/NotoSans-Regular.ttf'),
-          'NotoSans-Bold': require('./assets/fonts/NotoSans-Bold.ttf'),
-          'NotoSans-Medium': require('./assets/fonts/NotoSans-Medium.ttf'),
-        });
-        if (isMounted) setFontsLoaded(true);
-      } catch (error) {
-        console.error('폰트 로딩 오류:', error);
+        const storedAccess = await loadAccessToken();
+        const storedRefresh = await loadRefreshToken();
+        if (!mounted) return;
+        if (storedAccess) dispatch(setAccessToken(storedAccess));
+        if (storedRefresh) dispatch(setRefreshToken(storedRefresh));
+      } catch (e) {
+        console.error('🔴 토큰 로드 에러:', e);
+      } finally {
+        if (mounted) setTokensLoaded(true);
       }
-    };
+    })();
+    return () => { mounted = false; };
+  }, [dispatch]);
 
-    loadFonts();
+  // 2) 유저 정보 로드 (accessToken 있으면 fetch, 없으면 바로 완료)
+  useEffect(() => {
+    if (accessToken) {
+      fetchUserInfo()
+        .then((data) => {
+          dispatch(setUser(data));
+          // TEMP_USER 온보딩
+          if (data.userRole === 'TEMP_USER' && navigationRef.isReady()) {
+            const current = navigationRef.getCurrentRoute()?.name;
+            if (current !== 'Onboarding') navigate('Onboarding');
+          }
+        })
+        .catch((err) => console.error('🔴 fetchUserInfo 에러:', err))
+        .finally(() => setUserLoaded(true));
+    } else {
+      dispatch(clearAuth());
+      setUserLoaded(true);
+    }
+  }, [accessToken, dispatch]);
 
-    return () => {
-      isMounted = false;
-      clearTimeout(timer);
-    };
+  // 3) 폰트 로드
+  const [fontsLoaded] = useFonts({
+    'NotoSans-Regular': require('./assets/fonts/NotoSans-Regular.ttf'),
+    'NotoSans-Bold': require('./assets/fonts/NotoSans-Bold.ttf'),
+    'NotoSans-Medium': require('./assets/fonts/NotoSans-Medium.ttf'),
+    'UnBatang': require('./assets/fonts/UnBatang.ttf'),
+    'UnBatang-Bold': require('./assets/fonts/UnBatangBold.ttf'),
+  });
+
+  // 4) 최소 스플래시 시간 보장
+  useEffect(() => {
+    const timer = setTimeout(() => setTimerElapsed(true), 2000);
+    return () => clearTimeout(timer);
   }, []);
 
-  // 페이드 아웃 처리
+  // 5) 스플래시 페이드아웃 (모든 로딩 완료 후)
   useEffect(() => {
-    if (fontsLoaded && timerElapsed) {
+    if (fontsLoaded && timerElapsed && tokensLoaded && userLoaded) {
       Animated.timing(fadeAnim, {
         toValue: 0,
-        duration: 500, // 0.5초 동안 페이드 아웃
+        duration: 500,
         useNativeDriver: true,
-      }).start(() => setShowSplash(false));
+      }).start();
     }
-  }, [fontsLoaded, timerElapsed]);
+  }, [fontsLoaded, timerElapsed, tokensLoaded, userLoaded, fadeAnim]);
 
+  // 온보딩 체크 (userLoaded 이후)
+  useEffect(() => {
+    if (userLoaded && user && user.userRole == null && navigationRef.isReady()) {
+      const current = navigationRef.getCurrentRoute()?.name;
+      if (current !== 'Onboarding') navigate('Onboarding');
+    }
+  }, [userLoaded, user]);
+
+  // 스플래시 화면
+  if (!fontsLoaded || !timerElapsed || !tokensLoaded || !userLoaded) {
+    return (
+      <Animated.View style={{ ...StyleSheet.absoluteFillObject, opacity: fadeAnim }}>
+        <SplashUI />
+      </Animated.View>
+    );
+  }
+
+  // 메인 내비게이션
+  return (
+    <NavigationContainer ref={navigationRef}>
+      <Stack.Navigator initialRouteName="Home" screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Auth" component={AuthScreen} />
+        <Stack.Screen name="AuthCode" component={AuthCodeScreen} />
+        <Stack.Screen name="PasswordReset" component={PasswordResetScreen} />
+        <Stack.Screen name="ResetDone" component={ResetDoneScreen} />
+        <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+        <Stack.Screen name="FAQ" component={FaqScreen} />
+        <Stack.Screen name="MySpace" component={MySpaceOrAdmin} />
+        <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+        <Stack.Screen name="Post" component={PostScreen} />
+        <Stack.Screen name="gallery" component={PostGalleryScreen} />
+        <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+        <Stack.Screen name="TermsofUse" component={TermsofUseScreen} />
+        <Stack.Screen name="article" component={ArticleScreen} />
+        <Stack.Screen
+          name="MapPicker"
+          component={MapPickerScreen}
+          options={{ title: '지도에서 위치 선택' }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
+export default function App() {
   return (
     <Provider store={store}>
-      <NavigationContainer>
-        <Stack.Navigator
-          initialRouteName="Home"
-          screenOptions={{
-            headerShown: false,
-            animation: 'fade',
-            gestureEnabled: true
-          }}
-        >
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="Auth" component={AuthScreen} />
-          <Stack.Screen name="AuthCode" component={AuthCodeScreen} />
-          <Stack.Screen name="PasswordReset" component={PasswordResetScreen} />
-          <Stack.Screen name="ResetDone" component={ResetDoneScreen} />
-          <Stack.Screen name="Register" component={RegisterScreen} />
-          <Stack.Screen name="KakaoLogin" component={KakaoLogin} />
-          <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-          <Stack.Screen name="Main" component={MainScreen} />
-          <Stack.Screen name="MySpace" component={MySpaceScreen} />
-          <Stack.Screen name="FAQ" component={FaqScreen} />
-          <Stack.Screen name="AdminSpace" component={AdminMySpaceScreen} />
-          <Stack.Screen name="EditProfile" component={EditProfileScreen} />
-          <Stack.Screen name="Post" component={PostScreen} />
-          <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
-          <Stack.Screen name="TermsofUse" component={TermsofUseScreen} />
-          <Stack.Screen name="gallery" component={PostGalleryScreen} />
-        </Stack.Navigator>
-        {showSplash && (
-          <Animated.View
-            pointerEvents="box-none"
-            style={[
-              StyleSheet.absoluteFill,
-              { zIndex: 100, opacity: fadeAnim }
-            ]}
-          >
-            <SplashScreen />
-          </Animated.View>
-        )}
-      </NavigationContainer>
+      <RootApp />
     </Provider>
   );
 }
+
+const styles = StyleSheet.create({});

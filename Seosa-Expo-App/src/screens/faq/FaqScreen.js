@@ -3,13 +3,10 @@
 import React from 'react';
 import { View, StyleSheet, Platform, Text, Dimensions } from 'react-native';
 import AuthHeader from '../../components/auth/AuthHeader';
-import { StatusBar } from 'expo-status-bar';
 import Constants from 'expo-constants';
 import FaqList from '../../components/admin/FaqList';
 
-const STATUSBAR_HEIGHT = Platform.OS === 'ios'
-  ? Constants.statusBarHeight
-  : StatusBar.currentHeight;
+const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 const FaqScreen = ({navigation}) => {
 
@@ -56,9 +53,9 @@ const styles = StyleSheet.create({
   titletext: {
     fontSize: height * 0.02,
     color: "#666666",
-    fontWeight: "400",
     paddingTop: height * 0.005,
     paddingLeft: height * 0.005,
+    fontFamily:"NotoSans-Regular"
   },
   box: {
     backgroundColor: "#E2E7E3",
@@ -74,6 +71,7 @@ const styles = StyleSheet.create({
     fontSize: height * 0.018,
     width: width * 0.8,
     color: "#666666",
+    fontFamily:"NotoSans-Regular"
   },
   highlight: {
    fontSize: height * 0.018,

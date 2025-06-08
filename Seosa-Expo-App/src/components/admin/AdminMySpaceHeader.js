@@ -163,7 +163,6 @@ const styles = StyleSheet.create({
   titletext: {
     color: "#FFFFFF",
     fontSize: width * 0.067,
-    fontWeight: "bold",
     marginLeft: width * 0.05,
     fontFamily: "UnBatangBold",
   },
@@ -205,7 +204,7 @@ const styles = StyleSheet.create({
   nickname: {
     color: "#FFFFFF",
     fontSize: height * 0.023,
-    fontWeight: "600",
+    fontFamily:"NotoSans-Regular",
     width: width * 0.125,
   },
   nicknameinput: { color: "#FFFFFF", fontSize: height * 0.02 },
@@ -247,6 +246,6 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   menuItem: { paddingVertical: 12, paddingHorizontal: 15 },
-  menuText: { fontSize: 14, color: "#333" },
-  logoutText: { color: "#FF3333", fontWeight: "bold" },
+  menuText: { fontSize: 14, color: "#333", fontFamily:"NotoSans-Regular" },
+  logoutText: { color: "#FF3333", fontFamily:"NotoSans-Regular"},
 });

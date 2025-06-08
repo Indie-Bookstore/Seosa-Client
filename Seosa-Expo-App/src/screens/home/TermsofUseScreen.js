@@ -92,7 +92,6 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: width * 0.055,
-    fontWeight: "bold",
     color: "#487153",
     fontFamily: "UnBatang-Bold",
     textAlign: "center",
@@ -109,7 +108,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: width * 0.045,
-    fontWeight: "bold",
     color: "#666666",
     marginTop: 20,
     marginBottom: 8,

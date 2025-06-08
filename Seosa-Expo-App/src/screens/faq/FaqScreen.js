@@ -53,7 +53,6 @@ const styles = StyleSheet.create({
   titletext: {
     fontSize: height * 0.02,
     color: "#666666",
-    fontWeight: "400",
     paddingTop: height * 0.005,
     paddingLeft: height * 0.005,
     fontFamily:"NotoSans-Regular"

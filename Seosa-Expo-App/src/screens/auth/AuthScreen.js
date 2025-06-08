@@ -4,7 +4,6 @@ import React, { useState, useCallback } from "react";
 import {
   View,
   StyleSheet,
-  Platform,
   ActivityIndicator,
   Modal,
   Alert,

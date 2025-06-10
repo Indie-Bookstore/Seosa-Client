@@ -16,7 +16,7 @@ import LogoIcon from "../../icons/logo-green.svg";
 import EditIcon from "../../icons/edit-white.svg";
 import Post from "../../components/post/Post";
 import Footer from "../../components/common/footer/Footer";
-import { navigate } from "../../utils/nav/RootNavigation";
+import { navigate } from "../../utils/nav/RootNavigation"; // navigation prop 대신 이거만 사용
 import api from "../../api/axios";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
 
@@ -24,16 +24,11 @@ const { width, height } = Dimensions.get("window");
 const CARD_MARGIN = 16;
 const CARD_WIDTH = width - CARD_MARGIN * 2;
 const OFFSET = width * 0.05;
-
 const STATUSBAR_HEIGHT = Constants.statusBarHeight;
-
 const size = width * 0.1;
 
 const PostGalleryScreen = ({ navigation }) => {
-  // MySpaceScreen과 동일하게 useRequireAuth 호출
   const isLoggedIn = useRequireAuth();
-
-  // 로그인되지 않은 경우 렌더링 중단
   if (!isLoggedIn) return null;
 
   const [posts, setPosts] = useState([]);
@@ -43,7 +38,6 @@ const PostGalleryScreen = ({ navigation }) => {
 
   const fetchPosts = useCallback(async () => {
     if (!hasNext || loading) return;
-
     setLoading(true);
     try {
       const response = await api.get("/post/main", {
@@ -51,8 +45,7 @@ const PostGalleryScreen = ({ navigation }) => {
       });
       const { posts: newPosts, cursorId: newCursorId, hasNext: newHasNext } =
         response.data;
-
-      setPosts((prevPosts) => [...prevPosts, ...newPosts]);
+      setPosts((prev) => [...prev, ...newPosts]);
       setCursorId(newCursorId);
       setHasNext(newHasNext);
     } catch (error) {
@@ -72,15 +65,14 @@ const PostGalleryScreen = ({ navigation }) => {
       <View style={[styles.logoSection, { paddingTop: STATUSBAR_HEIGHT }]}>
         <LogoIcon width={size} height={size} />
       </View>
+
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
         bounces={false}
         overScrollMode="never"
         onMomentumScrollEnd={() => {
-          if (hasNext && !loading) {
-            fetchPosts();
-          }
+          if (hasNext && !loading) fetchPosts();
         }}
       >
         <View style={styles.titlecontainer}>
@@ -99,6 +91,7 @@ const PostGalleryScreen = ({ navigation }) => {
             </View>
           </View>
         </View>
+
         {posts.map((item) => (
           <View
             key={item.postId}
@@ -122,11 +115,13 @@ const PostGalleryScreen = ({ navigation }) => {
                   : require("../../icons/thumbnail-large.jpg")
               }
               onPress={() =>
-                navigation.navigate("PostScreen", { postId: item.postId })
+                // navigation prop 대신 RootNavigation의 navigate 사용
+                navigate("Post", { postId: item.postId })
               }
             />
           </View>
         ))}
+
         {loading && (
           <ActivityIndicator
             style={{ marginVertical: 20 }}
@@ -134,14 +129,20 @@ const PostGalleryScreen = ({ navigation }) => {
             color="#487153"
           />
         )}
+
         <View style={{ height: height * 0.08 }} />
       </ScrollView>
+
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => navigate("article")}
+        onPress={() =>
+          // 이전에 사용하던 navigation.navigate → navigate 로 변경
+          navigate("article")
+        }
       >
         <EditIcon width={28} height={28} />
       </TouchableOpacity>
+
       <Footer navigation={navigation} />
     </View>
   );
@@ -177,11 +178,15 @@ const styles = StyleSheet.create({
     fontSize: height * 0.045,
     color: "#487153",
     textAlign: "center",
-    fontFamily:"Unbatang-Bold"
+    fontFamily: "Unbatang-Bold",
   },
   rightline: { height: 2, backgroundColor: "#487153", width: width * 0.6 },
   leftline: { height: 2, backgroundColor: "#487153", width: width * 0.35 },
-  subtext: { fontSize: height * 0.017, color: "#487153", fontFamily:"Unbatang-Bold" },
+  subtext: {
+    fontSize: height * 0.017,
+    color: "#487153",
+    fontFamily: "Unbatang-Bold",
+  },
   cardWrapper: { marginBottom: 20, alignSelf: "center" },
   fab: {
     position: "absolute",

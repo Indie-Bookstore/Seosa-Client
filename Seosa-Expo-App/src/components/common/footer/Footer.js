@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Dimensions, TouchableOpacity, StyleSheet, Text, Platform, Alert } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { navigate } from '../../../utils/nav/RootNavigation'; // ✅ 전역 navigate 함수 import
+import { navigate } from '../../../utils/nav/RootNavigation'; 
 import { useSelector } from 'react-redux';
 
 import HomeNav from '../../../icons/home.svg';

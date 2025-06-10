@@ -50,6 +50,7 @@ export default function PostScreen({ navigation, route }) {
   const fetchComments = async () => {
     try {
       const res = await api.get(`/comment/post/${postId}`);
+      console.log(res.data);
       setComments(res.data);
     } catch (err) {
       console.error("댓글 목록 불러오기 실패:", err);

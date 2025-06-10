@@ -7,16 +7,23 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  Image,                      // 추가
 } from "react-native";
 import BookmarkIcon from "../../icons/bookmark_green.svg";
 import UploadIcon from "../../icons/upload.svg";
 import CommentIcon from "../../icons/comment_green.svg";
+import SendIcon from "../../icons/send.svg";
+import DeleteIcon from "../../icons/x.svg";
 import ProfileIcon from "../../icons/profile.svg";
-
+import { useSelector } from 'react-redux';
 const { width, height } = Dimensions.get("window");
 
+
 const PostComment = ({ comments = [], onSubmit }) => {
+
   const [commentText, setCommentText] = useState("");
+  const user = useSelector(state => state.auth.user);
+  const profileImage = user?.profileImage || null;
 
   const handleSubmit = () => {
     if (!commentText.trim()) {
@@ -32,6 +39,7 @@ const PostComment = ({ comments = [], onSubmit }) => {
 
   return (
     <View style={styles.container}>
+      {/* 댓글 헤더 */}
       <View style={styles.comment_header}>
         <View style={styles.comment_count}>
           <CommentIcon height={ICON_SIZE} width={ICON_SIZE} />
@@ -47,13 +55,15 @@ const PostComment = ({ comments = [], onSubmit }) => {
         </View>
       </View>
 
+      {/* 방문 후기 타이틀 */}
       <View style={styles.comment_title}>
         <Text style={styles.title_text}>방문 후기</Text>
         <Text style={styles.title_count}>{comments.length}</Text>
       </View>
 
+      {/* 댓글 입력창 (아이콘은 그대로 사용) */}
       <View style={styles.comment_input}>
-        <ProfileIcon height={PROFILE_SIZE} width={PROFILE_SIZE} />
+        <Image source={{ uri: profileImage }} style={{width: PROFILE_SIZE, height: PROFILE_SIZE}} />
         <TextInput
           style={styles.input}
           placeholder="방문후기를 입력하세요."
@@ -63,15 +73,22 @@ const PostComment = ({ comments = [], onSubmit }) => {
           returnKeyType="send"
         />
         <TouchableOpacity onPress={handleSubmit}>
-          <UploadIcon height={PROFILE_SIZE} width={PROFILE_SIZE} />
+          <SendIcon height={PROFILE_SIZE} width={PROFILE_SIZE} />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.line}></View>
+      <View style={styles.line} />
 
+      {/* 댓글 리스트 */}
       {comments.map((comment) => (
         <View key={comment.commentId} style={styles.comment}>
-          <ProfileIcon height={PROFILE_SIZE} width={PROFILE_SIZE} />
+          <Image
+            source={{ uri: comment.profileImgUrl }}
+            style={[
+              styles.profileImage,
+              { width: PROFILE_SIZE, height: PROFILE_SIZE, borderRadius: PROFILE_SIZE / 2 },
+            ]}
+          />
           <View style={styles.commentContent}>
             <View style={styles.comment_up}>
               <Text style={styles.nickname}>{comment.name}</Text>
@@ -160,6 +177,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     width: width * 0.9,
+    marginBottom: height * 0.02,
+  },
+  profileImage: {
+    backgroundColor: "#EEE",    // 로딩 중 빈 배경
   },
   commentContent: {
     marginLeft: width * 0.03,

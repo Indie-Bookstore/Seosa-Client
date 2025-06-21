@@ -152,7 +152,7 @@ function RootApp() {
   // 메인 내비게이션
   return (
     <NavigationContainer ref={navigationRef}>
-      <Stack.Navigator initialRouteName="Home" screenOptions={{ headerShown: false }}>
+      <Stack.Navigator initialRouteName="Home" screenOptions={{ headerShown: false, animation:"fade" }}>
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Auth" component={AuthScreen} />
         <Stack.Screen name="AuthCode" component={AuthCodeScreen} />

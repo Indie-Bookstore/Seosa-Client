@@ -1,7 +1,9 @@
+// src/components/common/footer/Footer.js
+
 import React from 'react';
 import { View, Dimensions, TouchableOpacity, StyleSheet, Text, Platform, Alert } from 'react-native';
-import { useRoute } from '@react-navigation/native';
-import { navigate } from '../../../utils/nav/RootNavigation'; 
+import { useRoute, CommonActions } from '@react-navigation/native';
+import { navigationRef } from '../../../utils/nav/RootNavigation'; 
 import { useSelector } from 'react-redux';
 
 import HomeNav from '../../../icons/home.svg';
@@ -18,39 +20,45 @@ const Footer = () => {
   const route = useRoute();
   const current = route.name;
 
-  // Redux에서 accessToken 여부를 가져와서 로그인 상태 판별
+  // 로그인 상태 판별
   const accessToken = useSelector((state) => state.auth.accessToken);
 
-  // 탭 정보 배열
+  // 탭 정보
   const tabs = [
     { name: 'Home', label: '홈', Icon: HomeNav, SelectedIcon: HomeSelNav },
     { name: 'gallery', label: '글모음', Icon: BookNav, SelectedIcon: BookSelNav },
     { name: 'MySpace', label: '나의 공간', Icon: UserNav, SelectedIcon: UserSelNav },
   ];
 
-  // Protected 탭(글모음, 나의 공간 등)에 접근할 때 호출되는 함수
+  // 스택 초기화 후 이동
+  const resetAndNavigate = (screenName) => {
+    navigationRef.current?.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: screenName }],
+      })
+    );
+  };
+
+  // 보호된 탭 접근 처리
   const handleProtectedNavigate = (screenName) => {
     if (!accessToken) {
-      // 웹일 경우 window.confirm, 모바일일 경우 Alert 사용
       if (Platform.OS === 'web') {
         const confirmed = window.confirm('로그인이 필요합니다. 로그인하시겠습니까?');
-        if (confirmed) {
-          navigate('Auth');
-        }
+        if (confirmed) resetAndNavigate('Auth');
       } else {
         Alert.alert(
           '로그인 필요',
           '로그인이 필요합니다.',
           [
             { text: '취소', style: 'cancel' },
-            { text: '로그인하기', onPress: () => navigate('Auth') },
+            { text: '로그인하기', onPress: () => resetAndNavigate('Auth') },
           ],
           { cancelable: true }
         );
       }
     } else {
-      // 로그인 상태면 해당 스크린으로 이동
-      navigate(screenName);
+      resetAndNavigate(screenName);
     }
   };
 
@@ -62,10 +70,10 @@ const Footer = () => {
           const TabIcon = focused ? tab.SelectedIcon : tab.Icon;
           const textStyle = focused ? [styles.des, styles.selectedText] : styles.des;
 
-          // 탭이 Home이면 무조건 이동, 아니면 로그인 체크
+          // Home 탭은 바로 reset
           const onPressHandler = () => {
             if (tab.name === 'Home') {
-              navigate('Home');
+              resetAndNavigate('Home');
             } else {
               handleProtectedNavigate(tab.name);
             }

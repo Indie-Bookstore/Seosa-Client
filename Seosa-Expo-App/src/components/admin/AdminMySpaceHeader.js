@@ -56,7 +56,7 @@ export default function AdminMySpaceHeader({
           onPress: async () => {
             try {
               await api.delete("/user"); // 서버 회원 탈퇴
-              await logout(); // ★ 동일 로그아웃 처리
+              await logout(); // 로그아웃 처리
             } catch (err) {
               console.error("회원 탈퇴 실패:", err);
               Alert.alert("오류", "회원 탈퇴에 실패했습니다.");
@@ -97,7 +97,7 @@ export default function AdminMySpaceHeader({
 
       {/* 닉네임 */}
       <View style={styles.infoContainer}>
-        <Text style={styles.nickname}>닉네임</Text>
+        <Text style={styles.nickname}>에디터</Text>
         <Text style={styles.nicknameinput}>{nickname || "책손님"}</Text>
       </View>
 
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: width * 0.067,
     marginLeft: width * 0.05,
-    fontFamily: "UnBatangBold",
+    fontFamily: "UnBatang-Bold",
   },
   dotbtn: { marginRight: width * 0.05 },
 

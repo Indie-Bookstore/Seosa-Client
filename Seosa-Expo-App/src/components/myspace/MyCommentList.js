@@ -105,9 +105,9 @@ const MyCommentList = ({ onItemPress }) => {
       >
         <PostList
           posts={commentsPosts.map((p) => ({
-            postId: p.postId,
+            id: p.postId,                 // 수정: postId → id
             title: p.title,
-            thumbnailUrl: p.thumbnailUrl,
+            image: { uri: p.thumbnailUrl } // 수정: { uri } 형태로만 전달
           }))}
           isEditing={isEditing}
           selectedPosts={selectedPosts}

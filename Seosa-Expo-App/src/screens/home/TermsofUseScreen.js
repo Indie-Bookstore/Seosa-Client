@@ -60,8 +60,8 @@ const TermsofUseScreen = ({ navigation }) => {
           - 이용자는 자신의 개인정보 보호 및 서비스 이용에 주의해야 합니다.
         </Text>
         <Text style={styles.text}>
-          {'\n'}📌 본 약관은 2025년 MM월 DD일부터 적용됩니다.{'\n'}
-          📌 문의: contact@example.com
+          {'\n'}📌 본 약관은 2025년 7월 1일부터 적용됩니다.{'\n'}
+          📌 문의: seosabook@gmail.com
         </Text>
       </ScrollView>
 

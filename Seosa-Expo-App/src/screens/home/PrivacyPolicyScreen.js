@@ -63,8 +63,8 @@ const PrivacyPolicyScreen = ({ navigation }) => {
           - 문의 사항은 아래 이메일을 통해 접수할 수 있습니다.
         </Text>
         <Text style={styles.text}>
-          {'\n'}📌 본 정책은 2025년 03월 DD일부터 적용됩니다.{'\n'}
-          📌 문의: contact@example.com
+          {'\n'}📌 본 정책은 2025년 7월 1일부터 적용됩니다.{'\n'}
+          📌 문의: seosabook@gmail.com
         </Text>
       </ScrollView>
 

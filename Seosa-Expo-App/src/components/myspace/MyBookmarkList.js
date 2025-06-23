@@ -81,7 +81,6 @@ const MyBookmarkList = ({ onItemPress }) => {
   if (loading && bookmarks.length === 0) {
     return (
       <View style={styles.container}>
-        <Text>로딩 중...</Text>
       </View>
     );
   }

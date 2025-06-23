@@ -1,8 +1,12 @@
-// 짧은 인풋 컴포넌트
-// right content를 넣어서 인증코드 유효시간 타이머 부분 추가
+// src/components/common/input/ShortInputComponent.js
+// 짧은 인풋 컴포넌트 (rightContent 위치 개선)
+
 import React from "react";
 import { TextInput, Text, View, Dimensions } from "react-native";
 import ShortButtonComponent from "../button/ShortButtonComponent";
+
+const W = Dimensions.get("window").width;
+const H = Dimensions.get("window").height;
 
 const ShortInputComponent = ({
   backgroundColor,
@@ -16,73 +20,84 @@ const ShortInputComponent = ({
   duplicateBtnType = "btn-gray",
   required = false,
   disabled = false,
-  rightContent = null
+  rightContent = null,
 }) => {
   return (
     <View>
+      {/* 제목 라벨 */}
       {title && (
         <Text
           style={{
-            marginLeft: Dimensions.get("window").width * 0.0027,
-            marginBottom: Dimensions.get("window").height * 0.005,
+            marginLeft: W * 0.0027,
+            marginBottom: H * 0.005,
             color: "#666666",
             fontFamily: "NotoSans-Regular",
           }}
         >
           {title}
-          {required && <Text style={{ color: "red", fontFamily: "NotoSans-Regular" }}>*</Text>}
+          {required && (
+            <Text style={{ color: "red", fontFamily: "NotoSans-Regular" }}>
+              *
+            </Text>
+          )}
         </Text>
       )}
+
+      {/* 인풋 + 버튼 */}
       <View
         style={{
           flexDirection: "row",
-          width: Dimensions.get("window").width * 0.9,
+          width: W * 0.9,
           justifyContent: "space-between",
         }}
       >
+        {/* 인풋 박스 */}
         <View
           style={{
-            width: Dimensions.get("window").width * 0.638,
-            height: Dimensions.get("window").width * 0.1167,
-            backgroundColor: backgroundColor,
+            width: W * 0.638,
+            height: W * 0.1167,
+            backgroundColor,
             justifyContent: "center",
-            alignItems: "center",
             borderRadius: 11,
-            padding: 10,
+            paddingHorizontal: 10,
             borderWidth: 1,
-            borderStyle: "solid",
             borderColor: "#CCCCCC",
-            position: "relative", // 추가된 스타일
+            position: "relative",
           }}
         >
           <TextInput
             style={{
-              width: Dimensions.get("window").width * 0.568,
+              width: W * 0.568,
               aspectRatio: 10 / 1,
-              color: color,
+              color,
               fontSize: 16,
               fontFamily: "NotoSans-Regular",
-              paddingRight: 60,
+              paddingRight: 60, // 오른쪽 콘텐츠 영역 확보
             }}
             placeholder={placeholder}
             placeholderTextColor={color}
             value={value}
             onChangeText={onChangeText}
           />
-          {/* 조건부 렌더링 */}
+
+          {/* rightContent : 타이머·아이콘 등 */}
           {rightContent && (
             <View
               style={{
                 position: "absolute",
                 right: 15,
-                top: "50%",
-                transform: [{ translateY: -10 }],
+                top: 0,
+                bottom: 0,
+                justifyContent: "center", // 수직 중앙 정렬
+                alignItems: "center",
               }}
             >
               {rightContent}
             </View>
           )}
         </View>
+
+        {/* 중복확인 / 보내기 버튼 */}
         <ShortButtonComponent
           description={description}
           btnType={duplicateBtnType}

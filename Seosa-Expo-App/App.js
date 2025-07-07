@@ -1,59 +1,61 @@
-import 'react-native-get-random-values';
-import 'react-native-url-polyfill/auto';
+import "react-native-get-random-values";
+import "react-native-url-polyfill/auto";
 
-if (typeof global.Buffer === 'undefined') {
-  global.Buffer = require('buffer').Buffer;
+if (typeof global.Buffer === "undefined") {
+  global.Buffer = require("buffer").Buffer;
 }
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Animated, StyleSheet } from 'react-native';
-import { useFonts } from 'expo-font';
-import { Provider, useDispatch, useSelector } from 'react-redux';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import React, { useState, useEffect, useRef } from "react";
+import { Animated, StyleSheet } from "react-native";
+import { useFonts } from "expo-font";
+import { Provider, useDispatch, useSelector } from "react-redux";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import { store } from './src/store/store';
+import { store } from "./src/store/store";
 import {
   setUser,
   setAccessToken,
   setRefreshToken,
   clearAuth,
-} from './src/store/authSlice';
-import { fetchUserInfo } from './src/api/userApi';
+} from "./src/store/authSlice";
+import { fetchUserInfo } from "./src/api/userApi";
 import {
   getRefreshToken as loadRefreshToken,
   getAccessToken as loadAccessToken,
-} from './src/utils/tokenStorage';
-import { navigationRef, navigate } from './src/utils/nav/RootNavigation';
+} from "./src/utils/tokenStorage";
+import { navigationRef, navigate } from "./src/utils/nav/RootNavigation";
 
 /* ───────── 스크린 import ───────── */
-import SplashUI from './src/screens/home/SplashScreen';
-import HomeScreen from './src/screens/home/HomeScreen';
-import AuthScreen from './src/screens/auth/AuthScreen';
-import AuthCodeScreen from './src/screens/auth/AuthCodeScreen';
-import PasswordResetScreen from './src/screens/auth/PasswordResetScreen';
-import ResetDoneScreen from './src/screens/auth/ResetDoneScreen';
-import RegisterScreen from './src/screens/register/RegisterScreen';
-import OnboardingScreen from './src/screens/auth/OnboardingScreen';
-import MySpaceScreen from './src/screens/myspace/MySpaceScreen';
-import AdminMySpaceScreen from './src/screens/admin/AdminMySpaceScreen';
-import EditProfileScreen from './src/screens/myspace/EditProfileScreen';
-import PrivacyPolicyScreen from './src/screens/home/PrivacyPolicyScreen';
-import TermsofUseScreen from './src/screens/home/TermsofUseScreen';
-import PostScreen from './src/screens/post/PostScreen';
-import PostGalleryScreen from './src/screens/post/PostGalleryScreen';
-import ArticleScreen from './src/screens/article/ArticleScreen';
-import MapPickerScreen from './src/screens/map/MapPickerScreen';
-import FaqScreen from './src/screens/faq/FaqScreen';
+import SplashUI from "./src/screens/home/SplashScreen";
+import HomeScreen from "./src/screens/home/HomeScreen";
+import AuthScreen from "./src/screens/auth/AuthScreen";
+import AuthCodeScreen from "./src/screens/auth/AuthCodeScreen";
+import PasswordResetScreen from "./src/screens/auth/PasswordResetScreen";
+import ResetDoneScreen from "./src/screens/auth/ResetDoneScreen";
+import RegisterScreen from "./src/screens/register/RegisterScreen";
+import OnboardingScreen from "./src/screens/auth/OnboardingScreen";
+import MySpaceScreen from "./src/screens/myspace/MySpaceScreen";
+import AdminMySpaceScreen from "./src/screens/admin/AdminMySpaceScreen";
+import EditProfileScreen from "./src/screens/myspace/EditProfileScreen";
+import PrivacyPolicyScreen from "./src/screens/home/PrivacyPolicyScreen";
+import TermsofUseScreen from "./src/screens/home/TermsofUseScreen";
+import PostScreen from "./src/screens/post/PostScreen";
+import PostGalleryScreen from "./src/screens/post/PostGalleryScreen";
+import ArticleScreen from "./src/screens/article/ArticleScreen";
+import MapPickerScreen from "./src/screens/map/MapPickerScreen";
+import FaqScreen from "./src/screens/faq/FaqScreen";
 
 const Stack = createNativeStackNavigator();
 
 function MySpaceOrAdmin(props) {
   const user = useSelector((state) => state.auth.user);
   if (!user) return null;
-  return (user.userRole === 'ADMIN' || user.userRole === 'EDITOR')
-    ? <AdminMySpaceScreen {...props} />
-    : <MySpaceScreen {...props} />;
+  return user.userRole === "ADMIN" || user.userRole === "EDITOR" ? (
+    <AdminMySpaceScreen {...props} />
+  ) : (
+    <MySpaceScreen {...props} />
+  );
 }
 
 function RootApp() {
@@ -78,12 +80,14 @@ function RootApp() {
         if (storedAccess) dispatch(setAccessToken(storedAccess));
         if (storedRefresh) dispatch(setRefreshToken(storedRefresh));
       } catch (e) {
-        console.error('🔴 토큰 로드 에러:', e);
+        console.error("🔴 토큰 로드 에러:", e);
       } finally {
         if (mounted) setTokensLoaded(true);
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [dispatch]);
 
   // 2) 유저 정보 로드 (accessToken 있으면 fetch, 없으면 바로 완료)
@@ -93,12 +97,12 @@ function RootApp() {
         .then((data) => {
           dispatch(setUser(data));
           // TEMP_USER 온보딩
-          if (data.userRole === 'TEMP_USER' && navigationRef.isReady()) {
+          if (data.userRole === "TEMP_USER" && navigationRef.isReady()) {
             const current = navigationRef.getCurrentRoute()?.name;
-            if (current !== 'Onboarding') navigate('Onboarding');
+            if (current !== "Onboarding") navigate("Onboarding");
           }
         })
-        .catch((err) => console.error('🔴 fetchUserInfo 에러:', err))
+        .catch((err) => console.error("🔴 fetchUserInfo 에러:", err))
         .finally(() => setUserLoaded(true));
     } else {
       dispatch(clearAuth());
@@ -108,11 +112,11 @@ function RootApp() {
 
   // 3) 폰트 로드
   const [fontsLoaded] = useFonts({
-    'NotoSans-Regular': require('./assets/fonts/NotoSans-Regular.ttf'),
-    'NotoSans-Bold': require('./assets/fonts/NotoSans-Bold.ttf'),
-    'NotoSans-Medium': require('./assets/fonts/NotoSans-Medium.ttf'),
-    'UnBatang': require('./assets/fonts/UnBatang.ttf'),
-    'UnBatang-Bold': require('./assets/fonts/UnBatangBold.ttf'),
+    "NotoSans-Regular": require("./assets/fonts/NotoSans-Regular.ttf"),
+    "NotoSans-Bold": require("./assets/fonts/NotoSans-Bold.ttf"),
+    "NotoSans-Medium": require("./assets/fonts/NotoSans-Medium.ttf"),
+    "UnBatang": require("./assets/fonts/UnBatang.ttf"),
+    "UnBatang-Bold": require("./assets/fonts/UnBatangBold.ttf"),
   });
 
   // 4) 최소 스플래시 시간 보장
@@ -129,21 +133,43 @@ function RootApp() {
         duration: 500,
         useNativeDriver: true,
       }).start();
+
+      /* ✅ 디버그: SecureStore & Redux 값 한 번에 출력 */
+      (async () => {
+        const [secAccess, secRefresh] = await Promise.all([
+          loadAccessToken(),
+          loadRefreshToken(),
+        ]);
+        console.log("🔑 SecureStore accessToken:", secAccess);
+        console.log("🔑 SecureStore refreshToken:", secRefresh);
+        console.log(
+          "🗂️  Redux accessToken:",
+          store.getState().auth.accessToken
+        );
+        console.log("👤 Redux user:", store.getState().auth.user);
+      })();
     }
   }, [fontsLoaded, timerElapsed, tokensLoaded, userLoaded, fadeAnim]);
 
   // 온보딩 체크 (userLoaded 이후)
   useEffect(() => {
-    if (userLoaded && user && user.userRole == null && navigationRef.isReady()) {
+    if (
+      userLoaded &&
+      user &&
+      user.userRole == null &&
+      navigationRef.isReady()
+    ) {
       const current = navigationRef.getCurrentRoute()?.name;
-      if (current !== 'Onboarding') navigate('Onboarding');
+      if (current !== "Onboarding") navigate("Onboarding");
     }
   }, [userLoaded, user]);
 
   // 스플래시 화면
   if (!fontsLoaded || !timerElapsed || !tokensLoaded || !userLoaded) {
     return (
-      <Animated.View style={{ ...StyleSheet.absoluteFillObject, opacity: fadeAnim }}>
+      <Animated.View
+        style={{ ...StyleSheet.absoluteFillObject, opacity: fadeAnim }}
+      >
         <SplashUI />
       </Animated.View>
     );
@@ -152,7 +178,10 @@ function RootApp() {
   // 메인 내비게이션
   return (
     <NavigationContainer ref={navigationRef}>
-      <Stack.Navigator initialRouteName="Home" screenOptions={{ headerShown: false, animation:"fade" }}>
+      <Stack.Navigator
+        initialRouteName="Home"
+        screenOptions={{ headerShown: false, animation: "fade" }}
+      >
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Auth" component={AuthScreen} />
         <Stack.Screen name="AuthCode" component={AuthCodeScreen} />
@@ -171,7 +200,7 @@ function RootApp() {
         <Stack.Screen
           name="MapPicker"
           component={MapPickerScreen}
-          options={{ title: '지도에서 위치 선택' }}
+          options={{ title: "지도에서 위치 선택" }}
         />
       </Stack.Navigator>
     </NavigationContainer>

@@ -1,5 +1,3 @@
-// src/screens/article/ArticleScreen.js
-
 import 'react-native-get-random-values';
 import React, { useState, useEffect } from 'react';
 import {
@@ -11,7 +9,6 @@ import {
   Dimensions,
   TouchableOpacity,
   Keyboard,
-  StatusBar as NTStatusBar,
   Alert,
   ActivityIndicator,
   DeviceEventEmitter,
@@ -19,68 +16,75 @@ import {
 import Constants from 'expo-constants';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
+import * as ImageManipulator from 'expo-image-manipulator';
 
-import { createPost } from '../../api/postApi'; 
+import { createPost } from '../../api/postApi';
+import api from '../../api/axios';
+import { ensureUserAndToken } from '../../utils/ensureUserAndToken';
 
-import {
-  S3_BUCKET,
-  S3_REGION,
-  COGNITO_POOL_ID,
-  S3_PUBLIC_URL,
-} from '../../config/aws';
-
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { fromCognitoIdentityPool } from '@aws-sdk/credential-provider-cognito-identity';
-
-import ArticleHeader   from '../../components/article/ArticleHeader';
-import ArticleTitle    from '../../components/article/ArticleTitle';
-import ArticleEditor   from '../../components/article/ArticleEditor';
+import ArticleHeader from '../../components/article/ArticleHeader';
+import ArticleTitle from '../../components/article/ArticleTitle';
+import ArticleEditor from '../../components/article/ArticleEditor';
 import ArticleItemList from '../../components/article/ArticleItemList';
-import ArticleInfo     from '../../components/article/ArticleInfo';
-import AlbumIcon       from '../../icons/album-green.svg';
+import ArticleInfo from '../../components/article/ArticleInfo';
+import AlbumIcon from '../../icons/album-green.svg';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 const DEFAULT_FAB_BOTTOM = height * 0.09;
-
-// 상태바 높이 상수
 const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
-const s3 = new S3Client({
-  region: S3_REGION,
-  credentials: fromCognitoIdentityPool({
-    clientConfig  : { region: S3_REGION },
-    identityPoolId: COGNITO_POOL_ID,
-  }),
-});
+const ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp'];
 
-const uploadToS3 = async (uri, key) => {
-  const base64 = await FileSystem.readAsStringAsync(uri, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
-  const buffer = Buffer.from(base64, 'base64');
-  await s3.send(
-    new PutObjectCommand({
-      Bucket     : S3_BUCKET,
-      Key        : key,
-      Body       : buffer,
-      ContentType: 'image/jpeg',
-    })
-  );
-  return S3_PUBLIC_URL(key);
+/* -------------------------------------------------------------------------- */
+/*                                S3 업로드 헬퍼                                */
+/* -------------------------------------------------------------------------- */
+const uploadToS3 = async (uri, fileName, ext) => {
+  // 1) 토큰 확보
+  await ensureUserAndToken();
+
+  try {
+    // 2) 서버에 Presigned URL 요청 (파일명 URL 인코딩)
+    const encodedName = encodeURIComponent(fileName);
+    const { data } = await api.get(`/s3/presigned/${encodedName}`);
+    const presignedUrl = data.url;
+
+    // 3) 로컬 파일 → Base64 → ArrayBuffer
+    const base64 = await FileSystem.readAsStringAsync(uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    const buffer = Buffer.from(base64, 'base64');
+
+    // 4) PUT 업로드
+    const res = await fetch(presignedUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+      },
+      body: buffer,
+    });
+
+    if (!res.ok) {
+      console.error('🚨 S3 업로드 실패', res.status, await res.text());
+      throw new Error(`S3 업로드 실패: ${res.status}`);
+    }
+
+    // 5) presignedUrl에서 ? 앞부분(정적 URL)만 반환
+    return presignedUrl.split('?')[0];
+  } catch (err) {
+    console.error('🚨 S3 업로드 실패', err);
+    throw err;
+  }
 };
 
 export default function ArticleScreen({ navigation }) {
-  /* ──── State 정의 ──── */
+  /* --------------------------------- 상태 --------------------------------- */
   const [title, setTitle] = useState('');
-  const [blocks, setBlocks] = useState([{ type:'text', value:'' }]);
+  const [blocks, setBlocks] = useState([{ type: 'text', value: '' }]); // 글 본문 블록
   const [focusedIndex, setFocusedIndex] = useState(0);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
-
   const [narratives, setNarratives] = useState([
-    { title:'', price:'', img:'', review:'' },
+    { title: '', price: '', img: '', review: '' },
   ]);
-
-  // ★ storeInfo에 postalCode 필드 반드시 선언
   const [storeInfo, setStoreInfo] = useState({
     postalCode: '',
     address: '',
@@ -89,12 +93,11 @@ export default function ArticleScreen({ navigation }) {
     phoneNumber: '',
     instagramLink: '',
   });
-
   const [detailedAddress, setDetailedAddress] = useState('');
   const [openHours, setOpenHours] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  /* ──── 키보드 높이 추적 ──── */
+  /* ---------------------------- 키보드 이벤트 ---------------------------- */
   useEffect(() => {
     const show = Keyboard.addListener('keyboardDidShow', (e) =>
       setKeyboardHeight(e.endCoordinates.height)
@@ -108,102 +111,131 @@ export default function ArticleScreen({ navigation }) {
     };
   }, []);
 
-  /* ──── MapPicker에서 선택된 주소·좌표·우편번호(postalCode) 받기 ──── */
+  /* --------------------------- 지도 좌표 받아오기 --------------------------- */
   useEffect(() => {
     const sub = DeviceEventEmitter.addListener(
       'mapSelect',
       ({ address, coords, postalCode }) => {
-        setStoreInfo(prev => ({
+        setStoreInfo((prev) => ({
           ...prev,
-          address,        // 도로명/지번 주소
-          coords,         // { lat, lng }
-          postalCode,     // 우편번호 저장
+          address,
+          coords,
+          postalCode,
         }));
       }
     );
     return () => sub.remove();
   }, []);
 
-  /* ──── 글 등록 함수 ──── */
+  /* --------------------------- 이미지 처리 공통 --------------------------- */
+  const processImage = async (uri, idx, type) => {
+    let ext = uri.split('.').pop().toLowerCase();
+
+    // HEIC → JPG 변환
+    if (ext === 'heic' || ext === 'heif') {
+      const manipulated = await ImageManipulator.manipulateAsync(uri, [], {
+        compress: 1,
+        format: ImageManipulator.SaveFormat.JPEG,
+      });
+      uri = manipulated.uri;
+      ext = 'jpg';
+    }
+
+    // 확장자 체크
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      Alert.alert(
+        '사용할 수 없는 파일입니다.',
+        'PNG, JPG, JPEG, GIF, WEBP 파일만 업로드 가능합니다.'
+      );
+      throw new Error('Unsupported file format');
+    }
+
+    // 폴더 구분 슬래시 대신 언더바 사용
+    const fileName = `${type}_${Date.now()}_${idx}.${ext}`;
+    return await uploadToS3(uri, fileName, ext);
+  };
+
+  /* ----------------------------- 글 등록 제출 ----------------------------- */
   const handleSubmit = async () => {
     if (!title.trim()) {
       Alert.alert('제목 필수', '제목을 입력해주세요.');
       return;
     }
+
     setSubmitting(true);
 
     try {
-      // === 1) blocks(본문) 이미지 업로드 ===
+      /* 본문 블록 업로드 */
       const uploadedBlocks = await Promise.all(
         blocks.map(async (blk, idx) => {
           if (blk.type === 'image' && blk.value.startsWith('file://')) {
-            const key = `articles/${Date.now()}_${idx}_${blk.value.split('/').pop()}`;
-            const url = await uploadToS3(blk.value, key);
+            const url = await processImage(blk.value, idx, 'articles');
             return { ...blk, value: url };
           }
           return blk;
         })
       );
 
-      // === 2) narratives(상품) 이미지 업로드 ===
+      /* 상품 이미지 업로드 */
       const uploadedNarratives = await Promise.all(
         narratives.map(async (n, idx) => {
           if (n.img && n.img.startsWith('file://')) {
-            const key = `products/${Date.now()}_${idx}_${n.img.split('/').pop()}`;
-            const url = await uploadToS3(n.img, key);
+            const url = await processImage(n.img, idx, 'products');
             return { ...n, img: url };
           }
           return n;
         })
       );
 
-      // === 3) POST 요청용 JSON 조립 ===
-      const thumbnail = uploadedBlocks.find(b => b.type === 'image');
+      /* 썸네일(첫 번째 이미지 블록) */
+      const thumbnail = uploadedBlocks.find((b) => b.type === 'image');
 
+      /* DTO 조립 */
       const postDto = {
         title,
-        location    : storeInfo.address,
+        location: storeInfo.address,
         thumbnailUrl: thumbnail?.value ?? '',
         bookstoreReqDto: {
-          postalCode    : storeInfo.postalCode,   
-          address       : storeInfo.address,
+          postalCode: storeInfo.postalCode,
+          address: storeInfo.address,
           detailedAddress,
-          openDays      : storeInfo.openDays,
+          openDays: storeInfo.openDays,
           openHours,
-          phoneNumber   : storeInfo.phoneNumber,
-          instagramLink : storeInfo.instagramLink,
+          phoneNumber: storeInfo.phoneNumber,
+          instagramLink: storeInfo.instagramLink,
         },
         contentReqDtoList: uploadedBlocks.map((b, i) => ({
           contentType: b.type === 'text' ? 'sentence' : 'img_url',
-          content    : b.value,
+          content: b.value,
           order_index: i,
         })),
-        productReqDtoList: uploadedNarratives.map(n => ({
+        productReqDtoList: uploadedNarratives.map((n) => ({
           productName: n.title,
-          price      : Number(n.price) || 0,
-          productImg : n.img,
+          price: Number(n.price) || 0,
+          productImg: n.img,
           description: n.review,
         })),
       };
 
-      // → payload 찍어보기(디버깅용)
-      console.log("📨 전송할 postDto:", postDto);
+      console.log('📨 전송할 postDto:', postDto);
 
-      // === 4) createPost API 호출 ===
+      /* 서버 전송 */
       const { postId } = await createPost(postDto);
 
-      // === 5) PostScreen으로 이동 ===
+      /* 등록 후 글 상세로 이동 */
       navigation.replace('Post', { postId });
     } catch (err) {
       console.error(err);
-      const msg = err.response?.message ?? err.message ?? '알 수 없는 오류';
-      Alert.alert('등록 실패', msg);
+      if (err.message !== 'Unsupported file format') {
+        const msg = err.response?.message ?? err.message ?? '알 수 없는 오류';
+        Alert.alert('등록 실패', msg);
+      }
     } finally {
       setSubmitting(false);
     }
   };
 
-  /* ──── 이미지 삽입 핸들러 ──── */
+  /* --------------------------- 갤러리에서 삽입 --------------------------- */
   const pickImageAndInsert = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -213,30 +245,54 @@ export default function ArticleScreen({ navigation }) {
 
     const res = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
-      quality   : 1,
+      quality: 1,
     });
     if (res.canceled) return;
 
-    const uri = res.assets[0].uri;
+    let uri = res.assets[0].uri;
+    let ext = uri.split('.').pop().toLowerCase();
+
+    // HEIC 변환
+    if (ext === 'heic' || ext === 'heif') {
+      const manipulated = await ImageManipulator.manipulateAsync(uri, [], {
+        compress: 1,
+        format: ImageManipulator.SaveFormat.JPEG,
+      });
+      uri = manipulated.uri;
+      ext = 'jpg';
+    }
+
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      Alert.alert(
+        '사용할 수 없는 파일입니다.',
+        'PNG, JPG, JPEG, GIF, WEBP 파일만 업로드 가능합니다.'
+      );
+      return;
+    }
+
+    // 블록 배열에 삽입
     const idx = focusedIndex + 1;
-    setBlocks(prev => [
+    setBlocks((prev) => [
       ...prev.slice(0, idx),
-      { type:'image', value:uri },
-      { type:'text', value:'' },
+      { type: 'image', value: uri },
+      { type: 'text', value: '' },
       ...prev.slice(idx),
     ]);
     Keyboard.dismiss();
   };
 
-  /* ──── UI 렌더링 ──── */
+  /* -------------------------------- 렌더링 ------------------------------- */
   return (
     <KeyboardAvoidingView
       style={[styles.container, { paddingTop: STATUSBAR_HEIGHT }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={STATUSBAR_HEIGHT}
     >
-      {/* 헤더: 취소(뒤로가기) / 등록 버튼 */}
-      <ArticleHeader onCancel={() => navigation.goBack()} onSubmit={handleSubmit} />
+      {/* 상단 헤더 */}
+      <ArticleHeader
+        onCancel={() => navigation.goBack()}
+        onSubmit={handleSubmit}
+      />
 
       {/* 본문 스크롤 */}
       <ScrollView
@@ -244,18 +300,20 @@ export default function ArticleScreen({ navigation }) {
         keyboardShouldPersistTaps="handled"
       >
         <ArticleTitle value={title} onChangeText={setTitle} />
+
         <ArticleEditor
           blocks={blocks}
           setBlocks={setBlocks}
           setFocusedIndex={setFocusedIndex}
         />
+
         <ArticleItemList
           items={narratives}
           onAdd={() =>
             narratives.length < 5 &&
             setNarratives([
               ...narratives,
-              { title:'', price:'', img:'', review:'' },
+              { title: '', price: '', img: '', review: '' },
             ])
           }
           onChangeItem={(i, v) => {
@@ -267,6 +325,7 @@ export default function ArticleScreen({ navigation }) {
             setNarratives(narratives.filter((_, idx) => idx !== i))
           }
         />
+
         <ArticleInfo
           info={storeInfo}
           detailedAddress={detailedAddress}
@@ -278,7 +337,7 @@ export default function ArticleScreen({ navigation }) {
         />
       </ScrollView>
 
-      {/* 5) 이미지 추가 Floating Action Button */}
+      {/* 하단 FAB */}
       <TouchableOpacity
         style={[
           styles.fab,
@@ -296,6 +355,7 @@ export default function ArticleScreen({ navigation }) {
         <AlbumIcon width={28} height={28} />
       </TouchableOpacity>
 
+      {/* 전송 중 로딩 오버레이 */}
       {submitting && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#487153" />
@@ -305,6 +365,9 @@ export default function ArticleScreen({ navigation }) {
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                   Styles                                   */
+/* -------------------------------------------------------------------------- */
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
 import Constants from "expo-constants";
 import * as FileSystem from "expo-file-system";
 import { useSelector, useDispatch } from "react-redux";
@@ -21,48 +22,72 @@ import ButtonComponent from "../../components/common/button/ButtonComponent";
 import { goBack } from "../../utils/nav/RootNavigation";
 import api from "../../api/axios";
 import { fetchUserInfo } from "../../api/userApi";
-
-import {
-  S3_BUCKET,
-  S3_REGION,
-  COGNITO_POOL_ID,
-  S3_PUBLIC_URL,
-} from "../../config/aws";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { fromCognitoIdentityPool } from "@aws-sdk/credential-provider-cognito-identity";
+import { ensureUserAndToken } from "../../utils/ensureUserAndToken";
+import { store } from "../../store/store";
 
 const { width, height } = Dimensions.get("window");
 const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
-/* ───── AWS S3 설정 ───── */
-const s3 = new S3Client({
-  region: S3_REGION,
-  credentials: fromCognitoIdentityPool({
-    clientConfig: { region: S3_REGION },
-    identityPoolId: COGNITO_POOL_ID,
-  }),
-});
-const uploadToS3 = async (uri, key) => {
+/* ───── 업로드 관련 상수 ───── */
+const ALLOWED_EXTENSIONS = ["png", "jpg", "jpeg", "gif", "webp"];
+
+/* -------------------------------------------------------------------------- */
+/*                          Presigned URL 방식 S3 업로드                          */
+/* -------------------------------------------------------------------------- */
+const uploadToS3 = async (uri) => {
+  // 1) 토큰·유저 확보
+  await ensureUserAndToken();
+  const token = store.getState().auth.accessToken;
+
+  // 2) 파일 확장자 & HEIC 변환
+  let ext = uri.split(".").pop().toLowerCase();
+  if (ext === "heic" || ext === "heif") {
+    const manipulated = await ImageManipulator.manipulateAsync(uri, [], {
+      compress: 1,
+      format: ImageManipulator.SaveFormat.JPEG,
+    });
+    uri = manipulated.uri;
+    ext = "jpg";
+  }
+
+  if (!ALLOWED_EXTENSIONS.includes(ext)) {
+    throw new Error("PNG, JPG, JPEG, GIF, WEBP 형식만 지원합니다.");
+  }
+
+  // 3) presigned URL 발급
+  const fileName = `profiles_${Date.now()}.${ext}`;
+  const { data } = await api.get(
+    `/s3/presigned/${encodeURIComponent(fileName)}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  const presignedUrl = data.url;
+
+  // 4) 로컬 파일 → Buffer
   const base64 = await FileSystem.readAsStringAsync(uri, {
     encoding: FileSystem.EncodingType.Base64,
   });
   const buffer = Buffer.from(base64, "base64");
-  await s3.send(
-    new PutObjectCommand({
-      Bucket: S3_BUCKET,
-      Key: key,
-      Body: buffer,
-      ContentType: "image/jpeg",
-    })
-  );
-  return S3_PUBLIC_URL(key);
+
+  // 5) PUT 업로드
+  const res = await fetch(presignedUrl, {
+    method: "PUT",
+    headers: { "Content-Type": `image/${ext === "jpg" ? "jpeg" : ext}` },
+    body: buffer,
+  });
+  if (!res.ok) {
+    throw new Error(`S3 업로드 실패: ${res.status}`);
+  }
+
+  // 6) 정적 URL 반환
+  return presignedUrl.split("?")[0];
 };
+/* -------------------------------------------------------------------------- */
 
 export default function EditProfileScreen() {
   const dispatch = useDispatch();
   const user = useSelector((s) => s.auth.user);
 
-  /* 모든 훅 선언 */
+  /* 상태 */
   const [profileImage, setProfileImage] = useState(null);
   const [nickname, setNickname] = useState("");
   const [msg, setMsg] = useState("");
@@ -70,18 +95,18 @@ export default function EditProfileScreen() {
   const [checking, setChecking] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  /* user 변경 시 초기값 반영 */
+  /* 초기값 반영 */
   useEffect(() => {
     if (user?.profileImage) setProfileImage(user.profileImage);
     if (user?.nickname) setNickname(user.nickname);
   }, [user]);
 
-  /* ★ user 정보가 없으면 화면 자체를 제거 */
+  /* 유저 없으면 렌더링X */
   if (!user) return null;
 
   const size = width * 0.067;
 
-  /* 이미지 선택(로컬 URI만 저장) */
+  /* ───── 이미지 선택 ───── */
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
@@ -99,7 +124,7 @@ export default function EditProfileScreen() {
     }
   };
 
-  /* 닉네임 중복 확인 */
+  /* ───── 닉네임 중복 확인 ───── */
   const checkNickname = async () => {
     const trimmed = nickname.trim();
     if (!trimmed) {
@@ -131,7 +156,7 @@ export default function EditProfileScreen() {
     }
   };
 
-  /* 수정 완료 → S3 업로드 → PATCH → 최신 유저 정보 갱신 */
+  /* ───── 프로필 수정 제출 ───── */
   const handleSubmit = async () => {
     const trimmed = nickname.trim();
     if (!trimmed) {
@@ -142,20 +167,21 @@ export default function EditProfileScreen() {
 
     setSubmitting(true);
     try {
+      /** 1) 이미지 업로드 (필요 시) */
       let imageUrl = user.profileImage || "";
       if (profileImage?.startsWith("file://")) {
-        const key = `profiles/${Date.now()}_${profileImage.split("/").pop()}`;
-        imageUrl = await uploadToS3(profileImage, key);
+        imageUrl = await uploadToS3(profileImage);
       } else if (profileImage?.startsWith("http")) {
         imageUrl = profileImage;
       }
 
+      /** 2) PATCH /user/profile */
       await api.patch("/user/profile", {
         nickname: trimmed,
         profileImage: imageUrl,
       });
 
-      /* 최신 정보 재조회 후 store 갱신 */
+      /** 3) 최신 유저 정보 로드 */
       try {
         const fresh = await fetchUserInfo();
         dispatch(setUser(fresh));
@@ -167,21 +193,25 @@ export default function EditProfileScreen() {
         { text: "확인", onPress: goBack },
       ]);
     } catch (err) {
-      const code = err.response?.data?.code;
-      if (code === "VALIDATION_FAILED") {
-        Alert.alert(
-          "실패",
-          err.response.data.message.replace("유효성 검사 실패: ", "")
-        );
+      if (err.message.includes("지원합니다")) {
+        Alert.alert("실패", err.message);
       } else {
-        Alert.alert("실패", err.response?.data?.message || err.message);
+        const code = err.response?.data?.code;
+        if (code === "VALIDATION_FAILED") {
+          Alert.alert(
+            "실패",
+            err.response.data.message.replace("유효성 검사 실패: ", "")
+          );
+        } else {
+          Alert.alert("실패", err.response?.data?.message || err.message);
+        }
       }
     } finally {
       setSubmitting(false);
     }
   };
 
-  /* UI */
+  /* ───── UI ───── */
   return (
     <View style={styles.container}>
       <View style={{ height: STATUSBAR_HEIGHT }} />
@@ -238,7 +268,7 @@ export default function EditProfileScreen() {
   );
 }
 
-/* ───── 스타일(변경 없음) ───── */
+/* ───── 스타일 (변경 없음) ───── */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFFEFB", alignItems: "center" },
   profileContainer: {

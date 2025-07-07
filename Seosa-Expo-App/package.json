@@ -11,8 +11,6 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.817.0",
-    "@aws-sdk/credential-provider-cognito-identity": "^3.817.0",
     "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-navigation/native": "6.1.15",
     "@react-navigation/native-stack": "6.9.12",
@@ -21,6 +19,7 @@
     "expo": "53.0.9",
     "expo-auth-session": "~6.1.5",
     "expo-camera": "^16.0.18",
+    "expo-image-manipulator": "^13.1.7",
     "expo-image-picker": "^16.0.6",
     "expo-linear-gradient": "~14.1.4",
     "expo-location": "~18.1.5",

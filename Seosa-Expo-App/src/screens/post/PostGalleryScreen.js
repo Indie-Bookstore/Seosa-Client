@@ -48,6 +48,7 @@ const PostGalleryScreen = ({ navigation }) => {
       setPosts((prev) => [...prev, ...newPosts]);
       setCursorId(newCursorId);
       setHasNext(newHasNext);
+      console.log(response.data);
     } catch (error) {
       console.error("게시글 조회 실패:", error);
       Alert.alert("오류", "게시글을 불러오지 못했습니다.");
@@ -112,7 +113,7 @@ const PostGalleryScreen = ({ navigation }) => {
               image={
                 item.thumbnailUrl
                   ? { uri: item.thumbnailUrl }
-                  : require("../../icons/thumbnail-large.jpg")
+                  : require("../../icons/examplephoto.svg")
               }
               onPress={() =>
                 // navigation prop 대신 RootNavigation의 navigate 사용
@@ -136,7 +137,6 @@ const PostGalleryScreen = ({ navigation }) => {
       <TouchableOpacity
         style={styles.fab}
         onPress={() =>
-          // 이전에 사용하던 navigation.navigate → navigate 로 변경
           navigate("article")
         }
       >

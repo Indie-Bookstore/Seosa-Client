@@ -1,37 +1,51 @@
-// src/components/myspace/MyCommentList.js
-
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Dimensions, Text, Alert, ScrollView } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Dimensions,
+  Text,
+  Alert,
+  ScrollView,
+} from "react-native";
 import SmallButtonComponent from "../common/button/SmallButtonComponent";
 import PostList from "../post/PostList";
 import api from "../../api/axios";
 
-const width = Dimensions.get("window").width;
-const height = Dimensions.get("window").height;
+const { width, height } = Dimensions.get("window");
 
-const MyCommentList = ({ onItemPress }) => {
+export default function MyCommentList({ onItemPress }) {
+  /* --------------- 상태 --------------- */
   const [isEditing, setIsEditing] = useState(false);
-  const [selectedPosts, setSelectedPosts] = useState([]);
-  const [commentsPosts, setCommentsPosts] = useState([]);
+  const [selectedIds, setSelectedIds] = useState([]);       // commentId 배열
+  const [comments, setComments] = useState([]);             // [{commentId, postId, ...}]
   const [cursorId, setCursorId] = useState(null);
   const [hasNext, setHasNext] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // 1) 내 댓글 단 게시글 목록 9개 조회
+  /* --------------- 댓글 목록 조회 --------------- */
   const fetchMyComments = async () => {
     try {
       setLoading(true);
-      const url = cursorId ? `/comment/mypage?cursor=${cursorId}` : "/comment/mypage";
-      const response = await api.get(url);
-      if (cursorId) {
-        setCommentsPosts((prev) => [...prev, ...response.data.posts]);
-      } else {
-        setCommentsPosts(response.data.posts);
-      }
-      setCursorId(response.data.cursorId);
-      setHasNext(response.data.hasNext);
+      const url = cursorId
+        ? `/comment/mypage?cursor=${cursorId}`
+        : "/comment/mypage";
+      const { data } = await api.get(url);
+
+      const mapped = data.comments.map((c) => ({
+        commentId: c.commentId,
+        postId: c.postId,
+        title: c.title,
+        thumbnailUrl: c.thumbnailUrl,
+      }));
+
+      setComments((prev) => (cursorId ? [...prev, ...mapped] : mapped));
+      setCursorId(data.cursorId);
+      setHasNext(data.hasNext);
     } catch (err) {
-      console.error("내 댓글 목록 조회 실패:", err.response?.data || err.message);
+      console.error(
+        "내 댓글 목록 조회 실패:",
+        err.response?.data || err.message,
+      );
       Alert.alert("오류", "댓글 목록을 불러오지 못했습니다.");
     } finally {
       setLoading(false);
@@ -43,18 +57,17 @@ const MyCommentList = ({ onItemPress }) => {
   }, []);
 
   const loadMore = () => {
-    if (hasNext && !loading) {
-      fetchMyComments();
-    }
+    if (hasNext && !loading) fetchMyComments();
   };
 
-  const toggleEditMode = () => {
-    setIsEditing(!isEditing);
-    setSelectedPosts([]);
+  /* --------------- 편집/삭제 --------------- */
+  const toggleEdit = () => {
+    setIsEditing((prev) => !prev);
+    setSelectedIds([]);
   };
 
-  const deleteSelectedPosts = () => {
-    if (selectedPosts.length === 0) {
+  const deleteSelected = () => {
+    if (!selectedIds.length) {
       Alert.alert("알림", "삭제할 항목을 선택하세요.");
       return;
     }
@@ -67,35 +80,52 @@ const MyCommentList = ({ onItemPress }) => {
         {
           text: "삭제",
           style: "destructive",
-          onPress: () => {
-            const updated = commentsPosts.filter((post) => !selectedPosts.includes(post.postId));
-            setCommentsPosts(updated);
-            setSelectedPosts([]);
-            setIsEditing(false);
+          onPress: async () => {
+            try {
+              /* 1) 서버 삭제 */
+              await Promise.all(
+                selectedIds.map((id) => api.delete(`/comment/${id}`)),
+              );
+
+              Alert.alert("삭제 완료되었습니다.");
+
+              /* 2) 프론트 목록 갱신 */
+              setComments((prev) =>
+                prev.filter((c) => !selectedIds.includes(c.commentId)),
+              );
+              setSelectedIds([]);
+              setIsEditing(false);
+            } catch (err) {
+              console.error(
+                "댓글 삭제 실패:",
+                err.response?.data || err.message,
+              );
+              Alert.alert("오류", "댓글 삭제에 실패했습니다.");
+            }
           },
         },
-      ]
+      ],
+      { cancelable: false },
     );
   };
 
-  if (loading && commentsPosts.length === 0) {
-    return (
-      <View style={styles.container}>
-      </View>
-    );
-  }
+  /* --------------- 로딩 상태 --------------- */
+  if (loading && comments.length === 0) return <View style={styles.container} />;
 
+  /* --------------- 렌더 --------------- */
   return (
     <View style={styles.container}>
-      <View style={styles.bookmarkHeader}>
+      {/* 헤더 */}
+      <View style={styles.header}>
         <Text style={styles.headertitle}>방문 후기</Text>
         <SmallButtonComponent
           btnType={isEditing ? "btn-red" : "btn-yellow"}
           description={isEditing ? "삭제" : "편집"}
-          onPress={isEditing ? deleteSelectedPosts : toggleEditMode}
+          onPress={isEditing ? deleteSelected : toggleEdit}
         />
       </View>
 
+      {/* 리스트 */}
       <ScrollView
         style={styles.scrollContainer}
         contentContainerStyle={{ paddingBottom: height * 0.07 }}
@@ -103,27 +133,29 @@ const MyCommentList = ({ onItemPress }) => {
         showsVerticalScrollIndicator={false}
       >
         <PostList
-          posts={commentsPosts.map((p) => ({
-            id: p.postId,                 // 수정: postId → id
-            title: p.title,
-            image: { uri: p.thumbnailUrl } // 수정: { uri } 형태로만 전달
+          posts={comments.map((c) => ({
+            id: c.commentId, // 선택용 고유 ID
+            title: c.title,
+            image: c.thumbnailUrl ? { uri: c.thumbnailUrl } : undefined,
           }))}
           isEditing={isEditing}
-          selectedPosts={selectedPosts}
-          setSelectedPosts={setSelectedPosts}
-          onItemPress={(postId) => onItemPress(postId)}
+          selectedPosts={selectedIds}
+          setSelectedPosts={setSelectedIds}
+          /* 댓글 눌렀을 때 → 원 글 상세로 이동 */
+          onItemPress={(commentId) => {
+            const target = comments.find((c) => c.commentId === commentId);
+            if (target) onItemPress?.(target.postId);
+          }}
         />
       </ScrollView>
     </View>
   );
-};
+}
 
+/* ---------------- 스타일 ---------------- */
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-  },
-  bookmarkHeader: {
+  container: { flex: 1, alignItems: "center" },
+  header: {
     width: width * 0.9,
     height: height * 0.06,
     flexDirection: "row",
@@ -140,5 +172,3 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
-
-export default MyCommentList;

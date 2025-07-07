@@ -1,19 +1,19 @@
-// 서점 아이템 목록 컴포넌트
-
 import React from "react";
 import {
   View,
   Text,
   StyleSheet,
   Dimensions,
-  
+  Image,
 } from "react-native";
 import ExamplePhoto from "../../icons/examplephoto.svg";
 
 const { width, height } = Dimensions.get("window");
+const ICON_SIZE = height * 0.11;
 
-const PostItem = () => {
-  const ICON_SIZE = height * 0.11;
+const PostItem = ({ products = [] }) => {
+  // 상품이 없으면 표시하지 않음
+  if (!products.length) return null;
 
   return (
     <View style={styles.container}>
@@ -21,56 +21,51 @@ const PostItem = () => {
         <Text style={styles.title_text}>서사 모아보기</Text>
       </View>
 
-      <View style={styles.item}>
-        <ExamplePhoto height={ICON_SIZE} width={ICON_SIZE} />
-        <View style={styles.item_content}>
-          <View style={styles.item_header}>
-            <Text style={styles.item_title}>글 제목</Text>
-            <Text style={styles.item_writer}>지은이</Text>
+      {products.map((item, idx) => (
+        <React.Fragment key={item.productId ?? idx}>
+          {/* 상품 한 줄 */}
+          <View style={styles.item}>
+            {item.productImg ? (
+              <Image
+                source={{ uri: item.productImg }}
+                style={{ width: ICON_SIZE, height: ICON_SIZE, borderRadius: 8 }}
+                resizeMode="cover"
+              />
+            ) : (
+              <ExamplePhoto height={ICON_SIZE} width={ICON_SIZE} />
+            )}
+
+            <View style={styles.item_content}>
+              <View style={styles.item_header}>
+                <Text style={styles.item_title}>{item.productName}</Text>
+                {item.description ? (
+                  <Text
+                    style={styles.item_writer}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {item.description}
+                  </Text>
+                ) : null}
+              </View>
+
+              {typeof item.price === "number" && (
+                <Text style={styles.item_review}>
+                  {item.price.toLocaleString()}원
+                </Text>
+              )}
+            </View>
           </View>
 
-          <Text style={styles.item_review}>
-            "한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평"
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.line}></View>
-
-      <View style={styles.item}>
-        <ExamplePhoto height={ICON_SIZE} width={ICON_SIZE} />
-        <View style={styles.item_content}>
-          <View style={styles.item_header}>
-            <Text style={styles.item_title}>글 제목</Text>
-            <Text style={styles.item_writer}>지은이</Text>
-          </View>
-
-          <Text style={styles.item_review}>
-            "한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평"
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.line}></View>
-
-      <View style={styles.item}>
-        <ExamplePhoto height={ICON_SIZE} width={ICON_SIZE} />
-        <View style={styles.item_content}>
-          <View style={styles.item_header}>
-            <Text style={styles.item_title}>글 제목</Text>
-            <Text style={styles.item_writer}>지은이</Text>
-          </View>
-
-          <Text style={styles.item_review}>
-            "한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평한줄평"
-          </Text>
-        </View>
-      </View>
-
+          {/* 마지막이 아니면 구분선 */}
+          {idx < products.length - 1 && <View style={styles.line} />}
+        </React.Fragment>
+      ))}
     </View>
   );
 };
 
+/* ───── 스타일 (변경 없음) ───── */
 const styles = StyleSheet.create({
   container: {
     width: width,
@@ -83,7 +78,7 @@ const styles = StyleSheet.create({
     height: height * 0.06,
     marginTop: height * 0.01,
     justifyContent: "center",
-    marginBottom:height*0.01
+    marginBottom: height * 0.01,
   },
   title_text: {
     fontSize: height * 0.023,
@@ -111,7 +106,7 @@ const styles = StyleSheet.create({
   item_title: {
     fontSize: height * 0.02,
     fontWeight: 500,
-    marginBottom:height*0.005
+    marginBottom: height * 0.005,
   },
   item_writer: {
     color: "#888888",
@@ -121,13 +116,13 @@ const styles = StyleSheet.create({
     color: "#888888",
     fontSize: height * 0.017,
   },
-  line : {
-   width:width*0.9,
-   backgroundColor:"#888888",
-   height:height*0.001,
-   marginTop:height*0.025,
-   marginBottom:height*0.025
-  }
+  line: {
+    width: width * 0.9,
+    backgroundColor: "#888888",
+    height: height * 0.001,
+    marginTop: height * 0.025,
+    marginBottom: height * 0.025,
+  },
 });
 
 export default PostItem;

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// src/components/post/PostComment.js
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,63 +8,128 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
-  Image,                      // 추가
+  Image,
 } from "react-native";
+import { useSelector } from "react-redux";
+import api from "../../api/axios";
+
 import BookmarkIcon from "../../icons/bookmark_green.svg";
 import UploadIcon from "../../icons/upload.svg";
 import CommentIcon from "../../icons/comment_green.svg";
 import SendIcon from "../../icons/send.svg";
 import DeleteIcon from "../../icons/x.svg";
 import ProfileIcon from "../../icons/profile.svg";
-import { useSelector } from 'react-redux';
+
 const { width, height } = Dimensions.get("window");
+const ICON_SIZE = width * 0.067;
+const PROFILE_SIZE = width * 0.08;
 
-
-const PostComment = ({ comments = [], onSubmit }) => {
-
+/* ────────────────────────────────────────────────────────── */
+export default function PostComment({
+  comments: propComments = [],
+  onSubmit = () => {},
+}) {
   const [commentText, setCommentText] = useState("");
-  const user = useSelector(state => state.auth.user);
+  const [comments, setComments] = useState(propComments);   // 로컬 목록
+
+  /* 👉 prop 이 갱신되면 로컬 목록도 교체 */
+  useEffect(() => setComments(propComments), [propComments]);
+
+  const user = useSelector((s) => s.auth.user);
   const profileImage = user?.profileImage || null;
 
+  /* 댓글 작성 */
   const handleSubmit = () => {
-    if (!commentText.trim()) {
-      Alert.alert("알림", "댓글 내용을 입력해주세요.");
+    const txt = commentText.trim();
+    if (!txt) {
+      Alert.alert("알림", "댓글 내용을 입력하세요.");
       return;
     }
-    onSubmit(commentText);
+
+    // 1) 부모에게 전송 요청
+    onSubmit(txt);
+
+    // 2) 낙관적 UI: pending 댓글을 리스트에 추가 (삭제 버튼 off)
+    setComments((prev) => [
+      ...prev,
+      {
+        commentId: `tmp-${Date.now()}`,
+        isPending: true,
+        isMyComment: true,
+        name: user?.nickname ?? "나",
+        profileImgUrl: profileImage,
+        text: txt,
+        createdAt: new Date().toISOString(),
+      },
+    ]);
+
     setCommentText("");
   };
 
-  const ICON_SIZE = width * 0.067;
-  const PROFILE_SIZE = width * 0.08;
+  /* 댓글 삭제 */
+  const handleDelete = (c) => {
+    if (c.isPending) return; // 아직 서버에 없는 임시 댓글
 
+    Alert.alert("삭제 확인", "정말 삭제하시겠습니까?", [
+      { text: "취소", style: "cancel" },
+      {
+        text: "삭제",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await api.delete(`/comment/${c.commentId}`);
+            setComments((prev) =>
+              prev.filter((v) => v.commentId !== c.commentId)
+            );
+          } catch (err) {
+            console.error(err.response?.data || err.message);
+            Alert.alert("오류", "댓글 삭제에 실패했습니다.");
+          }
+        },
+      },
+    ]);
+  };
+
+  /* ──────────────────────────────────────────────── */
   return (
     <View style={styles.container}>
-      {/* 댓글 헤더 */}
+      {/* 헤더 */}
       <View style={styles.comment_header}>
         <View style={styles.comment_count}>
-          <CommentIcon height={ICON_SIZE} width={ICON_SIZE} />
+          <CommentIcon width={ICON_SIZE} height={ICON_SIZE} />
           <Text style={styles.count}>{comments.length}</Text>
         </View>
         <View style={styles.interaction}>
           <TouchableOpacity>
-            <BookmarkIcon height={ICON_SIZE} width={ICON_SIZE} />
+            <BookmarkIcon width={ICON_SIZE} height={ICON_SIZE} />
           </TouchableOpacity>
           <TouchableOpacity>
-            <UploadIcon height={ICON_SIZE} width={ICON_SIZE} />
+            <UploadIcon width={ICON_SIZE} height={ICON_SIZE} />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* 방문 후기 타이틀 */}
+      {/* 타이틀 */}
       <View style={styles.comment_title}>
         <Text style={styles.title_text}>방문 후기</Text>
         <Text style={styles.title_count}>{comments.length}</Text>
       </View>
 
-      {/* 댓글 입력창 (아이콘은 그대로 사용) */}
+      {/* 입력창 */}
       <View style={styles.comment_input}>
-        <Image source={{ uri: profileImage }} style={{width: PROFILE_SIZE, height: PROFILE_SIZE}} />
+        {profileImage ? (
+          <Image
+            source={{ uri: profileImage }}
+            style={{
+              width: PROFILE_SIZE,
+              height: PROFILE_SIZE,
+              borderRadius: PROFILE_SIZE / 2,
+            }}
+          />
+        ) : (
+          <ProfileIcon width={PROFILE_SIZE} height={PROFILE_SIZE} />
+        )}
+
         <TextInput
           style={styles.input}
           placeholder="방문후기를 입력하세요."
@@ -72,47 +138,62 @@ const PostComment = ({ comments = [], onSubmit }) => {
           onSubmitEditing={handleSubmit}
           returnKeyType="send"
         />
+
         <TouchableOpacity onPress={handleSubmit}>
-          <SendIcon height={PROFILE_SIZE} width={PROFILE_SIZE} />
+          <SendIcon width={PROFILE_SIZE} height={PROFILE_SIZE} />
         </TouchableOpacity>
       </View>
 
       <View style={styles.line} />
 
       {/* 댓글 리스트 */}
-      {comments.map((comment) => (
-        <View key={comment.commentId} style={styles.comment}>
-          <Image
-            source={{ uri: comment.profileImgUrl }}
-            style={[
-              styles.profileImage,
-              { width: PROFILE_SIZE, height: PROFILE_SIZE, borderRadius: PROFILE_SIZE / 2 },
-            ]}
-          />
+      {comments.map((c) => (
+        <View key={c.commentId} style={styles.comment}>
+          {c.profileImgUrl ? (
+            <Image
+              source={{ uri: c.profileImgUrl }}
+              style={{
+                width: PROFILE_SIZE,
+                height: PROFILE_SIZE,
+                borderRadius: PROFILE_SIZE / 2,
+              }}
+            />
+          ) : (
+            <ProfileIcon width={PROFILE_SIZE} height={PROFILE_SIZE} />
+          )}
+
           <View style={styles.commentContent}>
             <View style={styles.comment_up}>
-              <Text style={styles.nickname}>{comment.name}</Text>
+              <Text style={styles.nickname}>{c.name}</Text>
               <Text style={styles.date}>
-                {new Date(comment.createdAt).toLocaleDateString("ko-KR", {
+                {new Date(c.createdAt).toLocaleDateString("ko-KR", {
                   year: "2-digit",
                   month: "2-digit",
                   day: "2-digit",
                 })}
               </Text>
             </View>
-            <Text style={styles.commentText}>{comment.text}</Text>
+            <Text style={styles.commentText}>{c.text}</Text>
           </View>
+
+          {/* 삭제 버튼: 내 댓글 & not pending */}
+          {c.isMyComment && !c.isPending && (
+            <TouchableOpacity
+              style={styles.deleteBtn}
+              onPress={() => handleDelete(c)}
+            >
+              <DeleteIcon width={PROFILE_SIZE} height={PROFILE_SIZE} />
+            </TouchableOpacity>
+          )}
         </View>
       ))}
     </View>
   );
-};
+}
 
+/* ---------------- 스타일 (변경 없음) ---------------- */
 const styles = StyleSheet.create({
-  container: {
-    width: width,
-    alignItems: "center",
-  },
+  container: { width, alignItems: "center" },
   comment_header: {
     height: height * 0.03,
     width: width * 0.9,
@@ -120,13 +201,8 @@ const styles = StyleSheet.create({
     marginTop: height * 0.025,
     justifyContent: "space-between",
   },
-  comment_count: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  count: {
-    color: "#487153",
-  },
+  comment_count: { flexDirection: "row", alignItems: "center" },
+  count: { color: "#487153" },
   interaction: {
     flexDirection: "row",
     width: width / 7,
@@ -141,16 +217,14 @@ const styles = StyleSheet.create({
   },
   title_text: {
     fontSize: height * 0.023,
-    color: "#666666",
+    color: "#666",
     fontWeight: "500",
-    fontFamily: "Noto Sans",
     marginRight: width * 0.02,
   },
   title_count: {
     fontSize: height * 0.023,
     color: "#9EB3A4",
     fontWeight: "500",
-    fontFamily: "Noto Sans",
   },
   comment_input: {
     flexDirection: "row",
@@ -178,33 +252,22 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     width: width * 0.9,
     marginBottom: height * 0.02,
+    position: "relative",
   },
-  profileImage: {
-    backgroundColor: "#EEE",    // 로딩 중 빈 배경
-  },
-  commentContent: {
-    marginLeft: width * 0.03,
-    flex: 1,
-  },
-  comment_up: {
-    height: width * 0.08,
-  },
-  nickname: {
-    fontSize: height * 0.018,
-    fontWeight: "500",
-    color: "#000000",
-  },
-  date: {
-    fontSize: height * 0.014,
-    color: "#999999",
-    marginTop: 5,
-  },
+  commentContent: { marginLeft: width * 0.03, flex: 1 },
+  comment_up: { height: PROFILE_SIZE },
+  nickname: { fontSize: height * 0.018, fontWeight: "500" },
+  date: { fontSize: height * 0.014, color: "#999", marginTop: 5 },
   commentText: {
     fontSize: height * 0.018,
-    color: "#333333",
+    color: "#333",
     lineHeight: height * 0.025,
     marginTop: height * 0.01,
   },
+  deleteBtn: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    padding: 4,
+  },
 });
-
-export default PostComment;

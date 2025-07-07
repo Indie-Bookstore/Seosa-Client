@@ -1,13 +1,6 @@
-// src/components/post/PostList.js
-
 import React, { useMemo } from "react";
 import {
-  Image,
-  Text,
-  StyleSheet,
-  Dimensions,
-  View,
-  TouchableOpacity,
+  View, Text, Image, TouchableOpacity, StyleSheet, Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Radio from "../../icons/radio.svg";
@@ -15,111 +8,97 @@ import RadioSelected from "../../icons/radio-selected.svg";
 
 const { width, height } = Dimensions.get("window");
 
-// 3개씩 그룹화하는 함수 + 빈 자리 채우기
-const chunkArrayWithPlaceholder = (arr, size) => {
-  if (!arr || arr.length === 0) return [];
-
-  const chunks = Array.from(
-    { length: Math.ceil(arr.length / size) },
-    (_, index) => arr.slice(index * size, index * size + size)
-  );
-
-  const lastRow = chunks[chunks.length - 1];
-  while (lastRow.length < size) {
-    // placeholder용 id 값은 “placeholder-<index>” 형태로 고유하게 생성
-    lastRow.push({ id: `placeholder-${lastRow.length}`, isPlaceholder: true });
+/* 3칸씩 묶고 남으면 placeholder */
+const chunk3 = (arr) => {
+  const out = [];
+  for (let i = 0; i < arr.length; i += 3) {
+    const slice = [...arr.slice(i, i + 3)];
+    while (slice.length < 3) slice.push({ isPlaceholder: true });
+    out.push(slice);
   }
-
-  return chunks;
+  return out;
 };
 
-/**
- * @param {object[]} posts                - 포스트 배열 (각 객체는 { id, title, image } 형태)
- * @param {boolean}  isEditing            - 편집 모드 여부
- * @param {number[]} selectedPosts        - 선택된 post ID 배열
- * @param {function} setSelectedPosts     - 선택 토글 함수
- * @param {function} onItemPress          - (postId) => void, 카드 클릭 시 호출
- */
-const PostList = ({
+export default function PostList({
   posts = [],
   isEditing = false,
   selectedPosts = [],
   setSelectedPosts = () => {},
   onItemPress = () => {},
-}) => {
-  // posts를 id 순으로 정렬한 뒤 3개씩 그룹화(빈 자리 placeholder 포함)
-  const chunkedPosts = useMemo(() => {
-    if (!posts) return [];
-    const sortedPosts = [...posts].sort((a, b) => a.id - b.id);
-    return chunkArrayWithPlaceholder(sortedPosts, 3);
-  }, [posts]);
+}) {
+  /* _id = id || postId   image = image || {uri:thumbnailUrl} */
+  const normalized = useMemo(
+    () =>
+      posts.map((p) => ({
+        ...p,
+        _id: p.id ?? p.postId,
+        _image: p.image ?? (p.thumbnailUrl ? { uri: p.thumbnailUrl } : undefined),
+      })),
+    [posts],
+  );
 
-  // 라디오 버튼 선택/해제
-  const toggleSelectPost = (postId) => {
-    if (selectedPosts.includes(postId)) {
-      setSelectedPosts(selectedPosts.filter((id) => id !== postId));
-    } else {
-      setSelectedPosts([...selectedPosts, postId]);
-    }
-  };
+  const rows = useMemo(() => {
+    const sorted = [...normalized].filter((v) => v._id != null);
+    sorted.sort((a, b) => a._id - b._id);
+    return chunk3(sorted);
+  }, [normalized]);
+
+  const toggle = (id) =>
+    selectedPosts.includes(id)
+      ? setSelectedPosts(selectedPosts.filter((v) => v !== id))
+      : setSelectedPosts([...selectedPosts, id]);
 
   return (
     <View style={styles.postlist}>
-      {chunkedPosts.map((row, rowIndex) => (
-        <View key={rowIndex} style={styles.posts}>
-          {row.map((post) => (
-            <View
-              key={post.id}
-              style={[styles.post, post.isPlaceholder && styles.placeholder]}
-            >
-              {!post.isPlaceholder && (
-                <>
+      {rows.map((row, r) => (
+        <View key={`row-${r}`} style={styles.posts}>
+          {row.map((p, c) =>
+            p.isPlaceholder ? (
+              <View
+                key={`ph-${r}-${c}`}
+                style={[styles.post, styles.placeholder]}
+              />
+            ) : (
+              <View key={p._id} style={styles.post}>
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  style={StyleSheet.absoluteFill}
+                  onPress={() => !isEditing && onItemPress(p._id)}
+                >
+                  {p._image && <Image source={p._image} style={styles.image} />}
+                  <LinearGradient
+                    colors={["transparent", "rgba(0,0,0,0.6)"]}
+                    style={styles.gradient}
+                  />
+                  <Text numberOfLines={1} style={styles.posttitle}>
+                    {p.title}
+                  </Text>
+                </TouchableOpacity>
+
+                {isEditing && (
                   <TouchableOpacity
-                    activeOpacity={0.8}
-                    style={StyleSheet.absoluteFill}
-                    onPress={() => {
-                      if (!isEditing) {
-                        onItemPress(post.id);
-                      }
-                    }}
+                    style={styles.radioButton}
+                    onPress={() => toggle(p._id)}
                   >
-                    <Image source={post.image} style={styles.image} />
-
-                    <LinearGradient
-                      colors={["transparent", "rgba(0, 0, 0, 0.6)"]}
-                      style={styles.gradient}
-                    />
-                    <Text style={styles.posttitle} numberOfLines={1}>
-                      {post.title}
-                    </Text>
+                    {selectedPosts.includes(p._id) ? (
+                      <RadioSelected width={20} height={20} />
+                    ) : (
+                      <Radio width={20} height={20} />
+                    )}
                   </TouchableOpacity>
-
-                  {isEditing && (
-                    <TouchableOpacity
-                      style={styles.radioButton}
-                      onPress={() => toggleSelectPost(post.id)}
-                    >
-                      {selectedPosts.includes(post.id) ? (
-                        <RadioSelected width={20} height={20} />
-                      ) : (
-                        <Radio width={20} height={20} />
-                      )}
-                    </TouchableOpacity>
-                  )}
-                </>
-              )}
-            </View>
-          ))}
+                )}
+              </View>
+            ),
+          )}
         </View>
       ))}
     </View>
   );
-};
+}
 
+/* ── style (동일, 이름만 정리) ── */
 const styles = StyleSheet.create({
-  postlist: {
-    marginTop: height * 0.015,
-  },
+  postlist: { marginTop: height * 0.015 },
   posts: {
     flexDirection: "row",
     width: width * 0.9,
@@ -133,13 +112,8 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     overflow: "hidden",
   },
-  placeholder: {
-    backgroundColor: "transparent",
-  },
-  image: {
-    width: "100%",
-    height: "100%",
-  },
+  placeholder: { backgroundColor: "transparent" },
+  image: { width: "100%", height: "100%" },
   gradient: {
     position: "absolute",
     bottom: 0,
@@ -150,7 +124,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 8,
     left: 5,
-    color: "#FFFFFF",
+    color: "#FFF",
     fontSize: height * 0.0125,
     fontWeight: "bold",
     width: "90%",
@@ -159,8 +133,5 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 7,
     right: 7,
-    borderRadius: 10,
   },
 });
-
-export default PostList;

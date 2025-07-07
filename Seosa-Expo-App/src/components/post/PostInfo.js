@@ -39,11 +39,8 @@ export default function PostInfo({ info }) {
 
       setLoadingMap(true);
       try {
-        // Kakao 주소 검색 API (주소 검색) → postalCode를 query로 사용
-        const res = await fetch(
-          `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(postalCode)}`,
-          { headers: { Authorization: `KakaoAK ${kakaoKey}` } }
-        );
+        const query = postalCode || address;
+        const res = await fetch(`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(query)}`,{ headers: { Authorization: `KakaoAK ${kakaoKey}` } }); 
         const json = await res.json();
 
         if (Array.isArray(json.documents) && json.documents.length > 0) {

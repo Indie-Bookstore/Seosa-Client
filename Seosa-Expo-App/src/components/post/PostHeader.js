@@ -1,25 +1,30 @@
-// 글 헤더 
-
 import React, { useState } from "react";
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity, Alert } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Dimensions,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
 import BackButtonComponent from "../common/button/BackButtonComponent";
 import DotBtn from "../../icons/dot.svg";
 
 const { width, height } = Dimensions.get("window");
 
-const PostHeader = ({ title = "제목", onBackPress, navigation }) => {
+const PostHeader = ({ title, onBackPress, onDeletePress }) => {
   const iconSize = width * 0.067;
   const [menuVisible, setMenuVisible] = useState(false);
 
-  const toggleMenu = () => {
-    setMenuVisible((prev) => !prev);
-  };
+  const toggleMenu = () => setMenuVisible((prev) => !prev);
 
-  const handleEdit = () => {
+  /* ───── URL 복사 ───── */
+  const handleCopyUrl = () => {
     Alert.alert("알림", "URL이 복사되었습니다.");
     setMenuVisible(false);
   };
 
+  /* ───── 삭제 ───── */
   const handleDelete = () => {
     Alert.alert(
       "알림",
@@ -28,13 +33,9 @@ const PostHeader = ({ title = "제목", onBackPress, navigation }) => {
         { text: "취소", style: "cancel", onPress: () => setMenuVisible(false) },
         {
           text: "OK",
-          onPress: () => {
-            Alert.alert("알림", "글이 삭제되었습니다.");
+          onPress: async () => {
             setMenuVisible(false);
-            navigation.reset({
-              index: 0, // 활성화할 경로의 인덱스
-              routes: [{ name: "Main" }], // 이동할 경로 설정
-            });
+            await onDeletePress?.();
           },
         },
       ],
@@ -45,14 +46,21 @@ const PostHeader = ({ title = "제목", onBackPress, navigation }) => {
   return (
     <View style={styles.headerContainer}>
       <BackButtonComponent onPress={onBackPress} theme="green" />
-      <Text style={styles.titleText}>{title}</Text>
+      <Text
+        style={styles.titleText}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        {title}
+      </Text>
+
       <TouchableOpacity onPress={toggleMenu} style={styles.dotButton}>
         <DotBtn width={iconSize} height={iconSize} />
       </TouchableOpacity>
 
       {menuVisible && (
         <View style={styles.menuContainer}>
-          <TouchableOpacity style={styles.menuItem} onPress={handleEdit}>
+          <TouchableOpacity style={styles.menuItem} onPress={handleCopyUrl}>
             <Text style={styles.menuText}>URL 복사하기</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
@@ -64,6 +72,7 @@ const PostHeader = ({ title = "제목", onBackPress, navigation }) => {
   );
 };
 
+/* ───── 스타일 (변경 없음) ───── */
 const styles = StyleSheet.create({
   headerContainer: {
     backgroundColor: "#487153",
@@ -72,8 +81,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: width * 0.05,
     justifyContent: "space-between",
-    position: "relative", // 이거 유지
-    zIndex: 10, // 메뉴보다 낮게
+    position: "relative",
+    zIndex: 10,
   },
   titleText: {
     color: "#FFFFFF",
@@ -89,7 +98,7 @@ const styles = StyleSheet.create({
   },
   menuContainer: {
     position: "absolute",
-    top: height * 0.07, // headerContainer 바로 아래
+    top: height * 0.07,
     right: width * 0.05,
     backgroundColor: "#fff",
     borderRadius: 8,
@@ -100,7 +109,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 5,
-    zIndex: 20, // headerContainer보다 위
+    zIndex: 20,
   },
   menuItem: {
     paddingVertical: 12,

@@ -1,4 +1,3 @@
-// src/components/post/PostComment.js
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -14,6 +13,7 @@ import { useSelector } from "react-redux";
 import api from "../../api/axios";
 
 import BookmarkIcon from "../../icons/bookmark_green.svg";
+import BookmarkedIcon from "../../icons/bookmark-green-sellected.svg"; // ✅ 북마크 완료 아이콘
 import UploadIcon from "../../icons/upload.svg";
 import CommentIcon from "../../icons/comment_green.svg";
 import SendIcon from "../../icons/send.svg";
@@ -26,13 +26,15 @@ const PROFILE_SIZE = width * 0.08;
 
 /* ────────────────────────────────────────────────────────── */
 export default function PostComment({
+  postId,
   comments: propComments = [],
   onSubmit = () => {},
 }) {
   const [commentText, setCommentText] = useState("");
-  const [comments, setComments] = useState(propComments);   // 로컬 목록
+  const [comments, setComments] = useState(propComments);
+  const [bookmarked, setBookmarked] = useState(false); // ▸ 북마크 상태
 
-  /* 👉 prop 이 갱신되면 로컬 목록도 교체 */
+  /* prop → 로컬 반영 */
   useEffect(() => setComments(propComments), [propComments]);
 
   const user = useSelector((s) => s.auth.user);
@@ -46,10 +48,9 @@ export default function PostComment({
       return;
     }
 
-    // 1) 부모에게 전송 요청
-    onSubmit(txt);
+    onSubmit(txt); // 부모로 전송
 
-    // 2) 낙관적 UI: pending 댓글을 리스트에 추가 (삭제 버튼 off)
+    // 낙관적 UI
     setComments((prev) => [
       ...prev,
       {
@@ -62,14 +63,24 @@ export default function PostComment({
         createdAt: new Date().toISOString(),
       },
     ]);
-
     setCommentText("");
+  };
+
+  /* 북마크 생성 */
+  const handleBookmark = async () => {
+    if (bookmarked) return; // 이미 북마크됨
+    try {
+      await api.post(`/${postId}/bookmark`);
+      setBookmarked(true);
+      console.log("북마크 완료");
+    } catch (err) {
+      console.error(err.response?.data || err.message);
+    }
   };
 
   /* 댓글 삭제 */
   const handleDelete = (c) => {
-    if (c.isPending) return; // 아직 서버에 없는 임시 댓글
-
+    if (c.isPending) return;
     Alert.alert("삭제 확인", "정말 삭제하시겠습니까?", [
       { text: "취소", style: "cancel" },
       {
@@ -100,8 +111,13 @@ export default function PostComment({
           <Text style={styles.count}>{comments.length}</Text>
         </View>
         <View style={styles.interaction}>
-          <TouchableOpacity>
-            <BookmarkIcon width={ICON_SIZE} height={ICON_SIZE} />
+          {/* 북마크 버튼 - 조건부 아이콘 */}
+          <TouchableOpacity onPress={handleBookmark}>
+            {bookmarked ? (
+              <BookmarkedIcon width={ICON_SIZE} height={ICON_SIZE} />
+            ) : (
+              <BookmarkIcon width={ICON_SIZE} height={ICON_SIZE} />
+            )}
           </TouchableOpacity>
           <TouchableOpacity>
             <UploadIcon width={ICON_SIZE} height={ICON_SIZE} />
@@ -176,7 +192,7 @@ export default function PostComment({
             <Text style={styles.commentText}>{c.text}</Text>
           </View>
 
-          {/* 삭제 버튼: 내 댓글 & not pending */}
+          {/* 삭제 버튼 */}
           {c.isMyComment && !c.isPending && (
             <TouchableOpacity
               style={styles.deleteBtn}

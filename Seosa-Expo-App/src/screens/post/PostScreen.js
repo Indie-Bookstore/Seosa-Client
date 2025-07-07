@@ -1,4 +1,3 @@
-// src/screens/post/PostScreen.js
 import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
@@ -6,8 +5,8 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
-  KeyboardAvoidingView,          // ⭐️ 추가
-  Platform,                      // ⭐️ 추가
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import Constants from "expo-constants";
 import { CommonActions } from "@react-navigation/native";
@@ -46,7 +45,7 @@ export default function PostScreen({ navigation, route }) {
           onPress: () => {
             const reset = CommonActions.reset({
               index: 0,
-              routes: [{ name: "Gallery" }],
+              routes: [{ name: "gallery" }],
             });
             (navigation.getParent() ?? navigation).dispatch(reset);
           },
@@ -112,10 +111,13 @@ export default function PostScreen({ navigation, route }) {
     );
   }
 
+  /* 삭제 권한 여부 */
+  const canDelete = ["EDITOR", "ADMIN"].includes(postData.userRole);
+
   /* 본문 */
   return (
     <KeyboardAvoidingView
-      style={styles.kbWrapper}              
+      style={styles.kbWrapper}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={{ height: STATUSBAR_HEIGHT }} />
@@ -123,11 +125,12 @@ export default function PostScreen({ navigation, route }) {
         title={postData.title}
         onBackPress={handleBack}
         onDeletePress={handleDelete}
+        canDelete={canDelete}
       />
 
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
-        keyboardShouldPersistTaps="handled"  
+        keyboardShouldPersistTaps="handled"
       >
         <PostTitle title={postData.title} date={postData.createdAtFormatted} />
         <PostContent contents={postData.contentResDtoList} />
@@ -142,7 +145,12 @@ export default function PostScreen({ navigation, route }) {
           profileUrl={postData.profileUrl}
           userRole={postData.userRole}
         />
-        <PostComment comments={comments} onSubmit={handleAddComment} />
+        {/* ⬇⬇⬇ postId 프롭 추가 */}
+        <PostComment
+          postId={postId}
+          comments={comments}
+          onSubmit={handleAddComment}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );

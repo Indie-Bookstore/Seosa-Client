@@ -1,12 +1,16 @@
-import React, { useEffect, useState } from "react";
+// src/screens/post/PostScreen.js
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   ScrollView,
   StyleSheet,
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,          // ⭐️ 추가
+  Platform,                      // ⭐️ 추가
 } from "react-native";
 import Constants from "expo-constants";
+import { CommonActions } from "@react-navigation/native";
 import api from "../../api/axios.js";
 
 import PostHeader from "../../components/post/PostHeader";
@@ -19,51 +23,72 @@ import PostComment from "../../components/post/PostComment";
 
 export default function PostScreen({ navigation, route }) {
   const STATUSBAR_HEIGHT = Constants.statusBarHeight;
-
   const { postId } = route.params;
+
   const [postData, setPostData] = useState(null);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const handleBack = () => {
-    navigation.goBack();
-  };
+  /* 날짜 포맷 */
+  const formatDate = (str) =>
+    str ? str.replace(/-/g, ".").replace(" ", " ") : "";
 
-  // 게시글 데이터 불러오기
+  /* 뒤로가기 */
+  const handleBack = () => navigation.goBack();
+
+  /* 글 삭제 */
+  const handleDelete = useCallback(async () => {
+    try {
+      await api.delete(`/post/${postId}`);
+      Alert.alert("알림", "글이 삭제되었습니다.", [
+        {
+          text: "확인",
+          onPress: () => {
+            const reset = CommonActions.reset({
+              index: 0,
+              routes: [{ name: "Gallery" }],
+            });
+            (navigation.getParent() ?? navigation).dispatch(reset);
+          },
+        },
+      ]);
+    } catch (err) {
+      console.error(err);
+      Alert.alert("오류", err.response?.data?.message ?? "글 삭제 실패");
+    }
+  }, [postId, navigation]);
+
+  /* 글 조회 */
   useEffect(() => {
-    const fetchPost = async () => {
+    (async () => {
       try {
-        const res = await api.get(`/post/${postId}`);
-        setPostData(res.data);
-      } catch (err) {
-        console.error("게시글 불러오기 실패:", err);
+        const { data } = await api.get(`/post/${postId}`);
+        setPostData({ ...data, createdAtFormatted: formatDate(data.createdAt) });
+      } catch (e) {
+        console.error(e);
         Alert.alert("오류", "게시글을 불러오지 못했습니다.");
         navigation.goBack();
       } finally {
         setLoading(false);
       }
-    };
-    fetchPost();
+    })();
   }, [postId]);
 
-  // 댓글 목록 불러오기
+  /* 댓글 조회 */
   const fetchComments = async () => {
     try {
-      const res = await api.get(`/comment/post/${postId}`);
-      console.log(res.data);
-      setComments(res.data);
-    } catch (err) {
-      console.error("댓글 목록 불러오기 실패:", err);
+      const { data } = await api.get(`/comment/post/${postId}`);
+      setComments(data);
+    } catch (e) {
+      console.error(e);
       Alert.alert("오류", "댓글 목록을 불러오지 못했습니다.");
     }
   };
-
-  // 댓글 초기 로딩
   useEffect(() => {
     fetchComments();
   }, [postId]);
 
-  // 댓글 작성
+  /* 댓글 작성 */
   const handleAddComment = async (text) => {
     if (!text.trim()) {
       Alert.alert("알림", "댓글 내용을 입력해주세요.");
@@ -71,13 +96,14 @@ export default function PostScreen({ navigation, route }) {
     }
     try {
       await api.post(`/comment/${postId}`, { text });
-      fetchComments(); // 댓글 새로고침
-    } catch (err) {
-      console.error("댓글 작성 실패:", err);
+      fetchComments();
+    } catch (e) {
+      console.error(e);
       Alert.alert("오류", "댓글 작성에 실패했습니다.");
     }
   };
 
+  /* 로딩 */
   if (loading || !postData) {
     return (
       <View style={styles.loadingContainer}>
@@ -86,38 +112,47 @@ export default function PostScreen({ navigation, route }) {
     );
   }
 
+  /* 본문 */
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.kbWrapper}              
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <View style={{ height: STATUSBAR_HEIGHT }} />
       <PostHeader
         title={postData.title}
         onBackPress={handleBack}
-        onDotPress={() => console.log("Dot 버튼 눌림")}
-        navigation={navigation}
+        onDeletePress={handleDelete}
       />
 
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <PostTitle title={postData.title} date={postData.createdAt} />
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled"  
+      >
+        <PostTitle title={postData.title} date={postData.createdAtFormatted} />
         <PostContent contents={postData.contentResDtoList} />
-        <PostItem products={postData.productResDtoList} />
+
+        {postData.productResDtoList?.length ? (
+          <PostItem products={postData.productResDtoList} />
+        ) : null}
+
         <PostInfo info={postData.bookstoreResDto} />
-        <PostEditor />
+        <PostEditor
+          nickname={postData.nickname}
+          profileUrl={postData.profileUrl}
+          userRole={postData.userRole}
+        />
         <PostComment comments={comments} onSubmit={handleAddComment} />
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
+/* ───── 스타일 ───── */
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFF",
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  kbWrapper: { flex: 1, backgroundColor: "#FFF" },
   scrollContainer: {
     paddingBottom: 40,
-    justifyContent: "center",
     alignItems: "center",
   },
   loadingContainer: {

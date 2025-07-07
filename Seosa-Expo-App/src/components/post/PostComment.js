@@ -8,12 +8,14 @@ import {
   TextInput,
   Alert,
   Image,
+  Pressable,
 } from "react-native";
 import { useSelector } from "react-redux";
 import api from "../../api/axios";
+import * as Clipboard from "expo-clipboard";
 
 import BookmarkIcon from "../../icons/bookmark_green.svg";
-import BookmarkedIcon from "../../icons/bookmark-green-sellected.svg"; // ✅ 북마크 완료 아이콘
+import BookmarkedIcon from "../../icons/bookmark-green-sellected.svg";
 import UploadIcon from "../../icons/upload.svg";
 import CommentIcon from "../../icons/comment_green.svg";
 import SendIcon from "../../icons/send.svg";
@@ -24,7 +26,6 @@ const { width, height } = Dimensions.get("window");
 const ICON_SIZE = width * 0.067;
 const PROFILE_SIZE = width * 0.08;
 
-/* ────────────────────────────────────────────────────────── */
 export default function PostComment({
   postId,
   comments: propComments = [],
@@ -32,25 +33,35 @@ export default function PostComment({
 }) {
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState(propComments);
-  const [bookmarked, setBookmarked] = useState(false); // ▸ 북마크 상태
+  const [bookmarked, setBookmarked] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
 
-  /* prop → 로컬 반영 */
   useEffect(() => setComments(propComments), [propComments]);
 
   const user = useSelector((s) => s.auth.user);
   const profileImage = user?.profileImage || null;
 
-  /* 댓글 작성 */
+  const toggleMenu = () => setMenuVisible((prev) => !prev);
+
+  const handleCopyUrl = async () => {
+    const url = `seosa://post/${postId}`;
+    try {
+      await Clipboard.setStringAsync(url);
+      Alert.alert("알림", "URL이 복사되었습니다.");
+    } catch (e) {
+      console.error(e);
+      Alert.alert("오류", "URL 복사에 실패했습니다.");
+    }
+    setMenuVisible(false);
+  };
+
   const handleSubmit = () => {
     const txt = commentText.trim();
     if (!txt) {
       Alert.alert("알림", "댓글 내용을 입력하세요.");
       return;
     }
-
-    onSubmit(txt); // 부모로 전송
-
-    // 낙관적 UI
+    onSubmit(txt);
     setComments((prev) => [
       ...prev,
       {
@@ -66,34 +77,32 @@ export default function PostComment({
     setCommentText("");
   };
 
-  /* 북마크 생성 */
   const handleBookmark = async () => {
-    if (bookmarked) return; // 이미 북마크됨
+    if (bookmarked) return;
     try {
       await api.post(`/${postId}/bookmark`);
       setBookmarked(true);
-      console.log("북마크 완료");
     } catch (err) {
-      console.error(err.response?.data || err.message);
+      console.error(err);
     }
   };
 
-  /* 댓글 삭제 */
   const handleDelete = (c) => {
     if (c.isPending) return;
     Alert.alert("삭제 확인", "정말 삭제하시겠습니까?", [
-      { text: "취소", style: "cancel" },
+      { text: "취소", style: "cancel", onPress: () => setMenuVisible(false) },
       {
         text: "삭제",
         style: "destructive",
         onPress: async () => {
+          setMenuVisible(false);
           try {
             await api.delete(`/comment/${c.commentId}`);
             setComments((prev) =>
               prev.filter((v) => v.commentId !== c.commentId)
             );
           } catch (err) {
-            console.error(err.response?.data || err.message);
+            console.error(err);
             Alert.alert("오류", "댓글 삭제에 실패했습니다.");
           }
         },
@@ -101,17 +110,16 @@ export default function PostComment({
     ]);
   };
 
-  /* ──────────────────────────────────────────────── */
   return (
     <View style={styles.container}>
-      {/* 헤더 */}
+      {menuVisible && <Pressable style={styles.overlay} onPress={toggleMenu} />}
+
       <View style={styles.comment_header}>
         <View style={styles.comment_count}>
           <CommentIcon width={ICON_SIZE} height={ICON_SIZE} />
           <Text style={styles.count}>{comments.length}</Text>
         </View>
         <View style={styles.interaction}>
-          {/* 북마크 버튼 - 조건부 아이콘 */}
           <TouchableOpacity onPress={handleBookmark}>
             {bookmarked ? (
               <BookmarkedIcon width={ICON_SIZE} height={ICON_SIZE} />
@@ -119,19 +127,25 @@ export default function PostComment({
               <BookmarkIcon width={ICON_SIZE} height={ICON_SIZE} />
             )}
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={toggleMenu}>
             <UploadIcon width={ICON_SIZE} height={ICON_SIZE} />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* 타이틀 */}
+      {menuVisible && (
+        <View style={styles.menuContainer}>
+          <TouchableOpacity style={styles.menuItem} onPress={handleCopyUrl}>
+            <Text style={styles.menuText}>URL 복사하기</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       <View style={styles.comment_title}>
         <Text style={styles.title_text}>방문 후기</Text>
         <Text style={styles.title_count}>{comments.length}</Text>
       </View>
 
-      {/* 입력창 */}
       <View style={styles.comment_input}>
         {profileImage ? (
           <Image
@@ -162,9 +176,8 @@ export default function PostComment({
 
       <View style={styles.line} />
 
-      {/* 댓글 리스트 */}
-      {comments.map((c) => (
-        <View key={c.commentId} style={styles.comment}>
+      {comments.map((c, idx) => (
+        <View key={`${c.commentId}-${idx}`} style={styles.comment}>
           {c.profileImgUrl ? (
             <Image
               source={{ uri: c.profileImgUrl }}
@@ -192,7 +205,6 @@ export default function PostComment({
             <Text style={styles.commentText}>{c.text}</Text>
           </View>
 
-          {/* 삭제 버튼 */}
           {c.isMyComment && !c.isPending && (
             <TouchableOpacity
               style={styles.deleteBtn}
@@ -207,15 +219,16 @@ export default function PostComment({
   );
 }
 
-/* ---------------- 스타일 (변경 없음) ---------------- */
 const styles = StyleSheet.create({
   container: { width, alignItems: "center" },
+  overlay: { ...StyleSheet.absoluteFillObject, zIndex: 15 },
   comment_header: {
     height: height * 0.03,
     width: width * 0.9,
     flexDirection: "row",
     marginTop: height * 0.025,
     justifyContent: "space-between",
+    zIndex: 20,
   },
   comment_count: { flexDirection: "row", alignItems: "center" },
   count: { color: "#487153" },
@@ -224,6 +237,23 @@ const styles = StyleSheet.create({
     width: width / 7,
     justifyContent: "space-between",
   },
+  menuContainer: {
+    position: "absolute",
+    top: height * 0.07,
+    right: width * 0.05,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    paddingVertical: 5,
+    width: width * 0.4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 25,
+  },
+  menuItem: { paddingVertical: 12, paddingHorizontal: 15 },
+  menuText: { fontSize: 14, color: "#333" },
   comment_title: {
     width: width * 0.9,
     height: height * 0.06,
@@ -280,10 +310,5 @@ const styles = StyleSheet.create({
     lineHeight: height * 0.025,
     marginTop: height * 0.01,
   },
-  deleteBtn: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    padding: 4,
-  },
+  deleteBtn: { position: "absolute", top: 0, right: 0, padding: 4 },
 });

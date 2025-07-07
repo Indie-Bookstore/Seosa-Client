@@ -6,7 +6,7 @@ if (typeof global.Buffer === "undefined") {
 }
 
 import React, { useState, useEffect, useRef } from "react";
-import { Animated, StyleSheet } from "react-native";
+import { Animated, StyleSheet, Alert, Share } from "react-native"; // Share 추가
 import { useFonts } from "expo-font";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { NavigationContainer } from "@react-navigation/native";
@@ -48,6 +48,34 @@ import FaqScreen from "./src/screens/faq/FaqScreen";
 
 const Stack = createNativeStackNavigator();
 
+// 딥링크 설정
+const linking = {
+  prefixes: [
+    "seosa://",                  // 앱 스킴
+    "https://seosa.o-r.kr",      // 웹용 Universal Link
+  ],
+  config: {
+    screens: {
+      Home: "home",
+      Auth: "auth",
+      AuthCode: "auth/code",
+      PasswordReset: "auth/reset",
+      ResetDone: "auth/reset/done",
+      Register: "auth/register",
+      Onboarding: "onboarding",
+      FAQ: "faq",
+      MySpace: "myspace",
+      EditProfile: "myspace/edit",
+      Post: "post/:postId",
+      gallery: "gallery",
+      article: "article/:articleId",
+      MapPicker: "map/picker",
+      PrivacyPolicy: "privacy",
+      TermsofUse: "terms",
+    },
+  },
+};
+
 function MySpaceOrAdmin(props) {
   const user = useSelector((state) => state.auth.user);
   if (!user) return null;
@@ -59,7 +87,6 @@ function MySpaceOrAdmin(props) {
 }
 
 function RootApp() {
-  // 로딩 상태
   const [timerElapsed, setTimerElapsed] = useState(false);
   const [tokensLoaded, setTokensLoaded] = useState(false);
   const [userLoaded, setUserLoaded] = useState(false);
@@ -90,13 +117,12 @@ function RootApp() {
     };
   }, [dispatch]);
 
-  // 2) 유저 정보 로드 (accessToken 있으면 fetch, 없으면 바로 완료)
+  // 2) 유저 정보 로드
   useEffect(() => {
     if (accessToken) {
       fetchUserInfo()
         .then((data) => {
           dispatch(setUser(data));
-          // TEMP_USER 온보딩
           if (data.userRole === "TEMP_USER" && navigationRef.isReady()) {
             const current = navigationRef.getCurrentRoute()?.name;
             if (current !== "Onboarding") navigate("Onboarding");
@@ -110,7 +136,7 @@ function RootApp() {
     }
   }, [accessToken, dispatch]);
 
-  // 3) 폰트 로드
+  // 폰트 로드
   const [fontsLoaded] = useFonts({
     "NotoSans-Regular": require("./assets/fonts/NotoSans-Regular.ttf"),
     "NotoSans-Bold": require("./assets/fonts/NotoSans-Bold.ttf"),
@@ -119,13 +145,13 @@ function RootApp() {
     "UnBatang-Bold": require("./assets/fonts/UnBatangBold.ttf"),
   });
 
-  // 4) 최소 스플래시 시간 보장
+  // 최소 스플래시 시간
   useEffect(() => {
     const timer = setTimeout(() => setTimerElapsed(true), 2000);
     return () => clearTimeout(timer);
   }, []);
 
-  // 5) 스플래시 페이드아웃 (모든 로딩 완료 후)
+  // 스플래시 페이드아웃
   useEffect(() => {
     if (fontsLoaded && timerElapsed && tokensLoaded && userLoaded) {
       Animated.timing(fadeAnim, {
@@ -133,8 +159,6 @@ function RootApp() {
         duration: 500,
         useNativeDriver: true,
       }).start();
-
-      /* ✅ 디버그: SecureStore & Redux 값 한 번에 출력 */
       (async () => {
         const [secAccess, secRefresh] = await Promise.all([
           loadAccessToken(),
@@ -151,7 +175,7 @@ function RootApp() {
     }
   }, [fontsLoaded, timerElapsed, tokensLoaded, userLoaded, fadeAnim]);
 
-  // 온보딩 체크 (userLoaded 이후)
+  // 온보딩 체크
   useEffect(() => {
     if (
       userLoaded &&
@@ -177,7 +201,10 @@ function RootApp() {
 
   // 메인 내비게이션
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer
+      ref={navigationRef}
+      linking={linking} // 딥링크 적용
+    >
       <Stack.Navigator
         initialRouteName="Home"
         screenOptions={{ headerShown: false, animation: "fade" }}

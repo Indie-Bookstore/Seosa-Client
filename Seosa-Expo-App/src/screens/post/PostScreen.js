@@ -145,7 +145,7 @@ export default function PostScreen({ navigation, route }) {
           profileUrl={postData.profileUrl}
           userRole={postData.userRole}
         />
-        {/* ⬇⬇⬇ postId 프롭 추가 */}
+      
         <PostComment
           postId={postId}
           comments={comments}

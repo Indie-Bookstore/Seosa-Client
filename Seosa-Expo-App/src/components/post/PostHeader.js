@@ -6,7 +6,9 @@ import {
   Dimensions,
   TouchableOpacity,
   Alert,
+  Pressable,
 } from "react-native";
+import * as Clipboard from 'expo-clipboard';
 import BackButtonComponent from "../common/button/BackButtonComponent";
 import DotBtn from "../../icons/dot.svg";
 
@@ -14,18 +16,26 @@ const { width, height } = Dimensions.get("window");
 
 const PostHeader = ({
   title,
+  postId,               // postId prop 추가
   onBackPress,
   onDeletePress,
-  canDelete = false,      // ⭐️ 추가
+  canDelete = false,
 }) => {
   const iconSize = width * 0.067;
   const [menuVisible, setMenuVisible] = useState(false);
 
-  const toggleMenu = () => setMenuVisible((prev) => !prev);
+  const toggleMenu = () => setMenuVisible(prev => !prev);
 
   /* ───── URL 복사 ───── */
-  const handleCopyUrl = () => {
-    Alert.alert("알림", "URL이 복사되었습니다.");
+  const handleCopyUrl = async () => {
+    const url = `seosa://post/${postId}`;
+    try {
+      await Clipboard.setStringAsync(url);
+      Alert.alert("알림", "URL이 복사되었습니다.");
+    } catch (e) {
+      console.error(e);
+      Alert.alert("오류", "URL 복사에 실패했습니다.");
+    }
     setMenuVisible(false);
   };
 
@@ -37,7 +47,8 @@ const PostHeader = ({
       [
         { text: "취소", style: "cancel", onPress: () => setMenuVisible(false) },
         {
-          text: "OK",
+          text: "삭제",
+          style: "destructive",
           onPress: async () => {
             setMenuVisible(false);
             await onDeletePress?.();
@@ -50,6 +61,14 @@ const PostHeader = ({
 
   return (
     <View style={styles.headerContainer}>
+      {/* 메뉴 외 영역 터치 시 닫기 */}
+      {menuVisible && (
+        <Pressable
+          style={styles.overlay}
+          onPress={toggleMenu}
+        />
+      )}
+
       <BackButtonComponent onPress={onBackPress} theme="green" />
       <Text style={styles.titleText} numberOfLines={1} ellipsizeMode="tail">
         {title}
@@ -65,11 +84,9 @@ const PostHeader = ({
             <Text style={styles.menuText}>URL 복사하기</Text>
           </TouchableOpacity>
 
-          {canDelete && (               /* ⭐️ 조건부 렌더링 */
+          {canDelete && (
             <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
-              <Text style={[styles.menuText, styles.logoutText]}>
-                글 삭제하기
-              </Text>
+              <Text style={[styles.menuText, styles.logoutText]}>글 삭제하기</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -78,7 +95,6 @@ const PostHeader = ({
   );
 };
 
-/* ───── 스타일 (변경 없음) ───── */
 const styles = StyleSheet.create({
   headerContainer: {
     backgroundColor: "#487153",
@@ -89,6 +105,10 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     position: "relative",
     zIndex: 10,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 15,
   },
   titleText: {
     color: "#FFFFFF",

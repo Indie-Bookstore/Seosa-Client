@@ -23,7 +23,7 @@ const PostItem = ({ products = [] }) => {
 
       {products.map((item, idx) => (
         <React.Fragment key={item.productId ?? idx}>
-          {/* 상품 한 줄 */}
+          
           <View style={styles.item}>
             {item.productImg ? (
               <Image
@@ -38,22 +38,22 @@ const PostItem = ({ products = [] }) => {
             <View style={styles.item_content}>
               <View style={styles.item_header}>
                 <Text style={styles.item_title}>{item.productName}</Text>
-                {item.description ? (
+                {item.price ? (
                   <Text
                     style={styles.item_writer}
                     numberOfLines={1}
                     ellipsizeMode="tail"
                   >
-                    {item.description}
+                    {item.price}
                   </Text>
                 ) : null}
               </View>
 
-              {typeof item.price === "number" && (
+              {item.description ? (
                 <Text style={styles.item_review}>
-                  {item.price.toLocaleString()}원
+                  {item.description}
                 </Text>
-              )}
+              ) : null}
             </View>
           </View>
 

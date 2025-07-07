@@ -48,7 +48,7 @@ const HomeScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFBEA' },
+  container: { flex: 1, backgroundColor: '#487153' },
   scrollView: { flex: 1 },
   scrollContent: { flexGrow: 1, paddingBottom: height * 0.07 },
   mainContent: {

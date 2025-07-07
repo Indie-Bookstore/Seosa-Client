@@ -9,7 +9,7 @@ import CloseIcon from '../../icons/x.svg';
 const { width, height } = Dimensions.get('window');
 
 export default function ArticleItem({ item, onChange, onRemove, iconSize }) {
-  /* 이미지 선택 → 로컬 URI를 img 필드에 저장 */
+
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -55,8 +55,7 @@ export default function ArticleItem({ item, onChange, onRemove, iconSize }) {
         <TextInput
           style={styles.priceInput}
           value={String(item.price)}
-          placeholder="가격"
-          keyboardType="numeric"
+          placeholder="저자"
           onChangeText={text => onChange({ ...item, price: text })}
         />
 

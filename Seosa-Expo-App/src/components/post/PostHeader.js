@@ -12,7 +12,12 @@ import DotBtn from "../../icons/dot.svg";
 
 const { width, height } = Dimensions.get("window");
 
-const PostHeader = ({ title, onBackPress, onDeletePress }) => {
+const PostHeader = ({
+  title,
+  onBackPress,
+  onDeletePress,
+  canDelete = false,      // ⭐️ 추가
+}) => {
   const iconSize = width * 0.067;
   const [menuVisible, setMenuVisible] = useState(false);
 
@@ -46,11 +51,7 @@ const PostHeader = ({ title, onBackPress, onDeletePress }) => {
   return (
     <View style={styles.headerContainer}>
       <BackButtonComponent onPress={onBackPress} theme="green" />
-      <Text
-        style={styles.titleText}
-        numberOfLines={1}
-        ellipsizeMode="tail"
-      >
+      <Text style={styles.titleText} numberOfLines={1} ellipsizeMode="tail">
         {title}
       </Text>
 
@@ -63,9 +64,14 @@ const PostHeader = ({ title, onBackPress, onDeletePress }) => {
           <TouchableOpacity style={styles.menuItem} onPress={handleCopyUrl}>
             <Text style={styles.menuText}>URL 복사하기</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
-            <Text style={[styles.menuText, styles.logoutText]}>글 삭제하기</Text>
-          </TouchableOpacity>
+
+          {canDelete && (               /* ⭐️ 조건부 렌더링 */
+            <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
+              <Text style={[styles.menuText, styles.logoutText]}>
+                글 삭제하기
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </View>

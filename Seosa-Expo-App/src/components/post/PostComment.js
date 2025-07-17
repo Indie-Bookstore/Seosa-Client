@@ -50,6 +50,7 @@ export default function PostComment({
     try {
       await Clipboard.setStringAsync(url);
       Alert.alert("알림", "URL이 복사되었습니다.");
+      console.log(postId);
     } catch (e) {
       console.error(e);
       Alert.alert("오류", "URL 복사에 실패했습니다.");

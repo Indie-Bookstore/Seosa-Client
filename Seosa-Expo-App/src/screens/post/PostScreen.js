@@ -63,6 +63,7 @@ export default function PostScreen({ navigation, route }) {
       try {
         const { data } = await api.get(`/post/${postId}`);
         setPostData({ ...data, createdAtFormatted: formatDate(data.createdAt) });
+        console.log(postData);
       } catch (e) {
         console.error(e);
         Alert.alert("오류", "게시글을 불러오지 못했습니다.");
@@ -126,6 +127,7 @@ export default function PostScreen({ navigation, route }) {
         onBackPress={handleBack}
         onDeletePress={handleDelete}
         canDelete={canDelete}
+        postId={postId}
       />
 
       <ScrollView

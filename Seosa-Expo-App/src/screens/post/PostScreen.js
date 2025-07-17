@@ -150,6 +150,7 @@ export default function PostScreen({ navigation, route }) {
           postId={postId}
           comments={comments}
           onSubmit={handleAddComment}
+          isBookmarked={postData.isBookmarked}
         />
       </ScrollView>
     </KeyboardAvoidingView>

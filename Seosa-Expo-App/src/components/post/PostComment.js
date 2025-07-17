@@ -30,13 +30,15 @@ export default function PostComment({
   postId,
   comments: propComments = [],
   onSubmit = () => {},
+  isBookmarked: initialBookmarked = false,
 }) {
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState(propComments);
-  const [bookmarked, setBookmarked] = useState(false);
+  const [bookmarked, setBookmarked] = useState(initialBookmarked);
   const [menuVisible, setMenuVisible] = useState(false);
 
   useEffect(() => setComments(propComments), [propComments]);
+  useEffect(() => setBookmarked(initialBookmarked), [initialBookmarked]);
 
   const user = useSelector((s) => s.auth.user);
   const profileImage = user?.profileImage || null;
@@ -78,12 +80,17 @@ export default function PostComment({
   };
 
   const handleBookmark = async () => {
-    if (bookmarked) return;
     try {
-      await api.post(`/${postId}/bookmark`);
-      setBookmarked(true);
+      if (bookmarked) {
+        await api.delete(`/${postId}/bookmark`);
+        setBookmarked(false);
+      } else {
+        await api.post(`/${postId}/bookmark`);
+        setBookmarked(true);
+      }
     } catch (err) {
       console.error(err);
+      Alert.alert("오류", "북마크 처리에 실패했습니다.");
     }
   };
 

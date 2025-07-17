@@ -112,7 +112,7 @@ const PostGalleryScreen = ({ navigation }) => {
               nickname={item.userName}
               image={
                 item.thumbnailUrl
-                  ? { uri: item.thumbnailUrl }
+                  ? { uri: `https://seosa-server.s3.ap-northeast-2.amazonaws.com/${item.thumbnailUrl}` }
                   : require("../../icons/examplephoto.svg")
               }
               onPress={() =>

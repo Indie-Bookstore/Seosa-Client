@@ -1,8 +1,4 @@
-/**
- * 글(Post) 관련 API 모음
- * - ADMIN, EDITOR 전용
- */
-
+// postApi.js
 import api from './axios';
 
 /**

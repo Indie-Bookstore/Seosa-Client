@@ -1,5 +1,3 @@
-// src/components/myspace/MyBookmarkList.js
-
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Dimensions, Text, Alert, ScrollView } from "react-native";
 import SmallButtonComponent from "../common/button/SmallButtonComponent";
@@ -67,11 +65,21 @@ const MyBookmarkList = ({ onItemPress }) => {
         {
           text: "삭제",
           style: "destructive",
-          onPress: () => {
-            const updated = bookmarks.filter((post) => !selectedPosts.includes(post.postId));
-            setBookmarks(updated);
-            setSelectedPosts([]);
-            setIsEditing(false);
+          onPress: async () => {
+            try {
+              await Promise.all(
+                selectedPosts.map((postId) => api.delete(`/${postId}/bookmark`))
+              );
+
+              const updated = bookmarks.filter((post) => !selectedPosts.includes(post.postId));
+              setBookmarks(updated);
+              setSelectedPosts([]);
+              setIsEditing(false);
+              Alert.alert("완료", "선택한 글이 삭제되었습니다.");
+            } catch (err) {
+              console.error("북마크 삭제 실패:", err.response?.data || err.message);
+              Alert.alert("오류", "삭제 중 문제가 발생했습니다.");
+            }
           },
         },
       ]
@@ -79,10 +87,7 @@ const MyBookmarkList = ({ onItemPress }) => {
   };
 
   if (loading && bookmarks.length === 0) {
-    return (
-      <View style={styles.container}>
-      </View>
-    );
+    return <View style={styles.container}></View>;
   }
 
   return (
@@ -106,7 +111,7 @@ const MyBookmarkList = ({ onItemPress }) => {
           posts={bookmarks.map((p) => ({
             postId: p.postId,
             title: p.title,
-            thumbnailUrl: p.thumbnailUrl,
+            thumbnailUrl: `https://seosa-server.s3.ap-northeast-2.amazonaws.com${p.thumbnailUrl}`,
           }))}
           isEditing={isEditing}
           selectedPosts={selectedPosts}
@@ -142,3 +147,4 @@ const styles = StyleSheet.create({
 });
 
 export default MyBookmarkList;
+

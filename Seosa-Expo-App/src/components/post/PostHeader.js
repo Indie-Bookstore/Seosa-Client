@@ -16,7 +16,7 @@ const { width, height } = Dimensions.get("window");
 
 const PostHeader = ({
   title,
-  postId,               // postId prop 추가
+  postId,               
   onBackPress,
   onDeletePress,
   canDelete = false,

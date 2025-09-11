@@ -41,7 +41,7 @@ export default function MySpaceHeader({
       { text: "아니오", style: "cancel" },
       {
         text: "예",
-        onPress: () => logout(), // ★ 공통 로그아웃 호출
+        onPress: () => logout(), 
       },
     ]);
   };
@@ -58,7 +58,7 @@ export default function MySpaceHeader({
           onPress: async () => {
             try {
               await api.delete("/user"); // 서버 탈퇴
-              await logout(); // ★ 탈퇴 후 동일 로그아웃 처리
+              await logout(); 
             } catch (err) {
               console.error("회원 탈퇴 실패:", err);
               Alert.alert("오류", "회원 탈퇴에 실패했습니다.");
@@ -101,7 +101,6 @@ export default function MySpaceHeader({
 
       {/* 닉네임 */}
       <View style={styles.infoContainer}>
-        <Text style={styles.nickname}>닉네임</Text>
         <Text style={styles.nicknameinput}>{user?.nickname || "책손님"}</Text>
       </View>
 

@@ -1,8 +1,7 @@
 // src/screens/myspace/MySpaceScreen.js
 
 import React, { useState } from 'react';
-import { View, StyleSheet, Platform, StatusBar as RNStatusBar } from 'react-native';
-import Constants from 'expo-constants';
+import { View, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import { navigate } from '../../utils/nav/RootNavigation';
 

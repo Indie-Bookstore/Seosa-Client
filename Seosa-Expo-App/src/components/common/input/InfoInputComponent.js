@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
   },
   bubbleWrapper: {
     width: Dimensions.get("window").width * 0.65,
-    height: Dimensions.get("window").height * 0.0575, // 고정 높이 추가
+    height: Dimensions.get("window").height * 0.0575, 
   },
   inputContainer: {
     width: Dimensions.get("window").width * 0.9,
@@ -94,9 +94,12 @@ const styles = StyleSheet.create({
     borderColor: "#CCCCCC",
     paddingHorizontal: 10,
     justifyContent: "center",
+    alignItems:"center"
   },
   inputField: {
     fontSize: 16,
+    width: Dimensions.get("window").width * 0.85,
+    aspectRatio: 7.71 / 1,
     fontFamily: "NotoSans-Regular",
     fontWeight: "400",
     includeFontPadding: false,

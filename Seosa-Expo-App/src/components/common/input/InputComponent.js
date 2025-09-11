@@ -36,12 +36,13 @@ const InputComponent = ({
           borderWidth: 1,
           borderStyle: "solid",
           borderColor: "#CCCCCC",
+          flexDirection: "row",
         }}
       >
         <TextInput
           style={{
-            width: Dimensions.get("window").width * 0.83,
-            aspectRatio: 20 / 1,
+            width: Dimensions.get("window").width * 0.85,
+            aspectRatio: 7.71 / 1,
             color: color,
             fontSize: 16,
             fontFamily: "NotoSans-Regular",

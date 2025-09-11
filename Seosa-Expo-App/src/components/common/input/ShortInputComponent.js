@@ -68,7 +68,7 @@ const ShortInputComponent = ({
           <TextInput
             style={{
               width: W * 0.568,
-              aspectRatio: 10 / 1,
+              height:W*0.9*0.13,
               color,
               fontSize: 16,
               fontFamily: "NotoSans-Regular",

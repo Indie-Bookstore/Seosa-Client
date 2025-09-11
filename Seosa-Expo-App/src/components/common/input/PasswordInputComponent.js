@@ -56,6 +56,8 @@ const PasswordInputComponent = ({
         <TextInput
           style={{
             flex: 1,
+            width: Dimensions.get("window").width * 0.85,
+            aspectRatio: 7.71 / 1,
             color: color,
             fontSize: 16,
             fontFamily: "NotoSans-Regular",

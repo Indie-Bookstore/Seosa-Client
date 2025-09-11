@@ -1,4 +1,3 @@
-// src/components/admin/AdminPostList.js
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -15,7 +14,6 @@ import api from "../../api/axios";
 const { width, height } = Dimensions.get("window");
 
 export default function AdminPostList({ onItemPress }) {
-  /* ---------------- 상태 ---------------- */
   const [isEditing, setIsEditing] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]); // id = postId
   const [posts, setPosts] = useState([]);
@@ -23,7 +21,6 @@ export default function AdminPostList({ onItemPress }) {
   const [hasNext, setHasNext] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  /* ---------------- 글 목록 조회 ---------------- */
   const fetchMyPosts = async () => {
     try {
       setLoading(true);
@@ -52,7 +49,6 @@ export default function AdminPostList({ onItemPress }) {
     fetchMyPosts();
   }, []);
 
-  /* ---------------- 선택 삭제 ---------------- */
   const deleteSelectedPosts = () => {
     if (!selectedIds.length) {
       Alert.alert("알림", "삭제할 글을 선택하세요.");
@@ -88,14 +84,20 @@ export default function AdminPostList({ onItemPress }) {
     );
   };
 
-  /* ---------------- 무한 스크롤 ---------------- */
   const loadMore = () => {
     if (hasNext && !loading) fetchMyPosts();
   };
 
-  /* ---------------- 렌더 ---------------- */
   if (loading && posts.length === 0) {
     return <View style={styles.container} />;
+  }
+
+  if (!loading && posts.length === 0) {
+    return (
+      <View style={[styles.container, styles.emptyContainer]}>
+        <Text style={styles.emptyText}>작성한 글이 없습니다.</Text>
+      </View>
+    );
   }
 
   return (
@@ -113,7 +115,6 @@ export default function AdminPostList({ onItemPress }) {
         />
       </View>
 
-      {/* 리스트 */}
       <ScrollView
         style={styles.scrollContainer}
         contentContainerStyle={{ paddingBottom: height * 0.07 }}
@@ -136,7 +137,6 @@ export default function AdminPostList({ onItemPress }) {
   );
 }
 
-/* ---------------- 스타일 ---------------- */
 const styles = StyleSheet.create({
   container: { flex: 1, alignItems: "center" },
   header: {
@@ -150,10 +150,19 @@ const styles = StyleSheet.create({
     fontSize: height * 0.02625,
     color: "#888888",
     fontWeight: "500",
-    fontFamily:"NotoSansBold"
+    fontFamily: "NotoSansBold",
   },
   scrollContainer: {
     width: width * 0.9,
     flex: 1,
   },
+  emptyContainer: {
+    justifyContent: "center",
+  },
+  emptyText: {
+    fontFamily: "NotoSansMedium",
+    fontSize: height * 0.02,
+    color: "#888888",
+  },
 });
+

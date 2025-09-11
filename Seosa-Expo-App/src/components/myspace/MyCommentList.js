@@ -109,10 +109,16 @@ export default function MyCommentList({ onItemPress }) {
     );
   };
 
-  /* --------------- 로딩 상태 --------------- */
   if (loading && comments.length === 0) return <View style={styles.container} />;
 
-  /* --------------- 렌더 --------------- */
+  if (!loading && comments.length === 0) {
+    return (
+      <View style={[styles.container, styles.emptyContainer]}>
+        <Text style={styles.emptyText}>작성한 댓글이 없습니다.</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {/* 헤더 */}
@@ -165,10 +171,18 @@ const styles = StyleSheet.create({
   headertitle: {
     fontSize: height * 0.02625,
     color: "#888888",
-    fontFamily:"NotoSansRegular"
+    fontFamily: "NotoSansRegular",
   },
   scrollContainer: {
     width: width * 0.9,
     flex: 1,
+  },
+  emptyContainer: {
+    justifyContent: "center",
+  },
+  emptyText: {
+    fontFamily: "NotoSansMedium",
+    fontSize: height * 0.02,
+    color: "#888888",
   },
 });

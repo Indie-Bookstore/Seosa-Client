@@ -1,10 +1,9 @@
 import React from 'react';
 import { View, StyleSheet, Dimensions, Text, ScrollView, TouchableOpacity } from 'react-native';
-import Constants from "expo-constants";
 import Footer from '../../components/common/footer/Footer';
 import CloseIcon from '../../icons/close.svg';
+import SafeTopSpacer from '../../components/common/layout/SafeTopSpacer';
 
-const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 const { width, height } = Dimensions.get('window');
 
 const TermsofUseScreen = ({ navigation }) => {
@@ -14,7 +13,7 @@ const TermsofUseScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={{ height: STATUSBAR_HEIGHT }} />
+      <SafeTopSpacer />
 
       {/* 헤더 */}
       <View style={styles.header}>

@@ -1,19 +1,15 @@
 // src/screens/auth/RegisterScreen.js
 import React, { useState, useEffect } from "react";
 import {
-  View,
   StyleSheet,
   KeyboardAvoidingView,
   ScrollView,
   Platform,
   Keyboard,
-  Dimensions,
 } from "react-native";
-import Constants      from "expo-constants";
-import AuthHeader     from "../../components/auth/AuthHeader";
+import AuthHeader from "../../components/auth/AuthHeader";
 import RegisterComponent from "../../components/register/RegisterComponent";
-
-const STATUSBAR_HEIGHT = Constants.statusBarHeight;
+import SafeTopSpacer from "../../components/common/layout/SafeTopSpacer";
 
 export default function RegisterScreen({ navigation }) {
   /* ──── 키보드 표시 여부 ──── */
@@ -33,7 +29,7 @@ export default function RegisterScreen({ navigation }) {
   }, []);
 
   /* ──── 핸들러 ──── */
-  const handleBack        = () => navigation.goBack();
+  const handleBack = () => navigation.goBack();
   const onLocalLoginPress = () => navigation.navigate("Auth");
 
   return (
@@ -50,7 +46,7 @@ export default function RegisterScreen({ navigation }) {
         }
       >
         {/* 상태바 높이만큼 여백 */}
-        <View style={{ height: STATUSBAR_HEIGHT }} />
+        <SafeTopSpacer />
 
         <AuthHeader title="이메일로 회원가입하기" backOnPress={handleBack} />
 

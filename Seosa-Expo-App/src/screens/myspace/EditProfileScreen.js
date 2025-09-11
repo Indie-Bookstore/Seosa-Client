@@ -10,7 +10,6 @@ import {
 import { StatusBar } from "expo-status-bar";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
-import Constants from "expo-constants";
 import * as FileSystem from "expo-file-system";
 import { useSelector, useDispatch } from "react-redux";
 import { setUser } from "../../store/authSlice";
@@ -24,16 +23,13 @@ import api from "../../api/axios";
 import { fetchUserInfo } from "../../api/userApi";
 import { ensureUserAndToken } from "../../utils/ensureUserAndToken";
 import { store } from "../../store/store";
+import SafeTopSpacer from "../../components/common/layout/SafeTopSpacer";
 
 const { width, height } = Dimensions.get("window");
-const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 /* ───── 업로드 관련 상수 ───── */
 const ALLOWED_EXTENSIONS = ["png", "jpg", "jpeg", "gif", "webp"];
 
-/* -------------------------------------------------------------------------- */
-/*                          Presigned URL 방식 S3 업로드                          */
-/* -------------------------------------------------------------------------- */
 const uploadToS3 = async (uri) => {
   // 1) 토큰·유저 확보
   await ensureUserAndToken();
@@ -81,7 +77,6 @@ const uploadToS3 = async (uri) => {
   // 6) 정적 URL 반환
   return presignedUrl.split("?")[0];
 };
-/* -------------------------------------------------------------------------- */
 
 export default function EditProfileScreen() {
   const dispatch = useDispatch();
@@ -101,7 +96,7 @@ export default function EditProfileScreen() {
     if (user?.nickname) setNickname(user.nickname);
   }, [user]);
 
-  /* 유저 없으면 렌더링X */
+  /* 유저 없으면 렌더링 X */
   if (!user) return null;
 
   const size = width * 0.067;
@@ -214,7 +209,7 @@ export default function EditProfileScreen() {
   /* ───── UI ───── */
   return (
     <View style={styles.container}>
-      <View style={{ height: STATUSBAR_HEIGHT }} />
+      <SafeTopSpacer />
       <AuthHeader title="내 정보 수정하기" backOnPress={goBack} />
 
       <View style={styles.profileContainer}>
@@ -268,7 +263,6 @@ export default function EditProfileScreen() {
   );
 }
 
-/* ───── 스타일 (변경 없음) ───── */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFFEFB", alignItems: "center" },
   profileContainer: {

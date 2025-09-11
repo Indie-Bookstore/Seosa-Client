@@ -8,9 +8,9 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import Constants from "expo-constants";
 import { CommonActions } from "@react-navigation/native";
 import api from "../../api/axios.js";
+import SafeTopSpacer from "../../components/common/layout/SafeTopSpacer.js";
 
 import PostHeader from "../../components/post/PostHeader";
 import PostTitle from "../../components/post/PostTitle";
@@ -21,7 +21,6 @@ import PostEditor from "../../components/post/PostEditor";
 import PostComment from "../../components/post/PostComment";
 
 export default function PostScreen({ navigation, route }) {
-  const STATUSBAR_HEIGHT = Constants.statusBarHeight;
   const { postId } = route.params;
 
   const [postData, setPostData] = useState(null);
@@ -121,7 +120,7 @@ export default function PostScreen({ navigation, route }) {
       style={styles.kbWrapper}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View style={{ height: STATUSBAR_HEIGHT }} />
+      <SafeTopSpacer />
       <PostHeader
         title={postData.title}
         onBackPress={handleBack}

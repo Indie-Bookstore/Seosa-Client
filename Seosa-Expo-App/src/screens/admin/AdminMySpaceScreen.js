@@ -2,12 +2,10 @@ import React, { useState } from "react";
 import {
   View,
   StyleSheet,
-  Platform,
-  StatusBar as RNStatusBar,
 } from "react-native";
-import Constants from "expo-constants"; 
 import { useSelector } from "react-redux";
 import { navigate } from "../../utils/nav/RootNavigation";
+import SafeTopSpacer from "../../components/common/layout/SafeTopSpacer";
 
 import Footer from "../../components/common/footer/Footer";
 import AdminMySpaceHeader from "../../components/admin/AdminMySpaceHeader";
@@ -15,7 +13,6 @@ import AdminPostList from "../../components/admin/AdminPostList";
 import MyBookmarkList from "../../components/myspace/MyBookmarkList";
 import MyCommentList from "../../components/myspace/MyCommentList";
 
-const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 export default function AdminMySpaceScreen() {
   /* 모든 훅 선언 */
@@ -27,7 +24,7 @@ export default function AdminMySpaceScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={{ height: STATUSBAR_HEIGHT }} />
+      <SafeTopSpacer />
 
       <AdminMySpaceHeader
         selectedTab={selectedTab}
@@ -60,6 +57,6 @@ export default function AdminMySpaceScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFEFB", alignItems: "center" },
-  content: { flex: 1, width: "100%" },
+  container: { flex: 1, backgroundColor: "#487153", alignItems: "center" },
+  content: { flex: 1, width: "100%", backgroundColor:"#FFFEFB" },
 });

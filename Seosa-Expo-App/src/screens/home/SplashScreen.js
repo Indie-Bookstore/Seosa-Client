@@ -2,10 +2,8 @@
 
 import React from "react";
 import { View, StyleSheet, Dimensions, Text } from "react-native";
-import Constants from "expo-constants";
 import LogoIcon from "../../icons/logo-green.svg";
-
-const STATUSBAR_HEIGHT = Constants.statusBarHeight;
+import SafeTopSpacer from "../../components/common/layout/SafeTopSpacer";
 
 const { width, height } = Dimensions.get("window");
 
@@ -14,7 +12,7 @@ const SplashScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={{ height: STATUSBAR_HEIGHT }} />
+      <SafeTopSpacer />
       <View style={styles.content}>
         <LogoIcon width={size} height={size} />
         <Text style={styles.title}>책과 공간, 인연의 서사</Text>

@@ -6,12 +6,9 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
-  Platform,
-  StatusBar as RNStatusBar,
   ActivityIndicator,
   Alert,
 } from "react-native";
-import Constants from "expo-constants";
 import LogoIcon from "../../icons/logo-green.svg";
 import EditIcon from "../../icons/edit-white.svg";
 import Post from "../../components/post/Post";
@@ -19,12 +16,12 @@ import Footer from "../../components/common/footer/Footer";
 import { navigate } from "../../utils/nav/RootNavigation"; // navigation prop 대신 이거만 사용
 import api from "../../api/axios";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
+import SafeTopSpacer from "../../components/common/layout/SafeTopSpacer";
 
 const { width, height } = Dimensions.get("window");
 const CARD_MARGIN = 16;
 const CARD_WIDTH = width - CARD_MARGIN * 2;
 const OFFSET = width * 0.05;
-const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 const size = width * 0.1;
 
 const PostGalleryScreen = ({ navigation }) => {
@@ -63,7 +60,8 @@ const PostGalleryScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.logoSection, { paddingTop: STATUSBAR_HEIGHT }]}>
+      <SafeTopSpacer />
+      <View style={styles.logoSection}>
         <LogoIcon width={size} height={size} />
       </View>
 

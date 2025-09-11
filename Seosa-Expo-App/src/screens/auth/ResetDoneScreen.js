@@ -2,12 +2,10 @@
 
 import { View, StyleSheet, Dimensions, Text } from "react-native";
 import AuthHeader from "../../components/auth/AuthHeader";
-import Constants from "expo-constants";
 import ButtonComponent from "../../components/common/button/ButtonComponent";
 import { CommonActions } from '@react-navigation/native';
+import SafeTopSpacer from "../../components/common/layout/SafeTopSpacer";
 
-
-const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 const ResetDoneScreen = ({ navigation }) => {
 
@@ -28,7 +26,7 @@ const ResetDoneScreen = ({ navigation }) => {
 
   return (
     <View style={styles.screen}>
-      <View style={{ height: STATUSBAR_HEIGHT }} />
+      <SafeTopSpacer />
       <AuthHeader title="비밀번호 재설정" />
       
       <View style={styles.textcontainer}>

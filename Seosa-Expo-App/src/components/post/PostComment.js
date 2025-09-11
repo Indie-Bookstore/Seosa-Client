@@ -41,7 +41,7 @@ export default function PostComment({
   useEffect(() => setBookmarked(initialBookmarked), [initialBookmarked]);
 
   const user = useSelector((s) => s.auth.user);
-  const profileImage = user?.profileImage || null;
+  const myProfileImage = user?.profileImage || null;
 
   const toggleMenu = () => setMenuVisible((prev) => !prev);
 
@@ -50,6 +50,7 @@ export default function PostComment({
     try {
       await Clipboard.setStringAsync(url);
       Alert.alert("알림", "URL이 복사되었습니다.");
+      console.log(comments);
       console.log(postId);
     } catch (e) {
       console.error(e);
@@ -65,6 +66,7 @@ export default function PostComment({
       return;
     }
     onSubmit(txt);
+
     setComments((prev) => [
       ...prev,
       {
@@ -72,7 +74,7 @@ export default function PostComment({
         isPending: true,
         isMyComment: true,
         name: user?.nickname ?? "나",
-        profileImgUrl: profileImage,
+        profileImgUrl: myProfileImage,
         text: txt,
         createdAt: new Date().toISOString(),
       },
@@ -155,9 +157,9 @@ export default function PostComment({
       </View>
 
       <View style={styles.comment_input}>
-        {profileImage ? (
+        {myProfileImage ? (
           <Image
-            source={{ uri: profileImage }}
+            source={{ uri: myProfileImage }}
             style={{
               width: PROFILE_SIZE,
               height: PROFILE_SIZE,
@@ -184,8 +186,8 @@ export default function PostComment({
 
       <View style={styles.line} />
 
-      {comments.map((c, idx) => (
-        <View key={`${c.commentId}-${idx}`} style={styles.comment}>
+      {comments.map((c) => (
+        <View key={`${c.commentId}`} style={styles.comment}>
           {c.profileImgUrl ? (
             <Image
               source={{ uri: c.profileImgUrl }}

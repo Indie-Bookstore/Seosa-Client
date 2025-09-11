@@ -3,15 +3,14 @@
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
 import AuthHeader from "../../components/auth/AuthHeader";
-import Constants from "expo-constants";
 import PasswordInputComponent from "../../components/common/input/PasswordInputComponent";
 import PasswordInfoComponent from "../../components/common/info/passwordInfoComponent";
 import ButtonComponent from "../../components/common/button/ButtonComponent";
 import AlertComponent from "../../components/auth/AlertComponent";
 import api from "../../api/axios";
+import SafeTopSpacer from "../../components/common/layout/SafeTopSpacer";
 
 const { width, height } = Dimensions.get("window");
-const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 const PasswordResetScreen = ({ navigation, route }) => {
   /* ──── 전달받은 이메일 ──── */
@@ -102,7 +101,7 @@ const PasswordResetScreen = ({ navigation, route }) => {
   /* ──── UI ──── */
   return (
     <View style={styles.screen}>
-      <View style={{ height: STATUSBAR_HEIGHT }} />
+      <SafeTopSpacer />
       <AuthHeader title="비밀번호 재설정" backOnPress={handleBack} />
 
       <View style={styles.pwcontainer}>

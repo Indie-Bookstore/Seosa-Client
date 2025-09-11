@@ -1,195 +1,198 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Dimensions,
-  TextInput,
-  TouchableOpacity,
-} from 'react-native';
-import { WebView } from 'react-native-webview';
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, Dimensions, Image, ActivityIndicator, Alert } from "react-native";
+import LocationIcon from "../../icons/location.svg";
+import ClockIcon from "../../icons/clock.svg";
+import PhoneIcon from "../../icons/phone.svg";
+import InstaIcon from "../../icons/insta.svg";
+import Constants from "expo-constants";
 
-import LocationIcon from '../../icons/location.svg';
-import ClockIcon    from '../../icons/clock.svg';
-import PhoneIcon    from '../../icons/phone.svg';
-import InstaIcon    from '../../icons/insta.svg';
+const { width, height } = Dimensions.get("window");
+const ICON_SIZE = height * 0.02;
 
-const KAKAO_JS_KEY = '4c6a9d6cb2a66951381dc4ea3a6b3ea5'; // 환경변수로 빼도 무방
-const { width, height } = Dimensions.get('window');
-const ICON = height * 0.02;
+// Kakao REST API Key
+const kakaoKey =
+  Constants.expoConfig?.extra?.kakaoRestKey ??
+  process.env.EXPO_PUBLIC_KAKAO_REST_KEY;
 
-export default function ArticleInfo({
-  info,
-  detailedAddress,
-  openHours,
-  onChangeInfo,
-  onChangeDetail,
-  onChangeHours,
-  onMapPress,
-}) {
-  /* ★ postalCode 구조분해 추가 */
+export default function PostInfo({ info }) {
+  const [coords, setCoords] = useState(null);  // { lat, lng }
+  const [loadingMap, setLoadingMap] = useState(false);
+
   const {
+    postalCode,
     address,
-    coords,
+    detailedAddress,
     openDays,
+    openHours,
     phoneNumber,
     instagramLink,
-    postalCode,        // ← 추가
   } = info;
 
-  /* 지도 미리보기용 HTML */
-  const htmlContent = coords
-    ? `<!DOCTYPE html><html><head>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}"></script>
-<style>html,body{margin:0;height:100%}#map{width:100%;height:100%}</style>
-</head><body><div id="map"></div>
-<script>
-kakao.maps.load(function(){
-  var c = new kakao.maps.LatLng(${coords.lat},${coords.lng});
-  var map = new kakao.maps.Map(document.getElementById('map'),{center:c,level:4});
-  new kakao.maps.Marker({ position:c, map:map });
-});
-</script></body></html>`
-    : null;
+  /* 1) mount 시 postalCode → 좌표 변환 */
+  useEffect(() => {
+    const fetchCoordsByPostal = async () => {
+      if (!postalCode) return;  // postalCode 없으면 아무것도 안 함
+      if (!kakaoKey) {
+        Alert.alert("API Key 오류", "kakaoRestKey가 설정되지 않았습니다");
+        return;
+      }
+
+      setLoadingMap(true);
+      try {
+        const query = postalCode || address;
+        const res = await fetch(`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(query)}`,{ headers: { Authorization: `KakaoAK ${kakaoKey}` } }); 
+        const json = await res.json();
+
+        if (Array.isArray(json.documents) && json.documents.length > 0) {
+          // 첫 번째 결과 사용
+          const doc = json.documents[0];
+          // 문서의 x(경도), y(위도)
+          const lat = parseFloat(doc.y);
+          const lng = parseFloat(doc.x);
+          setCoords({ lat, lng });
+        } else {
+          // 결과가 없으면 폴백
+          Alert.alert("지도 불러오기 실패", "해당 우편번호로 지도를 찾을 수 없습니다.");
+        }
+      } catch (e) {
+        console.error(e);
+        Alert.alert("지도 불러오기 오류", e.message);
+      } finally {
+        setLoadingMap(false);
+      }
+    };
+
+    fetchCoordsByPostal();
+  }, [postalCode]);
+
+  /* 2) Static Map URL 생성 */
+  const getStaticMapUrl = () => {
+    if (!coords) return null;
+    const zoom  = 3; // 지도의 확대/축소 레벨 (0~14, 숫자 낮을수록 더 멀리)
+    const pxW   = Math.floor(width * 0.9);          // 이미지 가로(px)
+    const pxH   = Math.floor(height * 0.2175);      // 이미지 세로(px)
+    const { lat, lng } = coords;
+    return `https://dapi.kakao.com/v2/maps/sdk/staticmap?appkey=${kakaoKey}` +
+           `&center=${lng},${lat}` +
+           `&level=${zoom}` +
+           `&w=${pxW}` +
+           `&h=${pxH}` +
+           `&markers=${lng},${lat}`; 
+  };
+
+  const staticMapUrl = getStaticMapUrl();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.titleText}>서점 정보</Text>
+      <View style={styles.title}>
+        <Text style={styles.title_text}>서점 정보</Text>
+      </View>
 
-      {/* 지도 미리보기 */}
-      <TouchableOpacity style={styles.map} onPress={onMapPress}>
-        {htmlContent ? (
-          <WebView
-            originWhitelist={['*']}
-            source={{ html: htmlContent }}
+      {/* 3) Static Map 이미지 */}
+      <View style={styles.mapWrapper}>
+        {loadingMap ? (
+          <ActivityIndicator size="large" color="#487153" />
+        ) : staticMapUrl ? (
+          <Image
+            source={{ uri: staticMapUrl }}
             style={styles.mapImage}
-            javaScriptEnabled
-            domStorageEnabled
+            resizeMode="cover"
           />
         ) : (
-          <Text style={styles.mapPlaceholder}>지도에서 위치 선택</Text>
+          <View style={styles.mapPlaceholder}>
+            <Text style={{ color: "#999", fontFamily: "NotoSans-Regular" }}>지도 정보 없음</Text>
+          </View>
         )}
-      </TouchableOpacity>
+      </View>
 
-      <View style={styles.infoes}>
-        {/* 기본 주소 */}
+      {/* 4) 나머지 서점 정보 */}
+      <View style={styles.infoSection}>
+        {/* 주소 */}
         <View style={styles.row}>
-          <LocationIcon width={ICON} height={ICON} />
-          <TextInput
-            style={styles.input}
-            placeholder="주소"
-            value={address}
-            onChangeText={(text) => onChangeInfo({ ...info, address: text })}
-          />
+          <LocationIcon width={ICON_SIZE} height={ICON_SIZE} />
+          <Text style={styles.text}>
+            {address} {detailedAddress}
+          </Text>
         </View>
 
-        {/* ★ 우편번호 */}
+        {/* 영업일/영업시간 */}
         <View style={styles.row}>
-          <LocationIcon width={ICON} height={ICON} />
-          <TextInput
-            style={styles.input}
-            placeholder="우편번호"
-            keyboardType="numeric"
-            value={postalCode}
-            onChangeText={(text) => onChangeInfo({ ...info, postalCode: text })}
-          />
-        </View>
-
-        {/* 상세 주소 */}
-        <View style={styles.row}>
-          <LocationIcon width={ICON} height={ICON} />
-          <TextInput
-            style={styles.input}
-            placeholder="상세 주소"
-            value={detailedAddress}
-            onChangeText={onChangeDetail}
-          />
-        </View>
-
-        {/* 영업일 */}
-        <View style={styles.row}>
-          <ClockIcon width={ICON} height={ICON} />
-          <TextInput
-            style={styles.input}
-            placeholder="영업일"
-            value={openDays}
-            onChangeText={(text) => onChangeInfo({ ...info, openDays: text })}
-          />
-        </View>
-
-        {/* 영업시간 */}
-        <View style={styles.row}>
-          <ClockIcon width={ICON} height={ICON} />
-          <TextInput
-            style={styles.input}
-            placeholder="영업시간"
-            value={openHours}
-            onChangeText={onChangeHours}
-          />
+          <ClockIcon width={ICON_SIZE} height={ICON_SIZE} />
+          <Text style={styles.text}>
+            {openDays} / {openHours}
+          </Text>
         </View>
 
         {/* 전화번호 */}
         <View style={styles.row}>
-          <PhoneIcon width={ICON} height={ICON} />
-          <TextInput
-            style={styles.input}
-            placeholder="전화번호"
-            value={phoneNumber}
-            onChangeText={(text) => onChangeInfo({ ...info, phoneNumber: text })}
-          />
+          <PhoneIcon width={ICON_SIZE} height={ICON_SIZE} />
+          <Text style={styles.text}>{phoneNumber}</Text>
         </View>
 
         {/* 인스타 링크 */}
         <View style={styles.row}>
-          <InstaIcon width={ICON} height={ICON} />
-          <TextInput
-            style={styles.input}
-            placeholder="Instagram 링크"
-            value={instagramLink}
-            onChangeText={(text) => onChangeInfo({ ...info, instagramLink: text })}
-          />
+          <InstaIcon width={ICON_SIZE} height={ICON_SIZE} />
+          <Text style={styles.link}>인스타그램: {instagramLink}</Text>
         </View>
       </View>
     </View>
   );
 }
 
-/* ───────── 스타일 ───────── */
 const styles = StyleSheet.create({
-  container: { width, backgroundColor: '#FFFEFB', alignItems: 'center' },
-  titleText: {
-    width: width * 0.9,
-    fontSize: height * 0.023,
-    color: '#666',
-    fontWeight: '500',
-    marginVertical: height * 0.015,
+  container: {
+    width: width,
+    backgroundColor: "#F4F4F4",
+    alignItems: "center",
   },
-  map: {
+  title: {
     width: width * 0.9,
-    height: height * 0.22,
-    backgroundColor: '#B2B2B2',
+    height: height * 0.06,
+    marginTop: height * 0.01,
+    justifyContent: "center",
+  },
+  title_text: {
+    fontSize: height * 0.023,
+    color: "#666666",
+    fontFamily: "NotoSans-Regular",
+  },
+  mapWrapper: {
+    width: width * 0.9,
+    height: height * 0.2175,
+    backgroundColor: "#B2B2B2",
+    marginBottom: height * 0.02,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  mapImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 8,
+  },
+  mapPlaceholder: {
+    justifyContent: "center",
+    alignItems: "center",
+    flex: 1,
+  },
+  infoSection: {
+    width: width * 0.9,
+    marginTop: height * 0.01,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: height * 0.015,
   },
-  mapImage: { flex: 1, width: '100%', height: '100%' },
-  mapPlaceholder: {
+  text: {
     fontSize: 14,
-    color: '#999',
-    textAlign: 'center',
-    marginTop: 8,
-  },
-  infoes: { width: width * 0.9, marginBottom: height * 0.05 },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: height * 0.012,
-  },
-  input: {
-    flex: 1,
-    height: height * 0.035,
-    fontSize: 14,
-    color: '#666',
+    color: "#666666",
     marginLeft: 6,
-    paddingVertical: 0,
+    fontFamily:"NotoSans-Regular"
+  },
+  link: {
+    fontSize: 14,
+    color: "#3f729b",
+    marginLeft: 6,
+    fontFamily:"NotoSans-Regular"
   },
 });

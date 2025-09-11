@@ -11,6 +11,7 @@ import { useFonts } from "expo-font";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { store } from "./src/store/store";
 import {
@@ -236,7 +237,9 @@ function RootApp() {
 export default function App() {
   return (
     <Provider store={store}>
-      <RootApp />
+      <SafeAreaProvider>
+        <RootApp />
+      </SafeAreaProvider>
     </Provider>
   );
 }

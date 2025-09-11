@@ -7,13 +7,11 @@ import {
   ActivityIndicator,
   Modal,
   Alert,
-  Platform,
 } from "react-native";
 import AuthComponent from "../../components/auth/AuthComponent";
 import AuthHeader from "../../components/auth/AuthHeader";
-import Constants from "expo-constants";
 import { WebView } from "react-native-webview";
-
+import SafeTopSpacer from "../../components/common/layout/SafeTopSpacer";
 import { useDispatch } from "react-redux";
 import {
   setAccessToken as setReduxAccess,
@@ -26,8 +24,6 @@ import {
 } from "../../utils/tokenStorage";
 
 import { navigate } from "../../utils/nav/RootNavigation";
-
-const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 export default function AuthScreen() {
   const dispatch = useDispatch();
@@ -44,9 +40,6 @@ export default function AuthScreen() {
     []
   );
 
-  /**
-   * URL에서 accessToken/refreshToken 추출 후 저장 & 이동
-   */
   const tryHandleTokensFromUrl = useCallback(
     async (url) => {
       try {
@@ -84,23 +77,12 @@ export default function AuthScreen() {
     [dispatch]
   );
 
-  /**
-   * 허용할 URL 여부 (http/https/about:blank/data:만 허용)
-   * - seosa:// 은 우리가 직접 처리
-   * - intent://, kakaokompassauth:// 등 기타 스킴은 차단(Expo Go에서 열 수 없음)
-   */
   const isHttpLike = (url) =>
     url.startsWith("http://") ||
     url.startsWith("https://") ||
     url.startsWith("about:blank") ||
     url.startsWith("data:");
 
-  /**
-   * WebView의 네비게이션 인터셉트
-   * - seosa:// => 토큰 직접 파싱(가로채고 WebView 진행 중단)
-   * - http/https/about/data => 허용
-   * - 그 외(intent://, kakaokompassauth:// 등) => 차단(무시)
-   */
   const onShouldStartLoadWithRequest = useCallback(
     (request) => {
       const { url } = request;
@@ -116,16 +98,13 @@ export default function AuthScreen() {
         return true;
       }
 
-      // intent://, kakaokompassauth://, kakao[app]:// 등은 Expo Go에서 처리 불가 → 차단
       console.log("🚫 Blocked non-http(s) scheme:", url);
       return false;
     },
     [tryHandleTokensFromUrl]
   );
 
-  /**
-   * 보조: 혹시 백엔드가 https URL에 토큰을 붙여 주는 경우까지 커버
-   */
+
   const handleNavStateChange = useCallback(
     async (navState) => {
       const { url } = navState;
@@ -155,7 +134,7 @@ export default function AuthScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={{ height: STATUSBAR_HEIGHT }} />
+      <SafeTopSpacer />
       <AuthHeader title="로그인/회원가입" />
       <AuthComponent
         onKakaoLoginPress={handleKakaoLoginPress}
@@ -165,13 +144,13 @@ export default function AuthScreen() {
       <Modal visible={showWebView} animationType="slide">
         <WebView
           source={{ uri: kakaoAuthUrl }}
-          originWhitelist={["*"]}                // 리다이렉트 폭넓게 허용
-          javaScriptEnabled                      // 명시적으로 활성화
-          domStorageEnabled                      // 스토리지 사용
-          sharedCookiesEnabled                   // SSO/쿠키 공유(안드로이드)
-          thirdPartyCookiesEnabled               // 3rd-party 쿠키 허용(안드로이드)
-          setSupportMultipleWindows={false}      // window.open 방지(한 WebView에서 처리)
-          mixedContentMode="always"              // 혼합콘텐츠 허용(보수적)
+          originWhitelist={["*"]}     
+          javaScriptEnabled                   
+          domStorageEnabled                  
+          sharedCookiesEnabled                  
+          thirdPartyCookiesEnabled             
+          setSupportMultipleWindows={false}    
+          mixedContentMode="always"          
           onNavigationStateChange={handleNavStateChange}
           onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
           onError={handleError}

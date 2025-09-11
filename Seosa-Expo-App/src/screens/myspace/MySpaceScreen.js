@@ -10,8 +10,7 @@ import MySpaceHeader from '../../components/myspace/MySpaceHeader';
 import MyBookmarkList from '../../components/myspace/MyBookmarkList';
 import MyCommentList from '../../components/myspace/MyCommentList';
 import Footer from '../../components/common/footer/Footer';
-
-const STATUSBAR_HEIGHT = Constants.statusBarHeight;
+import SafeTopSpacer from '../../components/common/layout/SafeTopSpacer';
 
 export default function MySpaceScreen() {
   const [selectedTab, setSelectedTab] = useState('bookmark');
@@ -21,7 +20,7 @@ export default function MySpaceScreen() {
   return (
     <View style={styles.container}>
       {/* 상태바 공간 확보 */}
-      <View style={{ height: STATUSBAR_HEIGHT }} />
+      <SafeTopSpacer />
 
       {/* 헤더 */}
       <MySpaceHeader

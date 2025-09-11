@@ -1,12 +1,10 @@
 // FAQ 화면
 
 import React from 'react';
-import { View, StyleSheet, Platform, Text, Dimensions } from 'react-native';
+import { View, StyleSheet, Text, Dimensions } from 'react-native';
 import AuthHeader from '../../components/auth/AuthHeader';
-import Constants from 'expo-constants';
 import FaqList from '../../components/admin/FaqList';
-
-const STATUSBAR_HEIGHT = Constants.statusBarHeight;
+import SafeTopSpacer from '../../components/common/layout/SafeTopSpacer';
 
 const FaqScreen = ({navigation}) => {
 
@@ -15,7 +13,7 @@ const FaqScreen = ({navigation}) => {
    }
   return (
     <View style={styles.container}>
-      <View style={{ height: STATUSBAR_HEIGHT }} />
+      <SafeTopSpacer />
       <AuthHeader title="FAQ/문의하기" backOnPress={handleBack} />
       <View style={styles.title}>
         <Text style={styles.titletext}>FAQ</Text>

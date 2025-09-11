@@ -1,18 +1,14 @@
 // src/screens/auth/AuthCodeScreen.js
 
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  StyleSheet,
-  Dimensions,
-  Text,
-} from "react-native";
+import { View, StyleSheet, Dimensions, Text } from "react-native";
 import AuthHeader from "../../components/auth/AuthHeader";
 import Constants from "expo-constants";
 import ShortInputComponent from "../../components/common/input/ShortInputComponent";
 import AlertComponent from "../../components/auth/AlertComponent";
 import { useSelector } from "react-redux";
 import api from "../../api/axios";
+import SafeTopSpacer from "../../components/common/layout/SafeTopSpacer";
 import { navigationRef, navigate } from "../../utils/nav/RootNavigation";
 
 const { width, height } = Dimensions.get("window");
@@ -26,13 +22,13 @@ const AuthCodeScreen = ({ navigation }) => {
   const [timer, setTimer] = useState(0);
   const [isCodeSent, setIsCodeSent] = useState(false);
 
-  const [email, setEmail]                 = useState("");
+  const [email, setEmail] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
 
-  const [sendCodeMessage,  setSendCodeMessage]  = useState("");
-  const [sendCodeError,    setSendCodeError]    = useState("");
+  const [sendCodeMessage, setSendCodeMessage] = useState("");
+  const [sendCodeError, setSendCodeError] = useState("");
   const [checkCodeMessage, setCheckCodeMessage] = useState("");
-  const [checkCodeError,   setCheckCodeError]   = useState("");
+  const [checkCodeError, setCheckCodeError] = useState("");
 
   /* ──── 타이머 카운트다운 ──── */
   useEffect(() => {
@@ -52,10 +48,13 @@ const AuthCodeScreen = ({ navigation }) => {
   }, [timer, isCodeSent]);
 
   /* ──── 언마운트 시 초기화 ──── */
-  useEffect(() => () => {
-    setTimer(0);
-    setIsCodeSent(false);
-  }, []);
+  useEffect(
+    () => () => {
+      setTimer(0);
+      setIsCodeSent(false);
+    },
+    []
+  );
 
   /* ──── 인증번호 전송 ──── */
   const handleSendVerificationCode = async () => {
@@ -149,12 +148,11 @@ const AuthCodeScreen = ({ navigation }) => {
   /* ──── UI ──── */
   return (
     <View style={styles.screen}>
-      <View style={{ height: STATUSBAR_HEIGHT }} />
+      <SafeTopSpacer />{" "}
       <AuthHeader
         title="비밀번호 재설정"
         backOnPress={() => navigation.goBack()}
       />
-
       <View style={styles.pwcontainer}>
         {/* 이메일 입력 + 전송 */}
         <ShortInputComponent

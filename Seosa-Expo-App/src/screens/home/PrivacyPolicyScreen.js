@@ -1,10 +1,8 @@
 import React from 'react';
 import { View, StyleSheet, Dimensions, Text, ScrollView, TouchableOpacity } from 'react-native';
-import Constants from "expo-constants";
 import Footer from '../../components/common/footer/Footer';
 import CloseIcon from '../../icons/close.svg';
-
-const STATUSBAR_HEIGHT = Constants.statusBarHeight;
+import SafeTopSpacer from '../../components/common/layout/SafeTopSpacer';
 const { width, height } = Dimensions.get('window');
 
 const PrivacyPolicyScreen = ({ navigation }) => {
@@ -14,7 +12,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={{ height: STATUSBAR_HEIGHT }} />
+      <SafeTopSpacer />
 
       {/* 헤더 */}
       <View style={styles.header}>

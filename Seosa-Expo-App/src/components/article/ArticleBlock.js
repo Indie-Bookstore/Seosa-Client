@@ -7,7 +7,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Text,
-  Dimensions
+  Dimensions,
 } from 'react-native';
 import CloseIcon from '../../icons/trashcan.svg';
 
@@ -68,7 +68,7 @@ const ArticleBlock = ({
   );
 };
 
-const { width, height } = Dimensions.get("window");
+const { width, height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   textBlock: {
@@ -91,17 +91,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#DDD',
   },
-  // 공통 아이콘 버튼 스타일
   iconBtn: {
     position: 'absolute',
     top: 8,
     backgroundColor: 'rgba(255,255,255,0.8)',
     borderRadius: 5,
-    minWidth : height*0.03,
-    height : height*0.03,
+    minWidth: height * 0.03,
+    height: height * 0.03,
     alignItems: 'center',
     justifyContent: 'center',
-    alignContent:'center'
+    alignContent: 'center',
   },
   deleteBtn: {
     left: 8,
@@ -111,7 +110,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
-  // 썸네일로 선택된 경우 배경색
   thumbnailSelected: {
     backgroundColor: '#487153',
   },
@@ -120,7 +118,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
   },
-  // 썸네일로 선택된 경우 글자색
   thumbnailTextSelected: {
     color: '#FFFFFF',
   },

@@ -10,7 +10,7 @@ export default function ArticleItemList({ items, onAdd, onChangeItem, onRemoveIt
     <View style={styles.container}>
       <View style={styles.titleRow}>
         <Text style={styles.titleText}>서사 모아보기</Text>
-        {items.length < 5 && (
+        {items.length < 3 && (  // ✅ 최대 3개로 제한
           <TouchableOpacity onPress={onAdd} style={styles.addBtn}>
             <Text style={styles.addBtnText}>추가</Text>
           </TouchableOpacity>

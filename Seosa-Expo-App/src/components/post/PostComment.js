@@ -15,7 +15,7 @@ import api from "../../api/axios";
 import * as Clipboard from "expo-clipboard";
 
 import BookmarkIcon from "../../icons/bookmark_green.svg";
-import BookmarkedIcon from "../../icons/bookmark-green-sellected.svg";
+import BookmarkedIcon from "../../icons/bookmark-selected.svg";
 import UploadIcon from "../../icons/upload.svg";
 import CommentIcon from "../../icons/comment_green.svg";
 import SendIcon from "../../icons/send.svg";

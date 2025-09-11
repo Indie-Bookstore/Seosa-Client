@@ -54,8 +54,8 @@ export default function ArticleItem({ item, onChange, onRemove, iconSize }) {
 
         <TextInput
           style={styles.priceInput}
-          value={String(item.price)}
-          placeholder="저자"
+          value={item.price}
+          placeholder="가격"
           onChangeText={text => onChange({ ...item, price: text })}
         />
 

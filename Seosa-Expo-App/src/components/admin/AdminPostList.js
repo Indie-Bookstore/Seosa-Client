@@ -124,7 +124,7 @@ export default function AdminPostList({ onItemPress }) {
           posts={posts.map((p) => ({
             id: p.postId,
             title: p.title,
-            image: p.thumbnailUrl
+            thumbnailUrl: `https://seosa-server.s3.ap-northeast-2.amazonaws.com${p.thumbnailUrl}`
           }))}
           isEditing={isEditing}
           selectedPosts={selectedIds}

@@ -1,9 +1,15 @@
 // components/article/ArticleEditor.js
-import React, { useState } from 'react';
+import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import ArticleBlock from './ArticleBlock';
 
-const ArticleEditor = ({ blocks, setBlocks, setFocusedIndex }) => {
+export default function ArticleEditor({
+  blocks,
+  setBlocks,
+  setFocusedIndex,
+  thumbnailIndex,
+  setThumbnailIndex,
+}) {
   // 블록 업데이트
   const updateBlock = (idx, newValue) => {
     const arr = [...blocks];
@@ -19,12 +25,11 @@ const ArticleEditor = ({ blocks, setBlocks, setFocusedIndex }) => {
       arr.splice(idx, 1);
     }
     setBlocks(arr);
-  };
-
-  // 썸네일 선택 상태
-  const [thumbnailIndex, setThumbnailIndex] = useState(null);
-  const selectThumbnail = idx => {
-    setThumbnailIndex(idx);
+    if (thumbnailIndex === idx) {
+      setThumbnailIndex(null);
+    } else if (thumbnailIndex > idx) {
+      setThumbnailIndex(thumbnailIndex - 1);
+    }
   };
 
   return (
@@ -38,13 +43,13 @@ const ArticleEditor = ({ blocks, setBlocks, setFocusedIndex }) => {
           isThumbnail={idx === thumbnailIndex}
           onChange={val => updateBlock(idx, val)}
           onFocus={() => setFocusedIndex(idx)}
-          onSelectThumbnail={() => selectThumbnail(idx)}
+          onSelectThumbnail={() => setThumbnailIndex(idx)}
           onDelete={() => deleteBlock(idx)}
         />
       ))}
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   editor: {
@@ -52,5 +57,3 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
-
-export default ArticleEditor;

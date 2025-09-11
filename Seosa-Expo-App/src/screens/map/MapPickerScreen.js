@@ -15,6 +15,7 @@ import {
 import * as Location from 'expo-location';
 import Constants from 'expo-constants';
 
+/* ───────── Kakao REST 키 ───────── */
 const kakaoKey =
   Constants.expoConfig?.extra?.kakaoRestKey ??
   process.env.EXPO_PUBLIC_KAKAO_REST_KEY;
@@ -25,7 +26,7 @@ export default function MapPickerScreen({ navigation }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  /* 1) 위치 권한 & 현재 위치 가져오기 */
+  /* 1) 위치 권한 & 현재 위치 */
   useEffect(() => {
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -38,7 +39,7 @@ export default function MapPickerScreen({ navigation }) {
     })();
   }, []);
 
-  /* 2) Kakao 키워드 검색 (장소 검색) */
+  /* 2) Kakao 키워드 검색 */
   const onSearch = async () => {
     if (!searchQuery.trim()) return Alert.alert('검색어를 입력해주세요');
     if (!location) return Alert.alert('위치 정보를 가져오는 중입니다');
@@ -47,7 +48,9 @@ export default function MapPickerScreen({ navigation }) {
     setLoading(true);
     try {
       const res = await fetch(
-        `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(searchQuery)}`,
+        `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(
+          searchQuery
+        )}`,
         { headers: { Authorization: `KakaoAK ${kakaoKey}` } }
       );
       const json = await res.json();
@@ -65,17 +68,18 @@ export default function MapPickerScreen({ navigation }) {
     }
   };
 
-  /* 3) 장소 선택 → 좌표(lat, lng) + 우편번호(zone_no) 얻어서 emit */
+  /* 3) 장소 선택 → postalCode 포함 emit */
   const selectPlace = async (p) => {
-    // 1) 우선 p.road_address?.zone_no가 있는지 확인
     let zoneNo = p.road_address?.zone_no ?? '';
 
-    // 2) p.road_address.zone_no가 없으면, 주소 검색 API로 다시 zone_no 얻기
+    /* road_address.zone_no 가 없으면 주소 검색 API로 확보 */
     if (!zoneNo) {
       try {
-        const addressQuery = p.address_name; // 예: "서울시 마포구 서교동"
+        const addressQuery = p.address_name;
         const resAddr = await fetch(
-          `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(addressQuery)}`,
+          `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(
+            addressQuery
+          )}`,
           { headers: { Authorization: `KakaoAK ${kakaoKey}` } }
         );
         const jsonAddr = await resAddr.json();
@@ -87,12 +91,12 @@ export default function MapPickerScreen({ navigation }) {
           }
         }
       } catch (e) {
-        console.error("주소 검색 중 오류:", e);
-        // 우편번호를 못 얻어도 계속 진행
+        console.error('주소 검색 중 오류:', e);
+        /* zone_no 못 얻어도 진행 */
       }
     }
 
-    // 3) DeviceEventEmitter로 mapSelect 이벤트 emit
+    /* ★ postalCode 포함하여 emit */
     DeviceEventEmitter.emit('mapSelect', {
       address: p.address_name,
       coords: { lat: parseFloat(p.y), lng: parseFloat(p.x) },
@@ -120,15 +124,12 @@ export default function MapPickerScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* 검색 결과 리스트 */}
+        {/* 검색 결과 */}
         <FlatList
           data={results}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.item}
-              onPress={() => selectPlace(item)}
-            >
+            <TouchableOpacity style={styles.item} onPress={() => selectPlace(item)}>
               <Text style={styles.title}>{item.place_name}</Text>
               <Text style={styles.address}>{item.address_name}</Text>
             </TouchableOpacity>
@@ -146,23 +147,33 @@ export default function MapPickerScreen({ navigation }) {
   );
 }
 
+/* ───────── 스타일 ───────── */
 const { width, height } = Dimensions.get('window');
 const styles = StyleSheet.create({
-  container: { flex:1, backgroundColor:'#fff', alignItems:'center' },
-  box: { flex:1, width: width * 0.9 },
-  searchBox: { flexDirection:'row', marginBottom:12 },
+  container: { flex: 1, backgroundColor: '#fff', alignItems: 'center' },
+  box: { flex: 1, width: width * 0.9 },
+  searchBox: { flexDirection: 'row', marginBottom: 12 },
   input: {
-    flex:1, borderWidth:1, borderColor:'#ccc', borderRadius:4,
-    paddingHorizontal:8, height:40,
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    height: 40,
   },
   button: {
-    marginLeft:8, paddingHorizontal:12, backgroundColor:'#e2e7e3',
-    justifyContent:'center', alignItems:'center',
+    marginLeft: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#e2e7e3',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   item: {
-    paddingVertical:12, borderBottomWidth:1, borderBottomColor:'#eee',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
-  title: { fontSize:16, color:'#000' },
-  address: { fontSize:12, color:'#666', marginTop:4 },
-  empty: { alignItems:'center', marginTop:20 },
+  title: { fontSize: 16, color: '#000' },
+  address: { fontSize: 12, color: '#666', marginTop: 4 },
+  empty: { alignItems: 'center', marginTop: 20 },
 });

@@ -44,7 +44,7 @@ const PostItem = ({ products = [] }) => {
                     numberOfLines={1}
                     ellipsizeMode="tail"
                   >
-                    {item.price}
+                    {item.price}원
                   </Text>
                 ) : null}
               </View>

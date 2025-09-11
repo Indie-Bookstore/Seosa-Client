@@ -6,7 +6,7 @@ if (typeof global.Buffer === "undefined") {
 }
 
 import React, { useState, useEffect, useRef } from "react";
-import { Animated, StyleSheet, Alert, Share } from "react-native"; // Share 추가
+import { Animated, StyleSheet, Alert, Share } from "react-native";
 import { useFonts } from "expo-font";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { NavigationContainer } from "@react-navigation/native";
@@ -51,8 +51,7 @@ const Stack = createNativeStackNavigator();
 // 딥링크 설정
 const linking = {
   prefixes: [
-    "seosa://",                  // 앱 스킴
-    "https://seosa.o-r.kr",      // 웹용 Universal Link
+    "seosa://",                
   ],
   config: {
     screens: {

@@ -79,6 +79,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginVertical: 10,
     fontSize: 16,
+    fontFamily:"NotoSansRegular"
   },
   imageBlock: {
     width: '90%',
@@ -116,7 +117,7 @@ const styles = StyleSheet.create({
   thumbnailText: {
     color: '#487153',
     fontSize: 12,
-    fontWeight: 'bold',
+    fontFamily:"NotoSansBold"
   },
   thumbnailTextSelected: {
     color: '#FFFFFF',

@@ -57,6 +57,6 @@ const styles = StyleSheet.create({
     height: Dimensions.get("window").height * 0.035,
     fontSize: Dimensions.get("window").height * 0.03,
     textAlign: "center",
-    fontFamily: "UnBatang-Bold",
+    fontFamily: "UnBatangBold",
   },
 });

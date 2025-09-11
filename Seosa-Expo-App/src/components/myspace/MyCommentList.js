@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   headertitle: {
     fontSize: height * 0.02625,
     color: "#888888",
-    fontWeight: "500",
+    fontFamily:"NotoSansRegular"
   },
   scrollContainer: {
     width: width * 0.9,

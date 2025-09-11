@@ -30,8 +30,7 @@ const PasswordInputComponent = ({
             marginLeft: Dimensions.get("window").width * 0.0027,
             marginBottom: Dimensions.get("window").height * 0.005,
             color: "#666666",
-            fontFamily: "NotoSans-Regular",
-            fontWeight: "500"
+            fontFamily: "NotoSansRegular",
           }}
         >
           {title}
@@ -60,8 +59,7 @@ const PasswordInputComponent = ({
             aspectRatio: 7.71 / 1,
             color: color,
             fontSize: 16,
-            fontFamily: "NotoSans-Regular",
-            fontWeight: "400"
+            fontFamily: "NotoSansRegular",
           }}
           placeholder={placeholder}
           placeholderTextColor={color}

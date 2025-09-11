@@ -55,12 +55,14 @@ const styles = StyleSheet.create({
     fontSize: height * 0.0125,
     color: "#888888",
     marginVertical: 4,
+    fontFamily:"NotoSansRegular"
   },
   copyright: {
     fontSize: height * 0.0125,
     color: "#888888",
     marginTop: height * 0.01,
     width: width * 0.9,
+    fontFamily:"NotoSansRegular"
   },
 });
 

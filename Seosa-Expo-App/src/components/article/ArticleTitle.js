@@ -43,8 +43,7 @@ const styles = StyleSheet.create({
   },
   titleText: {
     fontSize: height * 0.03,
-    fontWeight: "500",
-    fontFamily: "Noto Sans KR",
+    fontFamily:"NotoSansBold",
     margin: 0,
   },
 });

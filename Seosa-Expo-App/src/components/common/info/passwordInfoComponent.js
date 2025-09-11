@@ -54,7 +54,8 @@ const styles = StyleSheet.create({
       paddingVertical : 5
    },
    text : {
-      marginLeft : width *0.01
+      marginLeft : width *0.01,
+      fontFamily:"NotoSansRegular"
    }
 });
 

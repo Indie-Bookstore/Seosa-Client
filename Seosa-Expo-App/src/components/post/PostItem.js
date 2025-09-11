@@ -65,7 +65,6 @@ const PostItem = ({ products = [] }) => {
   );
 };
 
-/* ───── 스타일 (변경 없음) ───── */
 const styles = StyleSheet.create({
   container: {
     width: width,
@@ -84,7 +83,7 @@ const styles = StyleSheet.create({
     fontSize: height * 0.023,
     color: "#666666",
     fontWeight: "500",
-    fontFamily: "Noto Sans",
+    fontFamily: "NotoSansMedium",
   },
   item: {
     width: width * 0.9,
@@ -107,14 +106,17 @@ const styles = StyleSheet.create({
     fontSize: height * 0.02,
     fontWeight: 500,
     marginBottom: height * 0.005,
+    fontFamily: "NotoSansMedium",
   },
   item_writer: {
     color: "#888888",
     fontSize: height * 0.015,
+    fontFamily: "NotoSansRegular",
   },
   item_review: {
     color: "#888888",
     fontSize: height * 0.017,
+    fontFamily: "NotoSansRegular",
   },
   line: {
     width: width * 0.9,

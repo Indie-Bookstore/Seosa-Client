@@ -19,7 +19,7 @@ const AlertComponent = ({ description, isError }) => {
           color: isError ? "#F04438" : "#2ECC71", // 에러는 빨간색, 성공은 녹색
           fontSize: Dimensions.get("window").height * 0.0125,
           textAlign: "center",
-          fontFamily: "NotoSans-Regular",
+          fontFamily: "NotoSansRegular",
           fontWeight: "400",
         }}
       >

@@ -51,9 +51,7 @@ const Stack = createNativeStackNavigator();
 
 // 딥링크 설정
 const linking = {
-  prefixes: [
-    "seosa://",                
-  ],
+  prefixes: ["seosa://"],
   config: {
     screens: {
       Home: "home",
@@ -138,11 +136,11 @@ function RootApp() {
 
   // 폰트 로드
   const [fontsLoaded] = useFonts({
-    "NotoSans-Regular": require("./assets/fonts/NotoSans-Regular.ttf"),
-    "NotoSans-Bold": require("./assets/fonts/NotoSans-Bold.ttf"),
-    "NotoSans-Medium": require("./assets/fonts/NotoSans-Medium.ttf"),
-    "UnBatang": require("./assets/fonts/UnBatang.ttf"),
-    "UnBatang-Bold": require("./assets/fonts/UnBatangBold.ttf"),
+    NotoSansRegular: require("./assets/fonts/NotoSans-Regular.ttf"),
+    NotoSansBold: require("./assets/fonts/NotoSans-Bold.ttf"),
+    NotoSansMedium: require("./assets/fonts/NotoSans-Medium.ttf"),
+    UnBatang: require("./assets/fonts/UnBatang.ttf"),
+    UnBatangBold: require("./assets/fonts/UnBatangBold.ttf"),
   });
 
   // 최소 스플래시 시간

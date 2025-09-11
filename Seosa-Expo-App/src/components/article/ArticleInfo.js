@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     width: width * 0.9,
     fontSize: height * 0.023,
     color: '#666666',
-    fontWeight: '500',
+    fontFamily:"NotoSansRegular",
     marginVertical: height * 0.015,
   },
   map: {
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     marginBottom: height * 0.015,
   },
   mapImage: { flex: 1, width: '100%', height: '100%' },
-  mapPlaceholder: { fontSize: 14, color: '#999', textAlign: 'center', marginTop: 8 },
+  mapPlaceholder: { fontSize: 14, color: '#999', textAlign: 'center', marginTop: 8, fontFamily:"NotoSansRegular" },
   infoes: { width: width * 0.9, marginBottom: height * 0.05 },
   row: {
     flexDirection: 'row',
@@ -174,5 +174,6 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     paddingVertical: 0,
     textAlignVertical: 'center',
+    fontFamily:"NotoSansRegular"
   },
 });

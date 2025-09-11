@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     left: 5,
     color: "#FFF",
     fontSize: height * 0.0125,
-    fontWeight: "bold",
+    fontFamily:"NotoSansBold",
     width: "90%",
   },
   radioButton: {

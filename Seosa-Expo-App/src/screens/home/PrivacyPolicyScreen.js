@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: width * 0.055,
     color: "#487153",
-    fontFamily: "UnBatang-Bold",
+    fontFamily: "UnBatangBold",
     textAlign: "center",
     marginLeft:width*0.02
   },
@@ -112,14 +112,14 @@ const styles = StyleSheet.create({
     color: "#666666",
     marginTop: 20,
     marginBottom: 8,
-    fontFamily: "NotoSans-Medium",
+    fontFamily: "NotoSansMedium",
   },
   text: {
     fontSize: width * 0.038,
     color: "#666666",
     lineHeight: 22,
     marginBottom: 8,
-    fontFamily: "NotoSans-Regular",
+    fontFamily: "NotoSansRegular",
   },
 });
 

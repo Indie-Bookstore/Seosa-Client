@@ -97,12 +97,14 @@ const styles = StyleSheet.create({
     fontSize: height * 0.02,
     fontWeight: '500',
     color: '#000',
+    fontFamily:"NotoSansRegular"
   },
   removeBtn: { marginLeft: width * 0.02 },
   priceInput: {
     fontSize: height * 0.015,
     color: '#888',
     marginBottom: height * 0.005,
+    fontFamily:"NotoSansRegular"
   },
-  reviewInput: { fontSize: height * 0.017, color: '#888', flexShrink: 1 },
+  reviewInput: { fontFamily:"NotoSansRegular", fontSize: height * 0.017, color: '#888', flexShrink: 1 },
 });

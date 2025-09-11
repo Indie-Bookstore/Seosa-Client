@@ -144,10 +144,12 @@ const styles = StyleSheet.create({
   menuText: {
     fontSize: 14,
     color: "#333",
+    fontFamily:"NotoSansRegular"
   },
   logoutText: {
     color: "#FF3333",
     fontWeight: "bold",
+    fontFamily:"NotoSansBold"
   },
 });
 

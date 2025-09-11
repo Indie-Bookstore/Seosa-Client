@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
     color: "#666666",
     paddingTop: height * 0.005,
     paddingLeft: height * 0.005,
-    fontFamily:"NotoSans-Regular"
+    fontFamily:"NotoSansRegular"
   },
   box: {
     backgroundColor: "#E2E7E3",
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     fontSize: height * 0.018,
     width: width * 0.8,
     color: "#666666",
-    fontFamily:"NotoSans-Regular"
+    fontFamily:"NotoSansRegular"
   },
   highlight: {
    fontSize: height * 0.018,

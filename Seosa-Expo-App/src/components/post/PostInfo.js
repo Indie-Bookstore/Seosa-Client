@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   title_text: {
     fontSize: height * 0.023,
     color: "#666666",
-    fontFamily: "NotoSans-Regular",
+    fontFamily: "NotoSansRegular",
   },
   mapWrapper: {
     width: width * 0.9,
@@ -187,12 +187,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666666",
     marginLeft: 6,
-    fontFamily:"NotoSans-Regular"
+    fontFamily:"NotoSansRegular"
   },
   link: {
     fontSize: 14,
     color: "#3f729b",
     marginLeft: 6,
-    fontFamily:"NotoSans-Regular"
+    fontFamily:"NotoSansRegular"
   },
 });

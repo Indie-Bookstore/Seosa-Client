@@ -46,8 +46,7 @@ const SmallButtonComponent = ({
             fontSize: Dimensions.get("window").height * 0.016,
             width: Dimensions.get("window").width * 0.1,
             textAlign: 'center',
-            fontFamily: "NotoSans-Medium",
-            fontWeight: "600",
+            fontFamily: "NotoSansMedium",
             opacity: disabled ? 0.6 : 1
           }}
         >

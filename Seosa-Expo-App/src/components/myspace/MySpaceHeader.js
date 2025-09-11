@@ -17,6 +17,7 @@ import Bookmark from "../../icons/bookmark.svg";
 import Comment from "../../icons/comment.svg";
 import BookmarkSelected from "../../icons/bookmark-selected.svg";
 import CommentSelected from "../../icons/comment-selected.svg";
+import ProfileIcon from "../../icons/profile.svg"; // ✅ 기본 아이콘
 
 import api from "../../api/axios";
 import { logout } from "../../utils/logout"; // ★ 공통 로그아웃 함수
@@ -41,7 +42,7 @@ export default function MySpaceHeader({
       { text: "아니오", style: "cancel" },
       {
         text: "예",
-        onPress: () => logout(), 
+        onPress: () => logout(),
       },
     ]);
   };
@@ -58,7 +59,7 @@ export default function MySpaceHeader({
           onPress: async () => {
             try {
               await api.delete("/user"); // 서버 탈퇴
-              await logout(); 
+              await logout();
             } catch (err) {
               console.error("회원 탈퇴 실패:", err);
               Alert.alert("오류", "회원 탈퇴에 실패했습니다.");
@@ -71,6 +72,9 @@ export default function MySpaceHeader({
 
   /* 프로필 수정 화면 이동 */
   const handleEdit = () => navigate("EditProfile");
+
+  // 썸네일 한 변(정사각) 크기
+  const THUMB_SIZE = height * 0.16625;
 
   return (
     <View style={styles.container}>
@@ -89,9 +93,20 @@ export default function MySpaceHeader({
       <View style={styles.profileContainer}>
         <View style={styles.profile}>
           {profileImage ? (
-            <Image source={{ uri: profileImage }} style={styles.image} />
+            <Image
+              source={{ uri: profileImage }}
+              style={[styles.image, { height: THUMB_SIZE, width: THUMB_SIZE }]}
+            />
           ) : (
-            <View style={styles.image} />
+            <View
+              style={[
+                styles.image,
+                styles.imageFallback, 
+                { height: THUMB_SIZE, width: THUMB_SIZE },
+              ]}
+            >
+              <ProfileIcon width={THUMB_SIZE * 0.6} height={THUMB_SIZE * 0.6} />
+            </View>
           )}
           <TouchableOpacity style={styles.editbtn} onPress={handleEdit}>
             <EditBtn width={(size * 8) / 12} height={(size * 8) / 12} />
@@ -174,10 +189,12 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   image: {
-    height: height * 0.16625,
-    width: height * 0.16625,
     backgroundColor: "#FFFFFF",
     borderRadius: 100,
+  },
+  imageFallback: {
+    justifyContent: "center",
+    alignItems: "center",
   },
   editbtn: {
     position: "absolute",
@@ -202,9 +219,9 @@ const styles = StyleSheet.create({
   },
   nickname: {
     color: "#FFFFFF",
-    fontSize: height * 0.023,
-    fontWeight: "600",
+    fontSize: height * 0.025,
     width: width * 0.125,
+    fontFamily: "NotoSansBold",
   },
   nicknameinput: { color: "#FFFFFF", fontSize: height * 0.02 },
 

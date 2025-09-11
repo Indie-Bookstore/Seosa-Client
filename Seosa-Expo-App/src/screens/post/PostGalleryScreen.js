@@ -176,14 +176,14 @@ const styles = StyleSheet.create({
     fontSize: height * 0.045,
     color: "#487153",
     textAlign: "center",
-    fontFamily: "Unbatang-Bold",
+    fontFamily: "UnbatangBold",
   },
   rightline: { height: 2, backgroundColor: "#487153", width: width * 0.6 },
   leftline: { height: 2, backgroundColor: "#487153", width: width * 0.35 },
   subtext: {
     fontSize: height * 0.017,
     color: "#487153",
-    fontFamily: "Unbatang-Bold",
+    fontFamily: "UnbatangBold",
   },
   cardWrapper: { marginBottom: 20, alignSelf: "center" },
   fab: {

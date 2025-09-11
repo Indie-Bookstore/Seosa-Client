@@ -67,14 +67,14 @@ const styles = StyleSheet.create({
   },
   questionText: {
     fontSize: height*0.017,
-    fontWeight: "bold",
+    fontFamily:"NotoSansBold",
     color: "#333",
     marginLeft: width*0.01
   },
   answerBox: {
     borderWidth: 1,
     borderColor: "#E1E1E1",
-    borderRadius: 8, // 둥근 테두리
+    borderRadius: 8, 
     backgroundColor: "#FFFBEA",
     marginTop:height*0.01,
     minHeight: height*0.04125,
@@ -86,6 +86,7 @@ const styles = StyleSheet.create({
   answer: {
     fontSize: height*0.015,
     color: "#666666",
+    fontFamily:"NotoSansRegular"
   },
 });
 

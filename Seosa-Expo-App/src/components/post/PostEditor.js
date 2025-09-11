@@ -24,7 +24,6 @@ const PostEditor = ({ nickname = "", profileUrl = "", userRole = "" }) => {
   );
 };
 
-/* ───── 스타일 (변경 없음) ───── */
 const styles = StyleSheet.create({
   container: {
     width: width,
@@ -38,10 +37,12 @@ const styles = StyleSheet.create({
     color: "#487153",
     marginTop: height * 0.01,
     marginBottom: height * 0.005,
+    fontFamily:"NotoSansRegular"
   },
   nickname: {
     fontSize: height * 0.018,
     fontWeight: 500,
+    fontFamily:"NotoSansMedium"
   },
 });
 

@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
    textAlign: "center",
    alignContent:"center",
    fontSize:height*0.02125,
-   fontFamily:"NotoSans-Regular"
+   fontFamily:"NotoSansRegular"
   },
   description: {
    textAlign: "center",
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
    fontSize:height*0.015,
    marginTop:height*0.05875,
    color:"#487153",
-   fontFamily:"NotoSans-Regular"
+   fontFamily:"NotoSansRegular"
   },
   spacer: {
     height: height * 0.01,

@@ -18,9 +18,10 @@ import Write from "../../icons/write.svg";
 import BookmarkSelected from "../../icons/bookmark-selected.svg";
 import CommentSelected from "../../icons/comment-selected.svg";
 import WriteSelected from "../../icons/write-selected.svg";
+import ProfileIcon from "../../icons/profile.svg";
 
 import api from "../../api/axios";
-import { logout } from "../../utils/logout"; // ★ 공통 로그아웃
+import { logout } from "../../utils/logout";
 
 const { width, height } = Dimensions.get("window");
 const size = width * 0.067;
@@ -41,8 +42,8 @@ export default function AdminMySpaceHeader({
     ]);
   };
 
-    /* FAQ 화면 이동 */
-    const handleFaq = () => navigate("FAQ");
+  /* FAQ 화면 이동 */
+  const handleFaq = () => navigate("FAQ");
 
   /* 회원 탈퇴 */
   const handleWithdraw = () => {
@@ -69,6 +70,8 @@ export default function AdminMySpaceHeader({
 
   const handleEditProfile = () => navigate("EditProfile");
 
+  const THUMB_SIZE = height * 0.16625;
+
   return (
     <View style={styles.container}>
       <View style={styles.title}>
@@ -85,9 +88,20 @@ export default function AdminMySpaceHeader({
       <View style={styles.profileContainer}>
         <View style={styles.profile}>
           {profileImage ? (
-            <Image source={{ uri: profileImage }} style={styles.image} />
+            <Image
+              source={{ uri: profileImage }}
+              style={[styles.image, { height: THUMB_SIZE, width: THUMB_SIZE }]}
+            />
           ) : (
-            <View style={styles.image} />
+            <View
+              style={[
+                styles.image,
+                styles.imageFallback,
+                { height: THUMB_SIZE, width: THUMB_SIZE },
+              ]}
+            >
+              <ProfileIcon width={THUMB_SIZE * 0.6} height={THUMB_SIZE * 0.6} />
+            </View>
           )}
           <TouchableOpacity style={styles.editbtn} onPress={handleEditProfile}>
             <EditBtn width={(size * 8) / 12} height={(size * 8) / 12} />
@@ -129,7 +143,7 @@ export default function AdminMySpaceHeader({
       {menuVisible && (
         <View style={styles.menu}>
           <TouchableOpacity style={styles.menuItem} onPress={handleFaq}>
-                      <Text style={styles.menuText}>FAQ / 문의하기</Text>
+            <Text style={styles.menuText}>FAQ / 문의하기</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
             <Text style={[styles.menuText, styles.logoutText]}>로그아웃</Text>
@@ -164,7 +178,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: width * 0.067,
     marginLeft: width * 0.05,
-    fontFamily: "UnBatang-Bold",
+    fontFamily: "UnBatangBold",
   },
   dotbtn: { marginRight: width * 0.05 },
 
@@ -176,10 +190,12 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   image: {
-    height: height * 0.16625,
-    width: height * 0.16625,
     backgroundColor: "#FFFFFF",
     borderRadius: 100,
+  },
+  imageFallback: {
+    justifyContent: "center",
+    alignItems: "center",
   },
   editbtn: {
     position: "absolute",
@@ -204,7 +220,7 @@ const styles = StyleSheet.create({
   nickname: {
     color: "#FFFFFF",
     fontSize: height * 0.023,
-    fontFamily:"NotoSans-Regular",
+    fontFamily: "NotoSansRegular",
     width: width * 0.125,
   },
   nicknameinput: { color: "#FFFFFF", fontSize: height * 0.02 },
@@ -246,6 +262,6 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   menuItem: { paddingVertical: 12, paddingHorizontal: 15 },
-  menuText: { fontSize: 14, color: "#333", fontFamily:"NotoSans-Regular" },
-  logoutText: { color: "#FF3333", fontFamily:"NotoSans-Regular"},
+  menuText: { fontSize: 14, color: "#333", fontFamily: "NotoSansRegular" },
+  logoutText: { color: "#FF3333", fontFamily: "NotoSansRegular" },
 });

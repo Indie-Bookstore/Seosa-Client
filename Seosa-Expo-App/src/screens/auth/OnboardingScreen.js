@@ -111,6 +111,7 @@ const styles = StyleSheet.create({
   header: {
     fontSize: height * 0.03,
     marginBottom: height * 0.02,
+    fontFamily:"NotoSansRegular"
   },
   input: {
     width: '80%',

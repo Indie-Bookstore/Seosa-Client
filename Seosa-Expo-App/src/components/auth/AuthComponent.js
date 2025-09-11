@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
   },
   resettext: {
     color: "#666666",
-    fontFamily: "NotoSans-Regular",
+    fontFamily: "NotoSansRegular",
     fontSize: height * 0.015,
   },
 });

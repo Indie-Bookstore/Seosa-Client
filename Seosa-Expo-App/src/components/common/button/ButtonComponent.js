@@ -51,8 +51,7 @@ const ButtonComponent = ({ btnType, description, onPress }) => {
             fontSize: Dimensions.get("window").height * 0.018,
             width: Dimensions.get("window").width * 0.72,
             textAlign:'center',
-            fontFamily:"NotoSans-Medium",
-            fontWeight:"600"
+            fontFamily:"NotoSansMedium",
           }}
         >
           {description}

@@ -40,12 +40,12 @@ const styles = StyleSheet.create({
   cancel: {
     color: '#888888',
     fontSize: height * 0.02,
-    fontWeight: '600',
+    fontFamily:"NotoSansRegular"
   },
   submit: {
     color: '#487153',
     fontSize: height * 0.02,
-    fontWeight: '600',
+    fontFamily:"NotoSansRegular"
   },
 });
 

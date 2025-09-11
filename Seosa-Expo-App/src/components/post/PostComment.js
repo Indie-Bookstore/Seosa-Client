@@ -274,13 +274,13 @@ const styles = StyleSheet.create({
   title_text: {
     fontSize: height * 0.023,
     color: "#666",
-    fontWeight: "500",
+    fontFamily:"NotoSansMedium",
     marginRight: width * 0.02,
   },
   title_count: {
     fontSize: height * 0.023,
     color: "#9EB3A4",
-    fontWeight: "500",
+    fontFamily:"NotoSansRegular",
   },
   comment_input: {
     flexDirection: "row",
@@ -312,11 +312,17 @@ const styles = StyleSheet.create({
   },
   commentContent: { marginLeft: width * 0.03, flex: 1 },
   comment_up: { height: PROFILE_SIZE },
-  nickname: { fontSize: height * 0.018, fontWeight: "500" },
-  date: { fontSize: height * 0.014, color: "#999", marginTop: 5 },
+  nickname: { fontSize: height * 0.018, fontFamily: "NotoSansRegular" },
+  date: {
+    fontSize: height * 0.014,
+    color: "#999",
+    marginTop: 5,
+    fontFamily: "NotoSansRegular",
+  },
   commentText: {
     fontSize: height * 0.018,
     color: "#333",
+    fontFamily: "NotoSansRegular",
     lineHeight: height * 0.025,
     marginTop: height * 0.01,
   },

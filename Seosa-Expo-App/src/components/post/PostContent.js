@@ -48,7 +48,8 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: 16,
     lineHeight: 24,
-    width : width*0.9
+    width : width*0.9,
+    fontFamily:"NotoSansRegular"
   },
   image: {
     width: width - 32,

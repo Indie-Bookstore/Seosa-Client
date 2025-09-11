@@ -53,8 +53,7 @@ const ShortButtonComponent = ({
             fontSize: Dimensions.get("window").height * 0.0175,
             width: Dimensions.get("window").width * 0.175,
             textAlign: 'center',
-            fontFamily: "NotoSans-Medium",
-            fontWeight: "600",
+            fontFamily: "NotoSansMedium",
             opacity: disabled ? 0.6 : 1
           }}
         >

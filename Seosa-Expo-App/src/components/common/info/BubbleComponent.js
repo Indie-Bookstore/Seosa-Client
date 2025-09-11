@@ -79,6 +79,7 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     lineHeight: 16,
     includeFontPadding: false,
+    fontFamily:"NotoSansRegular"
   }
 });
 

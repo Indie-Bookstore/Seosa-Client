@@ -31,12 +31,12 @@ const ShortInputComponent = ({
             marginLeft: W * 0.0027,
             marginBottom: H * 0.005,
             color: "#666666",
-            fontFamily: "NotoSans-Regular",
+            fontFamily: "NotoSansRegular",
           }}
         >
           {title}
           {required && (
-            <Text style={{ color: "red", fontFamily: "NotoSans-Regular" }}>
+            <Text style={{ color: "red", fontFamily: "NotoSansRegular" }}>
               *
             </Text>
           )}
@@ -71,7 +71,7 @@ const ShortInputComponent = ({
               height:W*0.9*0.13,
               color,
               fontSize: 16,
-              fontFamily: "NotoSans-Regular",
+              fontFamily: "NotoSansRegular",
               paddingRight: 60, // 오른쪽 콘텐츠 영역 확보
             }}
             placeholder={placeholder}

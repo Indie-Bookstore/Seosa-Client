@@ -72,8 +72,7 @@ const styles = StyleSheet.create({
   },
   titleText: {
     color: "#666666",
-    fontFamily: "NotoSans-Regular",
-    fontWeight: "500",
+    fontFamily: "NotoSansRegular",
     lineHeight: Dimensions.get("window").height * 0.0225,
     marginRight: 4,
   },
@@ -100,8 +99,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     width: Dimensions.get("window").width * 0.85,
     aspectRatio: 7.71 / 1,
-    fontFamily: "NotoSans-Regular",
-    fontWeight: "400",
+    fontFamily: "NotoSansRegular",
     includeFontPadding: false,
   },
 });

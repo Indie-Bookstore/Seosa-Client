@@ -1,8 +1,5 @@
 import React, { useState } from "react";
-import {
-  View,
-  StyleSheet,
-} from "react-native";
+import { View, StyleSheet } from "react-native";
 import { useSelector } from "react-redux";
 import { navigate } from "../../utils/nav/RootNavigation";
 import SafeTopSpacer from "../../components/common/layout/SafeTopSpacer";
@@ -13,9 +10,7 @@ import AdminPostList from "../../components/admin/AdminPostList";
 import MyBookmarkList from "../../components/myspace/MyBookmarkList";
 import MyCommentList from "../../components/myspace/MyCommentList";
 
-
 export default function AdminMySpaceScreen() {
-  /* 모든 훅 선언 */
   const [selectedTab, setSelectedTab] = useState("write");
   const user = useSelector((state) => state.auth.user);
   const profileImage = user?.profileImage || null;
@@ -58,5 +53,5 @@ export default function AdminMySpaceScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#487153", alignItems: "center" },
-  content: { flex: 1, width: "100%", backgroundColor:"#FFFEFB" },
+  content: { flex: 1, width: "100%", backgroundColor: "#FFFEFB" },
 });

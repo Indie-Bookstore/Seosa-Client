@@ -31,10 +31,12 @@ const styles = StyleSheet.create({
       textAlign:"center",
       marginBottom :height*0.015,
       fontWeight:500,
+      fontFamily:"NotoSansMedium"
 
    },
    date: {
       fontSize:height*0.016,
+      fontFamily:"NotoSansRegular",
       color:"white",
       width:width,
       textAlign:"center"

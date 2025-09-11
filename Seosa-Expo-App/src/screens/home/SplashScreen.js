@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     fontSize: height * 0.02,
     color: "#487153",
     marginTop: height * 0.02,
-    fontFamily:"Unbatang-Bold"
+    fontFamily: "UnBatangBold",
   },
 });
 

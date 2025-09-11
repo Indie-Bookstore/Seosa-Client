@@ -73,12 +73,13 @@ const styles = StyleSheet.create({
   meta: {
     color: '#E6E6E6',
     fontSize: height * 0.02,
+    fontFamily:"NotoSansRegular",
     marginBottom: height * 0.01,
   },
   title: {
     color: 'white',
     fontSize: height * 0.025,
-    fontWeight: 'bold',
+    fontFamily:"NotoSansBold"
   },
 });
 

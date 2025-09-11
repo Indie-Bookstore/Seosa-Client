@@ -150,6 +150,7 @@ const styles = StyleSheet.create({
     fontSize: height * 0.02625,
     color: "#888888",
     fontWeight: "500",
+    fontFamily:"NotoSansBold"
   },
   scrollContainer: {
     width: width * 0.9,

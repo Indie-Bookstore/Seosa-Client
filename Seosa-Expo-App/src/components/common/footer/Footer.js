@@ -126,9 +126,14 @@ const styles = StyleSheet.create({
     fontSize: height * 0.013,
     marginTop: height * 0.0025,
     marginBottom: height * 0.0025,
+    fontFamily:"NotoSansRegular"
   },
   selectedText: {
     color: '#487153',
+    fontSize: height * 0.013,
+    marginTop: height * 0.0025,
+    marginBottom: height * 0.0025,
+    fontFamily:"NotoSansRegular"
   },
 });
 

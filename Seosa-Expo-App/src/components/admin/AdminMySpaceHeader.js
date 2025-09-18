@@ -100,7 +100,7 @@ export default function AdminMySpaceHeader({
                 { height: THUMB_SIZE, width: THUMB_SIZE },
               ]}
             >
-              <ProfileIcon width={THUMB_SIZE * 0.6} height={THUMB_SIZE * 0.6} />
+              <ProfileIcon width={THUMB_SIZE} height={THUMB_SIZE} />
             </View>
           )}
           <TouchableOpacity style={styles.editbtn} onPress={handleEditProfile}>

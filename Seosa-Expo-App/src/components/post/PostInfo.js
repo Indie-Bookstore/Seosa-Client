@@ -1,86 +1,80 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Dimensions, Image, ActivityIndicator, Alert } from "react-native";
-import LocationIcon from "../../icons/location.svg";
-import ClockIcon from "../../icons/clock.svg";
-import PhoneIcon from "../../icons/phone.svg";
-import InstaIcon from "../../icons/insta.svg";
-import Constants from "expo-constants";
+import React, { useMemo } from 'react';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { WebView } from 'react-native-webview';
+import LocationIcon from '../../icons/location.svg';
+import ClockIcon from '../../icons/clock.svg';
+import PhoneIcon from '../../icons/phone.svg';
+import InstaIcon from '../../icons/insta.svg';
 
-const { width, height } = Dimensions.get("window");
+const { width, height } = Dimensions.get('window');
 const ICON_SIZE = height * 0.02;
 
-// Kakao REST API Key
-const kakaoKey =
-  Constants.expoConfig?.extra?.kakaoRestKey ??
-  process.env.EXPO_PUBLIC_KAKAO_REST_KEY;
+const KAKAO_JS_KEY = process.env.EXPO_PUBLIC_KAKAO_JS_KEY;
 
 export default function PostInfo({ info }) {
-  const [coords, setCoords] = useState(null);  // { lat, lng }
-  const [loadingMap, setLoadingMap] = useState(false);
-
   const {
-    postalCode,
     address,
     detailedAddress,
+    lat,
+    lng,
     openDays,
     openHours,
     phoneNumber,
     instagramLink,
-  } = info;
+  } = info ?? {};
 
-  /* 1) mount 시 postalCode → 좌표 변환 */
-  useEffect(() => {
-    const fetchCoordsByPostal = async () => {
-      if (!postalCode) return;  // postalCode 없으면 아무것도 안 함
-      if (!kakaoKey) {
-        Alert.alert("API Key 오류", "kakaoRestKey가 설정되지 않았습니다");
-        return;
-      }
+  // 숫자 강제 + coords 통일
+  const coords = useMemo(() => {
+    const nlat = Number(lat);
+    const nlng = Number(lng);
+    if (Number.isFinite(nlat) && Number.isFinite(nlng)) return { lat: nlat, lng: nlng };
+    return null;
+  }, [lat, lng]);
 
-      setLoadingMap(true);
-      try {
-        const query = postalCode || address;
-        const res = await fetch(`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(query)}`,{ headers: { Authorization: `KakaoAK ${kakaoKey}` } }); 
-        const json = await res.json();
+  const htmlContent = useMemo(() => {
+    // 좌표나 JS 키가 없으면 렌더하지 않음
+    if (!coords || !KAKAO_JS_KEY) return null;
 
-        if (Array.isArray(json.documents) && json.documents.length > 0) {
-          // 첫 번째 결과 사용
-          const doc = json.documents[0];
-          // 문서의 x(경도), y(위도)
-          const lat = parseFloat(doc.y);
-          const lng = parseFloat(doc.x);
-          setCoords({ lat, lng });
-        } else {
-          // 결과가 없으면 폴백
-          Alert.alert("지도 불러오기 실패", "해당 우편번호로 지도를 찾을 수 없습니다.");
-        }
-      } catch (e) {
-        console.error(e);
-        Alert.alert("지도 불러오기 오류", e.message);
-      } finally {
-        setLoadingMap(false);
-      }
-    };
+    return `<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  html, body { margin:0; padding:0; height:100%; }
+  #map { position:absolute; top:0; left:0; right:0; bottom:0; }
+  body { position:relative; }
+</style>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}"></script>
+</head>
+<body>
+<div id="map"></div>
+<script>
+  kakao.maps.load(function() {
+    var center = new kakao.maps.LatLng(${coords.lat}, ${coords.lng});
+    var mapContainer = document.getElementById('map');
+    var map = new kakao.maps.Map(mapContainer, {
+      center: center,
+      level: 4
+    });
+    map.setDraggable(false);
+    map.setZoomable(false);
+    var marker = new kakao.maps.Marker({ position: center });
+    marker.setMap(map);
 
-    fetchCoordsByPostal();
-  }, [postalCode]);
+    function recenter() {
+      map.relayout();
+      map.setCenter(center);
+    }
 
-  /* 2) Static Map URL 생성 */
-  const getStaticMapUrl = () => {
-    if (!coords) return null;
-    const zoom  = 3; // 지도의 확대/축소 레벨 (0~14, 숫자 낮을수록 더 멀리)
-    const pxW   = Math.floor(width * 0.9);          // 이미지 가로(px)
-    const pxH   = Math.floor(height * 0.2175);      // 이미지 세로(px)
-    const { lat, lng } = coords;
-    return `https://dapi.kakao.com/v2/maps/sdk/staticmap?appkey=${kakaoKey}` +
-           `&center=${lng},${lat}` +
-           `&level=${zoom}` +
-           `&w=${pxW}` +
-           `&h=${pxH}` +
-           `&markers=${lng},${lat}`; 
-  };
-
-  const staticMapUrl = getStaticMapUrl();
+    recenter();
+    setTimeout(recenter, 50);
+    setTimeout(recenter, 150);
+    window.addEventListener('resize', recenter);
+  });
+</script>
+</body>
+</html>`;
+  }, [coords?.lat, coords?.lng]);
 
   return (
     <View style={styles.container}>
@@ -88,48 +82,42 @@ export default function PostInfo({ info }) {
         <Text style={styles.title_text}>서점 정보</Text>
       </View>
 
-      {/* 3) Static Map 이미지 */}
       <View style={styles.mapWrapper}>
-        {loadingMap ? (
-          <ActivityIndicator size="large" color="#487153" />
-        ) : staticMapUrl ? (
-          <Image
-            source={{ uri: staticMapUrl }}
-            style={styles.mapImage}
-            resizeMode="cover"
+        {htmlContent ? (
+          <WebView
+            originWhitelist={['*']}
+            source={{ html: htmlContent }}
+            style={styles.mapWebView}
+            javaScriptEnabled
+            domStorageEnabled
+            scrollEnabled={false}
           />
         ) : (
           <View style={styles.mapPlaceholder}>
-            <Text style={{ color: "#999", fontFamily: "NotoSans-Regular" }}>지도 정보 없음</Text>
+            <Text style={{ color: '#999', fontFamily: 'NotoSansRegular' }}>
+              지도 정보 없음
+            </Text>
           </View>
         )}
       </View>
 
-      {/* 4) 나머지 서점 정보 */}
+      {/* 텍스트 정보 */}
       <View style={styles.infoSection}>
-        {/* 주소 */}
         <View style={styles.row}>
           <LocationIcon width={ICON_SIZE} height={ICON_SIZE} />
-          <Text style={styles.text}>
-            {address} {detailedAddress}
-          </Text>
+          <Text style={styles.text}>{address} {detailedAddress}</Text>
         </View>
 
-        {/* 영업일/영업시간 */}
         <View style={styles.row}>
           <ClockIcon width={ICON_SIZE} height={ICON_SIZE} />
-          <Text style={styles.text}>
-            {openDays} / {openHours}
-          </Text>
+          <Text style={styles.text}>{openDays} / {openHours}</Text>
         </View>
 
-        {/* 전화번호 */}
         <View style={styles.row}>
           <PhoneIcon width={ICON_SIZE} height={ICON_SIZE} />
           <Text style={styles.text}>{phoneNumber}</Text>
         </View>
 
-        {/* 인스타 링크 */}
         <View style={styles.row}>
           <InstaIcon width={ICON_SIZE} height={ICON_SIZE} />
           <Text style={styles.link}>인스타그램: {instagramLink}</Text>
@@ -140,59 +128,31 @@ export default function PostInfo({ info }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    width: width,
-    backgroundColor: "#F4F4F4",
-    alignItems: "center",
-  },
+  container: { width, backgroundColor: '#F4F4F4', alignItems: 'center' },
   title: {
     width: width * 0.9,
     height: height * 0.06,
     marginTop: height * 0.01,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
-  title_text: {
-    fontSize: height * 0.023,
-    color: "#666666",
-    fontFamily: "NotoSansRegular",
-  },
+  title_text: { fontSize: height * 0.023, color: '#666666', fontFamily: 'NotoSansRegular' },
+
   mapWrapper: {
     width: width * 0.9,
     height: height * 0.2175,
-    backgroundColor: "#B2B2B2",
+    backgroundColor: '#B2B2B2',
     marginBottom: height * 0.02,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  mapImage: {
-    width: "100%",
-    height: "100%",
+    overflow: 'hidden',
     borderRadius: 8,
+    position: 'relative',
   },
-  mapPlaceholder: {
-    justifyContent: "center",
-    alignItems: "center",
-    flex: 1,
+  mapWebView: {
+    ...StyleSheet.absoluteFillObject,
   },
-  infoSection: {
-    width: width * 0.9,
-    marginTop: height * 0.01,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: height * 0.015,
-  },
-  text: {
-    fontSize: 14,
-    color: "#666666",
-    marginLeft: 6,
-    fontFamily:"NotoSansRegular"
-  },
-  link: {
-    fontSize: 14,
-    color: "#3f729b",
-    marginLeft: 6,
-    fontFamily:"NotoSansRegular"
-  },
+  mapPlaceholder: { justifyContent: 'center', alignItems: 'center', flex: 1 },
+
+  infoSection: { width: width * 0.9, marginTop: height * 0.01 },
+  row: { flexDirection: 'row', alignItems: 'center', marginBottom: height * 0.015 },
+  text: { fontSize: 14, color: '#666666', marginLeft: 6, fontFamily: 'NotoSansRegular' },
+  link: { fontSize: 14, color: '#3f729b', marginLeft: 6, fontFamily: 'NotoSansRegular' },
 });

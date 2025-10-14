@@ -9,19 +9,26 @@ import CloseIcon from '../../icons/x.svg';
 const { width, height } = Dimensions.get('window');
 
 export default function ArticleItem({ item, onChange, onRemove, iconSize }) {
-
   const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      return Alert.alert('권한 필요', '갤러리 접근 권한을 허용해주세요');
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('권한 필요', '갤러리 접근 권한을 허용해주세요');
+        return;
+      }
+
+      const res = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],          // ✅ SDK 54: 문자열 배열
+        allowsEditing: false,
+        quality: 0.8,
+      });
+
+      if (res.canceled) return;
+      onChange({ ...item, img: res.assets[0].uri });
+    } catch (e) {
+      console.error('이미지 선택 오류:', e);
+      Alert.alert('오류', '이미지를 불러오지 못했습니다.');
     }
-    const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: false,
-      quality: 0.8,
-    });
-    if (res.canceled) return;
-    onChange({ ...item, img: res.assets[0].uri });
   };
 
   return (
@@ -45,7 +52,7 @@ export default function ArticleItem({ item, onChange, onRemove, iconSize }) {
             style={styles.titleInput}
             value={item.title}
             placeholder="상품 이름"
-            onChangeText={text => onChange({ ...item, title: text })}
+            onChangeText={(text) => onChange({ ...item, title: text })}
           />
           <TouchableOpacity onPress={onRemove} style={styles.removeBtn}>
             <CloseIcon width={iconSize * 0.3} height={iconSize * 0.3} />
@@ -56,7 +63,7 @@ export default function ArticleItem({ item, onChange, onRemove, iconSize }) {
           style={styles.priceInput}
           value={item.price}
           placeholder="가격"
-          onChangeText={text => onChange({ ...item, price: text })}
+          onChangeText={(text) => onChange({ ...item, price: text })}
         />
 
         <TextInput
@@ -64,7 +71,7 @@ export default function ArticleItem({ item, onChange, onRemove, iconSize }) {
           value={item.review}
           placeholder="한줄 설명"
           multiline
-          onChangeText={text => onChange({ ...item, review: text })}
+          onChangeText={(text) => onChange({ ...item, review: text })}
         />
       </View>
     </View>
@@ -97,14 +104,19 @@ const styles = StyleSheet.create({
     fontSize: height * 0.02,
     fontWeight: '500',
     color: '#000',
-    fontFamily:"NotoSansRegular"
+    fontFamily: 'NotoSansRegular',
   },
   removeBtn: { marginLeft: width * 0.02 },
   priceInput: {
     fontSize: height * 0.015,
     color: '#888',
     marginBottom: height * 0.005,
-    fontFamily:"NotoSansRegular"
+    fontFamily: 'NotoSansRegular',
   },
-  reviewInput: { fontFamily:"NotoSansRegular", fontSize: height * 0.017, color: '#888', flexShrink: 1 },
+  reviewInput: {
+    fontFamily: 'NotoSansRegular',
+    fontSize: height * 0.017,
+    color: '#888',
+    flexShrink: 1,
+  },
 });

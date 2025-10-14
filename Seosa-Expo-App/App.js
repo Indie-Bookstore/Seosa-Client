@@ -128,6 +128,7 @@ function RootApp() {
         })
         .catch((err) => console.error("🔴 fetchUserInfo 에러:", err))
         .finally(() => setUserLoaded(true));
+        console.log(accessToken);
     } else {
       dispatch(clearAuth());
       setUserLoaded(true);

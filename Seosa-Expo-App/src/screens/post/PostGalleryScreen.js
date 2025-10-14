@@ -9,11 +9,12 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
+import { useSelector } from "react-redux"; 
 import LogoIcon from "../../icons/logo-green.svg";
 import EditIcon from "../../icons/edit-white.svg";
 import Post from "../../components/post/Post";
 import Footer from "../../components/common/footer/Footer";
-import { navigate } from "../../utils/nav/RootNavigation"; // navigation prop 대신 이거만 사용
+import { navigate } from "../../utils/nav/RootNavigation";
 import api from "../../api/axios";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
 import SafeTopSpacer from "../../components/common/layout/SafeTopSpacer";
@@ -27,6 +28,9 @@ const size = width * 0.1;
 const PostGalleryScreen = ({ navigation }) => {
   const isLoggedIn = useRequireAuth();
   if (!isLoggedIn) return null;
+
+  const userRole = useSelector((state) => state.auth.user?.userRole);
+  const isEditor = userRole === "EDITOR";
 
   const [posts, setPosts] = useState([]);
   const [cursorId, setCursorId] = useState(null);
@@ -56,7 +60,7 @@ const PostGalleryScreen = ({ navigation }) => {
 
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <View style={styles.container}>
@@ -110,13 +114,12 @@ const PostGalleryScreen = ({ navigation }) => {
               nickname={item.userName}
               image={
                 item.thumbnailUrl
-                  ? { uri: `https://seosa-server.s3.ap-northeast-2.amazonaws.com/${item.thumbnailUrl}` }
-                  : require("../../icons/examplephoto.svg")
+                  ? {
+                      uri: `https://seosa-s3-uniquename.s3.ap-northeast-2.amazonaws.com/${item.thumbnailUrl}`,
+                    }
+                  : null
               }
-              onPress={() =>
-                // navigation prop 대신 RootNavigation의 navigate 사용
-                navigate("Post", { postId: item.postId })
-              }
+              onPress={() => navigate("Post", { postId: item.postId })}
             />
           </View>
         ))}
@@ -132,14 +135,12 @@ const PostGalleryScreen = ({ navigation }) => {
         <View style={{ height: height * 0.08 }} />
       </ScrollView>
 
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() =>
-          navigate("article")
-        }
-      >
-        <EditIcon width={28} height={28} />
-      </TouchableOpacity>
+
+      {isEditor && (
+        <TouchableOpacity style={styles.fab} onPress={() => navigate("article")}>
+          <EditIcon width={24} height={24} />
+        </TouchableOpacity>
+      )}
 
       <Footer navigation={navigation} />
     </View>

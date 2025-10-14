@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Dimensions, Text } from "react-native";
 import AuthHeader from "../../components/auth/AuthHeader";
-import Constants from "expo-constants";
 import ShortInputComponent from "../../components/common/input/ShortInputComponent";
 import AlertComponent from "../../components/auth/AlertComponent";
 import { useSelector } from "react-redux";
@@ -12,7 +11,6 @@ import SafeTopSpacer from "../../components/common/layout/SafeTopSpacer";
 import { navigationRef, navigate } from "../../utils/nav/RootNavigation";
 
 const { width, height } = Dimensions.get("window");
-const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 const AuthCodeScreen = ({ navigation }) => {
   /* ──── Redux ──── */
@@ -148,7 +146,7 @@ const AuthCodeScreen = ({ navigation }) => {
   /* ──── UI ──── */
   return (
     <View style={styles.screen}>
-      <SafeTopSpacer />{" "}
+      <SafeTopSpacer />
       <AuthHeader
         title="비밀번호 재설정"
         backOnPress={() => navigation.goBack()}
@@ -162,9 +160,12 @@ const AuthCodeScreen = ({ navigation }) => {
           value={email}
           onChangeText={setEmail}
           onDuplicateCheck={handleSendVerificationCode}
-          duplicateBtnType={email.trim() ? "btn-green" : "btn-gray"}
-          disabled={timer > 0}
+          duplicateBtnType={
+            isCodeSent ? "btn-gray" : email.trim() ? "btn-green" : "btn-gray"
+          }
+          disabled={isCodeSent}
         />
+
         {sendCodeError ? (
           <AlertComponent description={sendCodeError} isError />
         ) : sendCodeMessage ? (

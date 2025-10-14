@@ -22,7 +22,7 @@ const kakaoKey =
 
 export default function MapPickerScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [location, setLocation] = useState(null);
+  const [location, setLocation] = useState(null); // { latitude, longitude }
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -35,22 +35,31 @@ export default function MapPickerScreen({ navigation }) {
         return;
       }
       const loc = await Location.getCurrentPositionAsync({});
-      setLocation(loc.coords);
+      setLocation(loc.coords); // { latitude, longitude, ... }
     })();
   }, []);
 
-  /* 2) Kakao 키워드 검색 */
+  /* 2) Kakao 키워드 검색 (현 위치 기준 가중치: x=lng, y=lat, radius 옵션) */
   const onSearch = async () => {
     if (!searchQuery.trim()) return Alert.alert('검색어를 입력해주세요');
-    if (!location) return Alert.alert('위치 정보를 가져오는 중입니다');
     if (!kakaoKey) return Alert.alert('API Key 오류', 'kakaoRestKey가 설정되지 않았습니다');
 
     setLoading(true);
     try {
+      // 위치를 알고 있으면 근방 검색 가중치 부여
+      const x = location?.longitude;
+      const y = location?.latitude;
+      const radius = 20000; // 20km (필요 시 조정)
+
+      const queryParams = new URLSearchParams({
+        query: searchQuery,
+        ...(x && y ? { x: String(x), y: String(y), radius: String(radius) } : {}),
+        size: '15',
+        page: '1',
+      });
+
       const res = await fetch(
-        `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(
-          searchQuery
-        )}`,
+        `https://dapi.kakao.com/v2/local/search/keyword.json?${queryParams.toString()}`,
         { headers: { Authorization: `KakaoAK ${kakaoKey}` } }
       );
       const json = await res.json();
@@ -68,39 +77,58 @@ export default function MapPickerScreen({ navigation }) {
     }
   };
 
-  /* 3) 장소 선택 → postalCode 포함 emit */
+  /* 3) 장소 선택 → postalCode/lat/lng/kakaoPlaceId 포함 emit
+       - Kakao Keyword 응답: item.id(카카오 장소 ID), item.x(lng), item.y(lat), item.address_name
+       - 우편번호: address API에서 road_address.zone_no 우선 사용
+  */
   const selectPlace = async (p) => {
-    let zoneNo = p.road_address?.zone_no ?? '';
+    // Kakao Keyword 문서에서:
+    // - p.id: 카카오 장소 id
+    // - p.x: 경도(lng, 문자열), p.y: 위도(lat, 문자열)
+    // - p.address_name: 지번/도로명이 혼합될 수 있음
+    // - p.road_address_name: 도로명 주소(없을 수 있음)
+    let zoneNo = p.road_address?.zone_no ?? ''; // 일부 응답엔 road_address 객체가 없음
+    const lat = parseFloat(p.y);
+    const lng = parseFloat(p.x);
+    const kakaoPlaceId = String(p.id);
 
     /* road_address.zone_no 가 없으면 주소 검색 API로 확보 */
     if (!zoneNo) {
       try {
-        const addressQuery = p.address_name;
-        const resAddr = await fetch(
-          `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(
-            addressQuery
-          )}`,
-          { headers: { Authorization: `KakaoAK ${kakaoKey}` } }
-        );
-        const jsonAddr = await resAddr.json();
+        const addressQuery = p.road_address_name || p.address_name || '';
+        if (addressQuery) {
+          const resAddr = await fetch(
+            `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(
+              addressQuery
+            )}`,
+            { headers: { Authorization: `KakaoAK ${kakaoKey}` } }
+          );
+          const jsonAddr = await resAddr.json();
 
-        if (Array.isArray(jsonAddr.documents) && jsonAddr.documents.length > 0) {
-          const firstDoc = jsonAddr.documents[0];
-          if (firstDoc.road_address?.zone_no) {
-            zoneNo = firstDoc.road_address.zone_no;
+          if (Array.isArray(jsonAddr.documents) && jsonAddr.documents.length > 0) {
+            const firstDoc = jsonAddr.documents[0];
+            if (firstDoc.road_address?.zone_no) {
+              zoneNo = firstDoc.road_address.zone_no;
+            }
           }
         }
       } catch (e) {
         console.error('주소 검색 중 오류:', e);
-        /* zone_no 못 얻어도 진행 */
+        // zone_no 못 얻어도 진행
       }
     }
 
-    /* ★ postalCode 포함하여 emit */
+    // 주소는 address_name(기본 주소)을 기본값으로 사용
+    const address = p.address_name || p.road_address_name || '';
+
+    /* ★ 모든 필드 포함하여 emit */
     DeviceEventEmitter.emit('mapSelect', {
-      address: p.address_name,
-      coords: { lat: parseFloat(p.y), lng: parseFloat(p.x) },
+      address,
+      coords: { lat, lng },
+      lat,
+      lng,
       postalCode: zoneNo,
+      kakaoPlaceId,
     });
 
     navigation.goBack();
@@ -127,11 +155,14 @@ export default function MapPickerScreen({ navigation }) {
         {/* 검색 결과 */}
         <FlatList
           data={results}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => String(item.id)}
           renderItem={({ item }) => (
             <TouchableOpacity style={styles.item} onPress={() => selectPlace(item)}>
               <Text style={styles.title}>{item.place_name}</Text>
               <Text style={styles.address}>{item.address_name}</Text>
+              {!!item.road_address_name && (
+                <Text style={styles.roadAddr}>{item.road_address_name}</Text>
+              )}
             </TouchableOpacity>
           )}
           ListEmptyComponent={
@@ -175,5 +206,6 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 16, color: '#000' },
   address: { fontSize: 12, color: '#666', marginTop: 4 },
+  roadAddr: { fontSize: 12, color: '#666', marginTop: 2 },
   empty: { alignItems: 'center', marginTop: 20 },
 });

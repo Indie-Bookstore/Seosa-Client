@@ -15,9 +15,9 @@ import {
 } from 'react-native';
 import Constants from 'expo-constants';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
 import * as ImageManipulator from 'expo-image-manipulator';
-
+import { File } from 'expo-file-system';                 // ✅ 신규 FS API
+import { fetch as expoFetch } from 'expo/fetch';         // ✅ 권장 fetch
 import { createPost } from '../../api/postApi';
 import api from '../../api/axios';
 import { ensureUserAndToken } from '../../utils/ensureUserAndToken';
@@ -34,29 +34,28 @@ const DEFAULT_FAB_BOTTOM = height * 0.09;
 const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 const ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp'];
 
-/* ───────── S3 업로드 ───────── */
+/* ───────── S3 업로드 (SDK 54 방식) ───────── */
 const uploadToS3 = async (uri, fileName, ext) => {
   await ensureUserAndToken();
 
   const encoded = encodeURIComponent(fileName);
   const { data } = await api.get(`/s3/presigned/${encoded}`);
-  console.log(data.url);
   const presignedUrl = data.url;
   const objectKey = data.objectKey;
 
-  const base64 = await FileSystem.readAsStringAsync(uri, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
-  const buffer = Buffer.from(base64, 'base64');
+  const mime = `image/${ext === 'jpg' ? 'jpeg' : ext}`;
 
-  const res = await fetch(presignedUrl, {
+  // ✅ expo-file-system의 File 객체를 body로 직접 업로드
+  const file = new File({ uri, name: fileName, type: mime });
+  const res = await expoFetch(presignedUrl, {
     method: 'PUT',
-    headers: { 'Content-Type': `image/${ext === 'jpg' ? 'jpeg' : ext}` },
-    body: buffer,
+    headers: { 'Content-Type': mime },
+    body: file,
   });
 
   if (!res.ok) {
-    console.error('🚨  S3 업로드 실패', res.status, await res.text());
+    const txt = await res.text().catch(() => '');
+    console.error('🚨  S3 업로드 실패', res.status, txt);
     throw new Error(`S3 업로드 실패: ${res.status}`);
   }
 
@@ -76,11 +75,16 @@ export default function ArticleScreen({ navigation }) {
     { title: '', price: '', img: '', review: '' },
   ]);
 
-  /* ───── 서점 정보 상태 ───── */
+  /* ───── 서점 정보 상태 ─────
+     ✅ kakaoPlaceId, lat, lng 추가
+  */
   const [storeInfo, setStoreInfo] = useState({
-    postalCode: '',          // 🔺 우편번호
+    postalCode: '',
     address: '',
-    coords: null,
+    coords: null,        // { lat, lng }
+    kakaoPlaceId: null,  // ✅ 추가
+    lat: null,           // ✅ 추가 (서버 DTO가 lat/lng를 직접 받는다면 편의 필드)
+    lng: null,           // ✅ 추가
     openDays: '',
     phoneNumber: '',
     instagramLink: '',
@@ -100,19 +104,32 @@ export default function ArticleScreen({ navigation }) {
     };
   }, []);
 
-  /* ───── MapPicker에서 선택되면 storeInfo 갱신 ───── */
+  /* ───── MapPicker에서 선택되면 storeInfo 갱신 ─────
+     DeviceEventEmitter.emit('mapSelect', {
+       address, coords:{lat,lng}, lat, lng, postalCode, kakaoPlaceId
+     })
+     ✅ 누락 필드(kakaoPlaceId, lat, lng)까지 모두 저장
+  */
   useEffect(() => {
     const sub = DeviceEventEmitter.addListener(
       'mapSelect',
-      ({ address, coords, postalCode }) =>
-        setStoreInfo((prev) => ({ ...prev, address, coords, postalCode }))
+      ({ address, coords, postalCode, kakaoPlaceId, lat, lng }) =>
+        setStoreInfo((prev) => ({
+          ...prev,
+          address,
+          coords,
+          postalCode,
+          kakaoPlaceId: kakaoPlaceId ?? prev.kakaoPlaceId,
+          lat: typeof lat === 'number' ? lat : coords?.lat ?? prev.lat,
+          lng: typeof lng === 'number' ? lng : coords?.lng ?? prev.lng,
+        }))
     );
     return () => sub.remove();
   }, []);
 
   /* ───── 이미지 전처리 & 업로드 ───── */
   const processImage = async (uri, idx, folder) => {
-    let ext = uri.split('.').pop().toLowerCase();
+    let ext = (uri.split('.').pop() || '').toLowerCase();
 
     if (ext === 'heic' || ext === 'heif') {
       const converted = await ImageManipulator.manipulateAsync(
@@ -147,7 +164,7 @@ export default function ArticleScreen({ navigation }) {
     try {
       await ensureUserAndToken();
 
-      /* 1) 본문 이미지 S3 업로드 */
+      // 1) 본문 이미지 업로드
       const uploadedBlocks = await Promise.all(
         blocks.map(async (b, i) =>
           b.type === 'image' && b.value.startsWith('file://')
@@ -156,7 +173,7 @@ export default function ArticleScreen({ navigation }) {
         )
       );
 
-      /* 2) 상품 이미지 S3 업로드 */
+      // 2) 상품 이미지 업로드
       const uploadedNarr = await Promise.all(
         narratives.map(async (n, i) =>
           n.img && n.img.startsWith('file://')
@@ -165,24 +182,35 @@ export default function ArticleScreen({ navigation }) {
         )
       );
 
-      /* 3) 썸네일 결정 */
+      // 3) 썸네일
       const thumbnailBlock = uploadedBlocks[thumbnailIdx];
 
-      /* 4) DTO 조립 (🔺 postalCode 포함) */
+      // 4) DTO (기존 구조 유지) + ✅ kakaoPlaceId/lat/lng 포함
+      const bookstoreReqDto = {
+        postalCode: storeInfo.postalCode,
+        address: storeInfo.address,
+        detailedAddress,
+        openDays: storeInfo.openDays,
+        openHours,
+        phoneNumber: storeInfo.phoneNumber,
+        instagramLink: storeInfo.instagramLink,
+        kakaoPlaceId: storeInfo.kakaoPlaceId ?? null, // ✅ 추가
+        lat:
+          typeof storeInfo.lat === 'number'
+            ? storeInfo.lat
+            : storeInfo.coords?.lat ?? 0,               // ✅ 추가
+        lng:
+          typeof storeInfo.lng === 'number'
+            ? storeInfo.lng
+            : storeInfo.coords?.lng ?? 0,               // ✅ 추가
+      };
+
       const postDto = {
         title,
         location: storeInfo.address,
         thumbnailUrl:
           thumbnailBlock?.type === 'image' ? thumbnailBlock.value : '',
-        bookstoreReqDto: {
-          postalCode: storeInfo.postalCode,   // 🔺
-          address: storeInfo.address,
-          detailedAddress,
-          openDays: storeInfo.openDays,
-          openHours,
-          phoneNumber: storeInfo.phoneNumber,
-          instagramLink: storeInfo.instagramLink,
-        },
+        bookstoreReqDto, // ✅ 변경
         contentReqDtoList: uploadedBlocks.map((b, i) => ({
           contentType: b.type === 'text' ? 'sentence' : 'img_url',
           content: b.value,
@@ -196,7 +224,6 @@ export default function ArticleScreen({ navigation }) {
         })),
       };
 
-      /* 5) 서버 전송 */
       const { postId } = await createPost(postDto);
       navigation.replace('Post', { postId });
     } catch (err) {
@@ -211,57 +238,60 @@ export default function ArticleScreen({ navigation }) {
 
   /* ───── 갤러리에서 이미지 선택 후 본문에 삽입 ───── */
   const pickImageAndInsert = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('권한 필요', '갤러리 접근 권한을 허용해주세요.');
-      return;
-    }
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('권한 필요', '갤러리 접근 권한을 허용해주세요.');
+        return;
+      }
 
-    const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      quality: 1,
-    });
-    if (res.canceled) return;
+      const res = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],        // ✅ SDK 54
+        quality: 1,
+      });
+      if (res.canceled) return;
 
-    let uri = res.assets[0].uri;
-    let ext = uri.split('.').pop().toLowerCase();
+      let uri = res.assets[0].uri;
+      let ext = (uri.split('.').pop() || '').toLowerCase();
 
-    if (ext === 'heic' || ext === 'heif') {
-      const converted = await ImageManipulator.manipulateAsync(
-        uri,
-        [],
-        { compress: 1, format: ImageManipulator.SaveFormat.JPEG }
-      );
-      uri = converted.uri;
-      ext = 'jpg';
-    }
+      if (ext === 'heic' || ext === 'heif') {
+        const converted = await ImageManipulator.manipulateAsync(
+          uri,
+          [],
+          { compress: 1, format: ImageManipulator.SaveFormat.JPEG }
+        );
+        uri = converted.uri;
+        ext = 'jpg';
+      }
 
-    if (!ALLOWED_EXTENSIONS.includes(ext)) {
-      Alert.alert(
-        '지원하지 않는 파일',
-        'PNG · JPG · JPEG · GIF · WEBP 만 업로드 가능합니다.'
-      );
-      return;
-    }
+      if (!ALLOWED_EXTENSIONS.includes(ext)) {
+        Alert.alert(
+          '지원하지 않는 파일',
+          'PNG · JPG · JPEG · GIF · WEBP 만 업로드 가능합니다.'
+        );
+        return;
+      }
 
-    const insertAt = focusedIndex + 1;
-    const newBlocks = [
-      ...blocks.slice(0, insertAt),
-      { type: 'image', value: uri },
-      { type: 'text', value: '' },
-      ...blocks.slice(insertAt),
-    ];
-    setBlocks(newBlocks);
-    Keyboard.dismiss();
+      const insertAt = focusedIndex + 1;
+      const newBlocks = [
+        ...blocks.slice(0, insertAt),
+        { type: 'image', value: uri },
+        { type: 'text', value: '' },
+        ...blocks.slice(insertAt),
+      ];
+      setBlocks(newBlocks);
+      Keyboard.dismiss();
 
-    /* 이미지가 처음 추가되면 자동으로 썸네일 지정 */
-    if (thumbnailIdx === null) {
-      const firstImageIdx = newBlocks.findIndex((b) => b.type === 'image');
-      if (firstImageIdx !== -1) setThumbnailIdx(firstImageIdx);
+      if (thumbnailIdx === null) {
+        const firstImageIdx = newBlocks.findIndex((b) => b.type === 'image');
+        if (firstImageIdx !== -1) setThumbnailIdx(firstImageIdx);
+      }
+    } catch (e) {
+      console.error('이미지 선택 오류:', e);
+      Alert.alert('오류', '이미지를 불러오지 못했습니다.');
     }
   };
 
-  /* ───── UI ───── */
   return (
     <KeyboardAvoidingView
       style={[styles.container, { paddingTop: STATUSBAR_HEIGHT }]}
@@ -316,7 +346,6 @@ export default function ArticleScreen({ navigation }) {
         />
       </ScrollView>
 
-      {/* 플로팅 버튼 */}
       <TouchableOpacity
         style={[
           styles.fab,
@@ -334,7 +363,6 @@ export default function ArticleScreen({ navigation }) {
         <AlbumIcon width={28} height={28} />
       </TouchableOpacity>
 
-      {/* 로딩 오버레이 */}
       {submitting && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#487153" />

@@ -10,7 +10,8 @@ import {
 import { StatusBar } from "expo-status-bar";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
-import * as FileSystem from "expo-file-system";
+import { File } from "expo-file-system";            // ✅ 신규 FS API
+import { fetch as expoFetch } from "expo/fetch";     // ✅ 권장 fetch
 import { useSelector, useDispatch } from "react-redux";
 import { setUser } from "../../store/authSlice";
 import AuthHeader from "../../components/auth/AuthHeader";
@@ -30,13 +31,13 @@ const { width, height } = Dimensions.get("window");
 /* ───── 업로드 관련 상수 ───── */
 const ALLOWED_EXTENSIONS = ["png", "jpg", "jpeg", "gif", "webp"];
 
+/* ───── S3 업로드 (SDK 54 방식) ───── */
 const uploadToS3 = async (uri) => {
-  // 1) 토큰·유저 확보
   await ensureUserAndToken();
   const token = store.getState().auth.accessToken;
 
-  // 2) 파일 확장자 & HEIC 변환
-  let ext = uri.split(".").pop().toLowerCase();
+  // 확장자 & HEIC 변환
+  let ext = (uri.split(".").pop() || "").toLowerCase();
   if (ext === "heic" || ext === "heif") {
     const manipulated = await ImageManipulator.manipulateAsync(uri, [], {
       compress: 1,
@@ -45,36 +46,32 @@ const uploadToS3 = async (uri) => {
     uri = manipulated.uri;
     ext = "jpg";
   }
-
   if (!ALLOWED_EXTENSIONS.includes(ext)) {
     throw new Error("PNG, JPG, JPEG, GIF, WEBP 형식만 지원합니다.");
   }
 
-  // 3) presigned URL 발급
+  // presigned URL
   const fileName = `profiles_${Date.now()}.${ext}`;
   const { data } = await api.get(
     `/s3/presigned/${encodeURIComponent(fileName)}`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
   const presignedUrl = data.url;
+  const mime = `image/${ext === "jpg" ? "jpeg" : ext}`;
 
-  // 4) 로컬 파일 → Buffer
-  const base64 = await FileSystem.readAsStringAsync(uri, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
-  const buffer = Buffer.from(base64, "base64");
-
-  // 5) PUT 업로드
-  const res = await fetch(presignedUrl, {
+  // ✅ expo/fetch + File 로 업로드 (base64/Buffer 제거)
+  const file = new File({ uri, name: fileName, type: mime });
+  const res = await expoFetch(presignedUrl, {
     method: "PUT",
-    headers: { "Content-Type": `image/${ext === "jpg" ? "jpeg" : ext}` },
-    body: buffer,
+    headers: { "Content-Type": mime },
+    body: file,
   });
   if (!res.ok) {
-    throw new Error(`S3 업로드 실패: ${res.status}`);
+    const txt = await res.text().catch(() => "");
+    throw new Error(`S3 업로드 실패: ${res.status} ${txt}`);
   }
 
-  // 6) 정적 URL 반환
+  // 정적 URL 반환
   return presignedUrl.split("?")[0];
 };
 
@@ -82,7 +79,6 @@ export default function EditProfileScreen() {
   const dispatch = useDispatch();
   const user = useSelector((s) => s.auth.user);
 
-  /* 상태 */
   const [profileImage, setProfileImage] = useState(null);
   const [nickname, setNickname] = useState("");
   const [msg, setMsg] = useState("");
@@ -90,32 +86,35 @@ export default function EditProfileScreen() {
   const [checking, setChecking] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  /* 초기값 반영 */
   useEffect(() => {
     if (user?.profileImage) setProfileImage(user.profileImage);
     if (user?.nickname) setNickname(user.nickname);
   }, [user]);
 
-  /* 유저 없으면 렌더링 X */
   if (!user) return null;
 
   const size = width * 0.067;
 
   /* ───── 이미지 선택 ───── */
   const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("권한 필요", "갤러리 접근 권한을 허용해주세요.");
-      return;
-    }
-    const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-    if (!res.canceled && res.assets.length > 0) {
-      setProfileImage(res.assets[0].uri);
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("권한 필요", "갤러리 접근 권한을 허용해주세요.");
+        return;
+      }
+      const res = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],      // ✅ SDK 54
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
+      if (!res.canceled && res.assets.length > 0) {
+        setProfileImage(res.assets[0].uri);
+      }
+    } catch (e) {
+      console.error("이미지 선택 오류:", e);
+      Alert.alert("오류", "이미지를 불러오지 못했습니다.");
     }
   };
 
@@ -162,7 +161,7 @@ export default function EditProfileScreen() {
 
     setSubmitting(true);
     try {
-      /** 1) 이미지 업로드 (필요 시) */
+      // 1) 이미지 업로드 (필요 시)
       let imageUrl = user.profileImage || "";
       if (profileImage?.startsWith("file://")) {
         imageUrl = await uploadToS3(profileImage);
@@ -170,13 +169,13 @@ export default function EditProfileScreen() {
         imageUrl = profileImage;
       }
 
-      /** 2) PATCH /user/profile */
+      // 2) PATCH /user/profile
       await api.patch("/user/profile", {
         nickname: trimmed,
         profileImage: imageUrl,
       });
 
-      /** 3) 최신 유저 정보 로드 */
+      // 3) 최신 유저 정보 로드
       try {
         const fresh = await fetchUserInfo();
         dispatch(setUser(fresh));

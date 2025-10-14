@@ -1,7 +1,3 @@
-/* 
- * src/components/article/ArticleInfo.js
-*/
-
 import React from 'react';
 import {
   View,
@@ -17,7 +13,8 @@ import ClockIcon from '../../icons/clock.svg';
 import PhoneIcon from '../../icons/phone.svg';
 import InstaIcon from '../../icons/insta.svg';
 
-const KAKAO_JS_KEY = '4c6a9d6cb2a66951381dc4ea3a6b3ea5';
+const KAKAO_JS_KEY = process.env.EXPO_PUBLIC_KAKAO_JS_KEY;
+
 const { width, height } = Dimensions.get('window');
 const ICON_SIZE = height * 0.02;
 
@@ -28,12 +25,13 @@ export default function ArticleInfo({
   onChangeInfo,
   onChangeDetail,
   onChangeHours,
-  onMapPress
+  onMapPress,
 }) {
   const { address, coords, openDays, phoneNumber, instagramLink } = info;
 
-  const htmlContent = coords
-    ? `<!DOCTYPE html>
+  const htmlContent =
+    coords && KAKAO_JS_KEY
+      ? `<!DOCTYPE html>
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -53,7 +51,7 @@ kakao.maps.load(function() {
 </script>
 </body>
 </html>`
-    : null;
+      : null;
 
   return (
     <View style={styles.container}>
@@ -62,7 +60,7 @@ kakao.maps.load(function() {
       <TouchableOpacity style={styles.map} onPress={onMapPress}>
         {htmlContent ? (
           <WebView
-            originWhitelist={["*"]}
+            originWhitelist={['*']}
             source={{ html: htmlContent }}
             style={styles.mapImage}
             javaScriptEnabled
@@ -150,7 +148,7 @@ const styles = StyleSheet.create({
     width: width * 0.9,
     fontSize: height * 0.023,
     color: '#666666',
-    fontFamily:"NotoSansRegular",
+    fontFamily: 'NotoSansRegular',
     marginVertical: height * 0.015,
   },
   map: {
@@ -160,7 +158,13 @@ const styles = StyleSheet.create({
     marginBottom: height * 0.015,
   },
   mapImage: { flex: 1, width: '100%', height: '100%' },
-  mapPlaceholder: { fontSize: 14, color: '#999', textAlign: 'center', marginTop: 8, fontFamily:"NotoSansRegular" },
+  mapPlaceholder: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
+    marginTop: 8,
+    fontFamily: 'NotoSansRegular',
+  },
   infoes: { width: width * 0.9, marginBottom: height * 0.05 },
   row: {
     flexDirection: 'row',
@@ -174,6 +178,6 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     paddingVertical: 0,
     textAlignVertical: 'center',
-    fontFamily:"NotoSansRegular"
+    fontFamily: 'NotoSansRegular',
   },
 });
